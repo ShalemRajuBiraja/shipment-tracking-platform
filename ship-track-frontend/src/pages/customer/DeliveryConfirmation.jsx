@@ -1,554 +1,1034 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-
+import SignatureCanvas from "react-signature-canvas";
 import { trackShipmentApi } from "../../services/shipmentService";
-import { confirmDeliveryApi } from "../../services/deliveryConfirmationService";
+import {
+  confirmDeliveryApi,
+  saveSignatureApi,
+  saveDeliveryImageApi
+} from "../../services/deliveryConfirmationService";
+import { markNotificationAsRead } from "../../services/notificationService";
 
-
-const DeliveryConfirmation = () => {
-
+export default function DeliveryConfirmation() {
   const { trackingNumber } = useParams();
+  const [searchParams] = useSearchParams();
+  const notificationId = searchParams.get("notificationId");
+
+  const signatureRef = useRef(null);
+  const galleryInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const cameraStreamRef = useRef(null);
 
   const [shipment, setShipment] = useState(null);
   const [loading, setLoading] = useState(true);
+
   const [confirming, setConfirming] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
+  const [savingSignature, setSavingSignature] = useState(false);
+  const [signatureSaved, setSignatureSaved] = useState(false);
 
-  // =========================================================
-  // LOAD SHIPMENT DETAILS
-  // =========================================================
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [savingImage, setSavingImage] = useState(false);
+  const [imageSaved, setImageSaved] = useState(false);
+
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraLoading, setCameraLoading] = useState(false);
+  const [cameraError, setCameraError] = useState("");
+  const [capturedPhoto, setCapturedPhoto] = useState(null);
 
   useEffect(() => {
+    loadShipment();
 
-    const loadShipment = async () => {
-
-      try {
-
-        setLoading(true);
-
-        const response =
-          await trackShipmentApi(trackingNumber);
-
-
-        if (response.data.success === true) {
-
-          const shipmentData =
-            response.data.data;
-
-          setShipment(shipmentData);
-
-          // If shipment is already delivered,
-          // don't show confirmation as pending
-          if (
-            shipmentData.currentStatus === "DELIVERED" ||
-            shipmentData.status === "DELIVERED"
-          ) {
-
-            setConfirmed(true);
-
-          }
-
-        } else {
-
-          toast.error(
-            response.data.message ||
-            "Unable to load shipment details."
-          );
-
-        }
-
-      } catch (error) {
-
-        console.error(
-          "Error loading shipment details:",
-          error
-        );
-
-        toast.error(
-          error.response?.data?.message ||
-          "Unable to load shipment details."
-        );
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
+    return () => {
+      stopCamera();
     };
-
-
-    if (trackingNumber) {
-
-      loadShipment();
-
-    }
-
   }, [trackingNumber]);
 
+  const loadShipment = async () => {
+    try {
+      setLoading(true);
 
-  // =========================================================
-  // CONFIRM DELIVERY
-  // =========================================================
+      const response =  await trackShipmentApi(trackingNumber);
+      const data = response?.data?.data || response?.data;
+console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
+      setShipment(data);
+
+      if (data?.status === "DELIVERED") {
+        setConfirmed(true);
+      }
+    } catch (error) {
+      console.error(
+        "Unable to load shipment:",
+        error
+      );
+
+      toast.error(
+        error?.response?.data?.message ||
+          "Unable to load shipment details"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ================= FINAL CONFIRM DELIVERY =================
 
   const handleConfirmDelivery = async () => {
+    if (!signatureSaved) {
+      toast.error(
+        "Please save your signature first"
+      );
+      return;
+    }
+
+    if (!imageSaved) {
+      toast.error(
+        "Please save the delivery image first"
+      );
+      return;
+    }
 
     try {
-
       setConfirming(true);
-
 
       const response =
         await confirmDeliveryApi(
           trackingNumber
         );
 
+      setConfirmed(true);
 
-      if (response.data.success === true) {
+      toast.success(
+        response?.data?.message ||
+          "Delivery confirmed successfully"
+      );
 
-        toast.success(
-          response.data.message ||
-          "Delivery confirmed successfully!"
-        );
-
-
-        setConfirmed(true);
-
-
-        // Update shipment status in the page
-        setShipment((previousShipment) => ({
-
-          ...previousShipment,
-
-          currentStatus: "DELIVERED",
-
-          status: "DELIVERED",
-
-        }));
-
-
-      } else {
-
-        toast.error(
-          response.data.message ||
-          "Unable to confirm delivery."
-        );
-
+      if (notificationId) {
+        try {
+          await markNotificationAsRead(
+            notificationId
+          );
+        } catch (notificationError) {
+          console.error(
+            "Unable to mark notification as read:",
+            notificationError
+          );
+        }
       }
 
+      await loadShipment();
     } catch (error) {
-
       console.error(
-        "Error confirming delivery:",
+        "Confirm delivery error:",
         error
       );
 
-
       toast.error(
-        error.response?.data?.message ||
-        "Unable to confirm delivery."
+        error?.response?.data?.message ||
+          "Unable to confirm delivery"
       );
-
     } finally {
-
       setConfirming(false);
-
     }
-
   };
 
+  // ================= SAVE SIGNATURE =================
 
-  // =========================================================
-  // LOADING STATE
-  // =========================================================
+  const handleSaveSignature = async () => {
+    if (!signatureRef.current) {
+      toast.error(
+        "Signature area is not available"
+      );
+      return;
+    }
+
+    if (signatureRef.current.isEmpty()) {
+      toast.error(
+        "Please provide your signature"
+      );
+      return;
+    }
+
+    try {
+      setSavingSignature(true);
+
+      const signature =
+        signatureRef.current.toDataURL(
+          "image/png"
+        );
+
+      const response =
+        await saveSignatureApi(
+          trackingNumber,
+          signature
+        );
+
+      setSignatureSaved(true);
+
+      toast.success(
+        response?.data?.message ||
+          "Signature saved successfully"
+      );
+    } catch (error) {
+      console.error(
+        "Save signature error:",
+        error
+      );
+
+      toast.error(
+        error?.response?.data?.message ||
+          "Unable to save signature"
+      );
+    } finally {
+      setSavingSignature(false);
+    }
+  };
+
+  const handleClearSignature = () => {
+    if (signatureRef.current) {
+      signatureRef.current.clear();
+    }
+
+    setSignatureSaved(false);
+  };
+
+  // ================= GALLERY IMAGE =================
+
+  const handleImageSelect = (event) => {
+    const file =
+      event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      toast.error(
+        "Please select an image file"
+      );
+      return;
+    }
+
+    if (imagePreview &&
+        imagePreview.startsWith("blob:")) {
+      URL.revokeObjectURL(
+        imagePreview
+      );
+    }
+
+    setSelectedImage(file);
+    setImagePreview(
+      URL.createObjectURL(file)
+    );
+    setCapturedPhoto(null);
+    setImageSaved(false);
+
+    event.target.value = "";
+  };
+
+  const handleRemoveImage = () => {
+    if (
+      imagePreview &&
+      imagePreview.startsWith("blob:")
+    ) {
+      URL.revokeObjectURL(
+        imagePreview
+      );
+    }
+
+    setSelectedImage(null);
+    setImagePreview(null);
+    setCapturedPhoto(null);
+    setImageSaved(false);
+  };
+
+  // ================= LIVE CAMERA =================
+
+  const startCamera = async () => {
+    try {
+      setCameraError("");
+      setCameraLoading(true);
+      setCapturedPhoto(null);
+
+      if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+      ) {
+        setCameraError(
+          "Live camera is not supported by this browser."
+        );
+
+        setCameraLoading(false);
+        return;
+      }
+
+      stopCamera();
+
+      const stream =
+        await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: {
+              ideal: "environment"
+            },
+            width: {
+              ideal: 1280
+            },
+            height: {
+              ideal: 720
+            }
+          },
+          audio: false
+        });
+
+      cameraStreamRef.current =
+        stream;
+
+      setCameraOpen(true);
+
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject =
+            stream;
+
+          videoRef.current
+            .play()
+            .catch((error) => {
+              console.error(
+                "Unable to start camera preview:",
+                error
+              );
+            });
+        }
+      }, 100);
+    } catch (error) {
+      console.error(
+        "Camera error:",
+        error
+      );
+
+      if (
+        error?.name ===
+        "NotAllowedError"
+      ) {
+        setCameraError(
+          "Camera permission was denied. Please allow camera access in your browser settings."
+        );
+      } else if (
+        error?.name ===
+        "NotFoundError"
+      ) {
+        setCameraError(
+          "No camera was found on this device."
+        );
+      } else if (
+        error?.name ===
+        "NotReadableError"
+      ) {
+        setCameraError(
+          "The camera is already being used by another application."
+        );
+      } else if (
+        error?.name ===
+        "SecurityError"
+      ) {
+        setCameraError(
+          "Camera access was blocked. Please use HTTPS or localhost."
+        );
+      } else {
+        setCameraError(
+          "Unable to access the camera."
+        );
+      }
+    } finally {
+      setCameraLoading(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (cameraStreamRef.current) {
+      cameraStreamRef.current
+        .getTracks()
+        .forEach((track) =>
+          track.stop()
+        );
+
+      cameraStreamRef.current = null;
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject =
+        null;
+    }
+
+    setCameraOpen(false);
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current) {
+      toast.error(
+        "Camera is not ready"
+      );
+      return;
+    }
+
+    const video =
+      videoRef.current;
+
+    if (
+      video.videoWidth === 0 ||
+      video.videoHeight === 0
+    ) {
+      toast.error(
+        "Camera is not ready yet"
+      );
+      return;
+    }
+
+    const canvas =
+      canvasRef.current;
+
+    if (!canvas) {
+      toast.error(
+        "Unable to capture photo"
+      );
+      return;
+    }
+
+    canvas.width =
+      video.videoWidth;
+
+    canvas.height =
+      video.videoHeight;
+
+    const context =
+      canvas.getContext("2d");
+
+    context.drawImage(
+      video,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    const imageData =
+      canvas.toDataURL(
+        "image/jpeg",
+        0.9
+      );
+
+    setCapturedPhoto(
+      imageData
+    );
+
+    setImagePreview(
+      imageData
+    );
+
+    setSelectedImage(null);
+    setImageSaved(false);
+
+    stopCamera();
+
+    toast.success(
+      "Photo captured successfully"
+    );
+  };
+
+  const retakePhoto = async () => {
+    setCapturedPhoto(null);
+    setImagePreview(null);
+    setSelectedImage(null);
+    setImageSaved(false);
+
+    await startCamera();
+  };
+
+  const useCapturedPhoto = () => {
+    if (!capturedPhoto) {
+      toast.error(
+        "No captured photo available"
+      );
+      return;
+    }
+
+    setImagePreview(
+      capturedPhoto
+    );
+
+    setImageSaved(false);
+
+    toast.success(
+      "Photo selected"
+    );
+  };
+
+  // ================= SAVE DELIVERY IMAGE =================
+
+  const handleSaveDeliveryImage =
+    async () => {
+
+      if (!imagePreview) {
+        toast.error(
+          "Please select or capture a delivery image"
+        );
+        return;
+      }
+
+      try {
+        setSavingImage(true);
+
+        let imageData =
+          imagePreview;
+
+        if (selectedImage) {
+          imageData =
+            await new Promise(
+              (resolve, reject) => {
+
+                const reader =
+                  new FileReader();
+
+                reader.onload = () => {
+                  resolve(
+                    reader.result
+                  );
+                };
+
+                reader.onerror = () => {
+                  reject(
+                    new Error(
+                      "Unable to read selected image"
+                    )
+                  );
+                };
+
+                reader.readAsDataURL(
+                  selectedImage
+                );
+              }
+            );
+        }
+
+        const response =
+          await saveDeliveryImageApi(
+            trackingNumber,
+            imageData
+          );
+
+        setImageSaved(true);
+
+        toast.success(
+          response?.data?.message ||
+            "Delivery image saved successfully"
+        );
+      } catch (error) {
+        console.error(
+          "Save delivery image error:",
+          error
+        );
+
+        toast.error(
+          error?.response?.data?.message ||
+            "Unable to save delivery image"
+        );
+      } finally {
+        setSavingImage(false);
+      }
+    };
+
+  // ================= LOADING =================
 
   if (loading) {
-
     return (
-
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-
-        <p className="text-slate-600 font-medium">
-
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-sm text-slate-600">
           Loading shipment details...
-
-        </p>
-
+        </div>
       </div>
-
     );
-
   }
-
-
-  // =========================================================
-  // SHIPMENT NOT FOUND
-  // =========================================================
 
   if (!shipment) {
-
     return (
-
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 text-center">
-
-          <h2 className="text-lg font-bold text-slate-800">
-
-            Shipment Not Found
-
-          </h2>
-
-
-          <p className="text-sm text-slate-500 mt-2">
-
-            Unable to load the shipment details.
-
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+          <p className="text-sm text-red-600">
+            Shipment details could not be loaded.
           </p>
-
         </div>
-
       </div>
-
     );
-
   }
 
-
-  // =========================================================
-  // PAGE
-  // =========================================================
-
   return (
+    <div className="min-h-screen bg-slate-50 py-8 px-4">
+      <div className="max-w-4xl mx-auto space-y-6">
 
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+        {/* HEADER */}
 
-      <div className="max-w-4xl mx-auto">
-
-
-        {/* =====================================================
-            HEADER
-        ====================================================== */}
-
-        <div className="mb-5">
-
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
-
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+          <h1 className="text-2xl font-bold text-slate-800">
             Delivery Confirmation
-
           </h1>
 
-
           <p className="text-sm text-slate-500 mt-1">
-
-            Please review your shipment details before confirming delivery.
-
+            Complete the delivery evidence before confirming the delivery.
           </p>
-
         </div>
 
+        {/* SHIPMENT DETAILS */}
+        <section className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+  <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+    Shipment Details
+  </h2>
 
-        {/* =====================================================
-            SHIPMENT DETAILS
-        ====================================================== */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
 
-        <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
+    <div>
+      <p className="text-sm text-gray-500">Tracking Number</p>
+      <p className="mt-1 text-lg font-medium text-gray-900">
+        {shipment?.trackingNumber || "N/A"}
+      </p>
+    </div>
 
-          <h2 className="text-lg font-bold text-slate-800 mb-4">
+    <div>
+      <p className="text-sm text-gray-500">Status</p>
+      <p className="mt-1 text-lg font-medium text-gray-900">
+        {shipment?.currentStatus || "N/A"}
+      </p>
+    </div>
 
-            Shipment Details
+    <div>
+      <p className="text-sm text-gray-500">Sender Name</p>
+      <p className="mt-1 text-lg font-medium text-gray-900">
+        {shipment?.senderName || "N/A"}
+      </p>
+    </div>
 
-          </h2>
+    <div>
+      <p className="text-sm text-gray-500">Receiver Name</p>
+      <p className="mt-1 text-lg font-medium text-gray-900">
+        {shipment?.receiverName || "N/A"}
+      </p>
+    </div>
 
+    <div>
+      <p className="text-sm text-gray-500">Receiver Phone</p>
+      <p className="mt-1 text-lg font-medium text-gray-900">
+        {shipment?.receiverPhone || "N/A"}
+      </p>
+    </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <p className="text-sm text-gray-500">Weight</p>
+      <p className="mt-1 text-lg font-medium text-gray-900">
+        {shipment?.weight !== null && shipment?.weight !== undefined
+          ? `${shipment.weight} kg`
+          : "N/A"}
+      </p>
+    </div>
 
+    <div>
+      <p className="text-sm text-gray-500">Pickup Address</p>
+      <p className="mt-1 text-lg font-medium text-gray-900">
+        {shipment?.pickupAddress || "N/A"}
+      </p>
+    </div>
 
-            {/* Tracking Number */}
+    <div>
+      <p className="text-sm text-gray-500">Delivery Address</p>
+      <p className="mt-1 text-lg font-medium text-gray-900">
+        {shipment?.deliveryAddress || "N/A"}
+      </p>
+    </div>
 
-            <div>
+    <div className="md:col-span-2">
+      <p className="text-sm text-gray-500">Package Description</p>
+      <p className="mt-1 text-lg font-medium text-gray-900">
+        {shipment?.packageDescription || "N/A"}
+      </p>
+    </div>
 
-              <p className="text-xs text-slate-500">
+    <div className="md:col-span-2">
+      <p className="text-sm text-gray-500">Created At</p>
+      <p className="mt-1 text-lg font-medium text-gray-900">
+        {shipment?.createdAt
+          ? new Date(shipment.createdAt).toLocaleString()
+          : "N/A"}
+      </p>
+    </div>
 
-                Tracking Number
+  </div>
 
-              </p>
+</section>
 
+        {/* DIGITAL SIGNATURE */}
 
-              <p className="font-semibold text-slate-800 mt-1">
+        {!confirmed && (
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
 
-                {shipment.trackingNumber}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-800">
+                  Digital Signature
+                </h2>
 
-              </p>
+                <p className="text-sm text-slate-500 mt-1">
+                  Please provide your signature as delivery evidence.
+                </p>
+              </div>
 
+              {signatureSaved && (
+                <span className="text-xs font-semibold text-emerald-600">
+                  ✓ Saved
+                </span>
+              )}
             </div>
 
+            <div className="mt-5 border border-slate-300 rounded-lg overflow-hidden bg-white">
+              <SignatureCanvas
+                ref={signatureRef}
+                penColor="black"
+                canvasProps={{
+                  className:
+                    "w-full h-48 cursor-crosshair"
+                }}
+              />
+            </div>
 
-            {/* Status */}
+            <div className="flex flex-wrap gap-3 mt-4">
 
-            <div>
-
-              <p className="text-xs text-slate-500">
-
-                Status
-
-              </p>
-
-
-              <p
-                className={`font-semibold mt-1 ${
-                  confirmed
-                    ? "text-emerald-600"
-                    : "text-orange-600"
-                }`}
+              <button
+                type="button"
+                onClick={
+                  handleClearSignature
+                }
+                disabled={savingSignature}
+                className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 disabled:bg-slate-100 text-sm font-medium"
               >
+                Clear
+              </button>
 
-                {confirmed
-                  ? "DELIVERED"
-                  : (
-                      shipment.currentStatus ||
-                      shipment.status
-                    )}
-
-              </p>
-
-            </div>
-
-
-            {/* Sender */}
-
-            <div>
-
-              <p className="text-xs text-slate-500">
-
-                Sender
-
-              </p>
-
-
-              <p className="font-semibold text-slate-800 mt-1">
-
-                {shipment.senderName}
-
-              </p>
+              <button
+                type="button"
+                onClick={
+                  handleSaveSignature
+                }
+                disabled={
+                  savingSignature ||
+                  signatureSaved
+                }
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white rounded-lg text-sm font-semibold"
+              >
+                {savingSignature
+                  ? "Saving..."
+                  : signatureSaved
+                  ? "Signature Saved"
+                  : "Save Signature"}
+              </button>
 
             </div>
+          </div>
+        )}
 
+        {/* DELIVERY IMAGE */}
 
-            {/* Receiver */}
+        {!confirmed && (
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
 
-            <div>
-
-              <p className="text-xs text-slate-500">
-
-                Receiver
-
-              </p>
-
-
-              <p className="font-semibold text-slate-800 mt-1">
-
-                {shipment.receiverName}
-
-              </p>
-
-            </div>
-
-
-            {/* Receiver Phone */}
-
-            {shipment.receiverPhone && (
-
+            <div className="flex items-center justify-between">
               <div>
+                <h2 className="text-lg font-semibold text-slate-800">
+                  Delivery Image
+                </h2>
 
-                <p className="text-xs text-slate-500">
-
-                  Receiver Phone
-
+                <p className="text-sm text-slate-500 mt-1">
+                  Upload a delivery photo or take a picture using your camera.
                 </p>
-
-
-                <p className="font-semibold text-slate-800 mt-1">
-
-                  {shipment.receiverPhone}
-
-                </p>
-
               </div>
 
+              {imageSaved && (
+                <span className="text-xs font-semibold text-emerald-600">
+                  ✓ Saved
+                </span>
+              )}
+            </div>
+
+            {/* GALLERY INPUT */}
+
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={
+                handleImageSelect
+              }
+            />
+
+            {/* CAMERA ERROR */}
+
+            {cameraError && (
+              <div className="mt-5 bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-sm text-red-700">
+                  {cameraError}
+                </p>
+              </div>
             )}
 
+            {/* LIVE CAMERA */}
 
-            {/* Weight */}
+            {cameraOpen && (
+              <div className="mt-5 border border-slate-200 rounded-xl overflow-hidden bg-black">
 
-            {shipment.weight && (
+                <div className="relative">
 
-              <div>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full max-h-[500px] object-cover"
+                  />
 
-                <p className="text-xs text-slate-500">
+                  <div className="absolute top-3 left-3 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full">
+                    Live Camera
+                  </div>
 
-                  Weight
+                </div>
 
-                </p>
+                <div className="p-4 bg-white flex flex-wrap gap-3">
 
+                  <button
+                    type="button"
+                    onClick={
+                      capturePhoto
+                    }
+                    disabled={
+                      cameraLoading
+                    }
+                    className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white px-5 py-2.5 rounded-lg font-semibold text-sm"
+                  >
+                    Capture Photo
+                  </button>
 
-                <p className="font-semibold text-slate-800 mt-1">
+                  <button
+                    type="button"
+                    onClick={
+                      stopCamera
+                    }
+                    className="border border-slate-300 text-slate-700 hover:bg-slate-50 px-5 py-2.5 rounded-lg font-medium text-sm"
+                  >
+                    Cancel
+                  </button>
 
-                  {shipment.weight}
-
-                </p>
-
+                </div>
               </div>
-
             )}
 
+            {/* CAPTURED PHOTO */}
+
+            {capturedPhoto &&
+              !cameraOpen && (
+                <div className="mt-5 border border-slate-200 rounded-xl overflow-hidden">
+
+                  <img
+                    src={
+                      capturedPhoto
+                    }
+                    alt="Captured delivery"
+                    className="w-full max-h-[500px] object-contain bg-slate-100"
+                  />
+
+                  <div className="p-4 flex flex-wrap gap-3">
+
+                    <button
+                      type="button"
+                      onClick={
+                        retakePhoto
+                      }
+                      className="border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg text-sm font-medium"
+                    >
+                      Retake
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={
+                        useCapturedPhoto
+                      }
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold"
+                    >
+                      Use This Photo
+                    </button>
+
+                  </div>
+                </div>
+            )}
+
+            {/* GALLERY PREVIEW */}
+
+            {imagePreview &&
+              !cameraOpen &&
+              !capturedPhoto && (
+                <div className="mt-5 border border-slate-200 rounded-xl overflow-hidden">
+
+                  <img
+                    src={
+                      imagePreview
+                    }
+                    alt="Delivery preview"
+                    className="w-full max-h-[500px] object-contain bg-slate-100"
+                  />
+
+                  <div className="p-4">
+
+                    <button
+                      type="button"
+                      onClick={
+                        handleRemoveImage
+                      }
+                      className="border border-red-300 text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg text-sm font-medium"
+                    >
+                      Remove Image
+                    </button>
+
+                  </div>
+                </div>
+            )}
+
+            {/* IMAGE OPTIONS */}
+
+            {!cameraOpen &&
+              !capturedPhoto &&
+              !imagePreview && (
+                <div className="mt-5 flex flex-col sm:flex-row gap-3">
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      galleryInputRef.current?.click()
+                    }
+                    className="flex-1 border border-slate-300 hover:bg-slate-50 text-slate-700 px-5 py-3 rounded-lg font-semibold text-sm transition"
+                  >
+                    Upload from Gallery
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={
+                      startCamera
+                    }
+                    disabled={
+                      cameraLoading
+                    }
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white px-5 py-3 rounded-lg font-semibold text-sm transition"
+                  >
+                    {cameraLoading
+                      ? "Opening Camera..."
+                      : "Take a Picture"}
+                  </button>
+
+                </div>
+            )}
+
+            {/* SAVE IMAGE */}
+
+            {imagePreview &&
+              !cameraOpen && (
+                <button
+                  type="button"
+                  onClick={
+                    handleSaveDeliveryImage
+                  }
+                  disabled={
+                    savingImage ||
+                    imageSaved
+                  }
+                  className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white px-5 py-3 rounded-lg font-semibold text-sm transition"
+                >
+                  {savingImage
+                    ? "Saving Delivery Image..."
+                    : imageSaved
+                    ? "Delivery Image Saved"
+                    : "Save Delivery Image"}
+                </button>
+            )}
+
+            <canvas
+              ref={canvasRef}
+              className="hidden"
+            />
+
           </div>
+        )}
 
+        {/* FINAL CONFIRM DELIVERY */}
 
-          {/* ===================================================
-              ADDRESSES
-          ==================================================== */}
+        {!confirmed && (
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
 
-          <div className="mt-5 pt-5 border-t border-slate-200">
+            <h2 className="text-lg font-semibold text-slate-800">
+              Complete Delivery
+            </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-
-              {/* Pickup Address */}
-
-              <div>
-
-                <p className="text-xs text-slate-500">
-
-                  Pickup Address
-
-                </p>
-
-
-                <p className="text-sm text-slate-800 mt-1">
-
-                  {shipment.pickupAddress}
-
-                </p>
-
-              </div>
-
-
-              {/* Delivery Address */}
-
-              <div>
-
-                <p className="text-xs text-slate-500">
-
-                  Delivery Address
-
-                </p>
-
-
-                <p className="text-sm text-slate-800 mt-1">
-
-                  {shipment.deliveryAddress}
-
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          {/* ===================================================
-              PACKAGE DESCRIPTION
-          ==================================================== */}
-
-          {shipment.packageDescription && (
-
-            <div className="mt-5 pt-5 border-t border-slate-200">
-
-              <p className="text-xs text-slate-500">
-
-                Package Description
-
-              </p>
-
-
-              <p className="text-sm text-slate-800 mt-1">
-
-                {shipment.packageDescription}
-
-              </p>
-
-            </div>
-
-          )}
-
-        </section>
-
-
-        {/* =====================================================
-            CONFIRMATION SECTION
-        ====================================================== */}
-
-        <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 mt-4">
-
-          <h2 className="text-lg font-bold text-slate-800">
-
-            {confirmed
-              ? "Delivery Confirmed"
-              : "Confirm Delivery"}
-
-          </h2>
-
-
-          <p className="text-sm text-slate-500 mt-2">
-
-            {confirmed
-              ? "This shipment has already been confirmed as delivered."
-              : "Please confirm that you have received the shipment. Once confirmed, the shipment will be marked as delivered."}
-
-          </p>
-
-
-          {!confirmed && (
+            <p className="text-sm text-slate-500 mt-1">
+              Save your signature and delivery image before confirming the delivery.
+            </p>
 
             <button
               type="button"
-              onClick={handleConfirmDelivery}
-              disabled={confirming}
-              className="mt-5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold px-6 py-2.5 rounded-lg transition"
+              onClick={
+                handleConfirmDelivery
+              }
+              disabled={
+                !signatureSaved ||
+                !imageSaved ||
+                confirming
+              }
+              className="mt-5 w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-5 py-3 rounded-lg font-semibold text-sm transition"
             >
-
               {confirming
-                ? "Confirming..."
+                ? "Confirming Delivery..."
                 : "Confirm Delivery"}
-
             </button>
 
-          )}
+            {!signatureSaved ||
+            !imageSaved ? (
+              <p className="text-xs text-slate-500 mt-3 text-center">
+                Signature and delivery image are required to enable confirmation.
+              </p>
+            ) : (
+              <p className="text-xs text-emerald-600 mt-3 text-center font-medium">
+                ✓ Signature and delivery image completed. You can now confirm the delivery.
+              </p>
+            )}
 
+          </div>
+        )}
 
-          {confirmed && (
+        {/* COMPLETED */}
 
-            <div className="mt-5 inline-flex items-center bg-emerald-100 text-emerald-700 font-semibold px-4 py-2.5 rounded-lg">
+        {confirmed && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
 
-              ✓ Delivery Confirmed
+            <h2 className="text-lg font-semibold text-emerald-800">
+              ✓ Delivery Completed
+            </h2>
 
-            </div>
+            <p className="text-sm text-emerald-700 mt-1">
+              Delivery confirmation, digital signature, and delivery image have been successfully completed.
+            </p>
 
-          )}
-
-        </section>
+          </div>
+        )}
 
       </div>
-
     </div>
-
   );
-
-};
-
-
-export default DeliveryConfirmation;
+}

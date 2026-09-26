@@ -26,6 +26,8 @@ dist-ssr
 *.sw?
 .env.local
 
+# Uploaded files
+ship-track-backend/uploads/
 
 # BACK-END
 HELP.md

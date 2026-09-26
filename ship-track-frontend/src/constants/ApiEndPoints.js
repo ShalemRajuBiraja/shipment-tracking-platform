@@ -32,5 +32,9 @@ export const API_END_POINTS = {
     GET_CURRENT_LOCATION_TO_DELIVERY_ROUTE : "/api/shipments",
     GET_MY_NOTIFICATIONS : "/api/notifications",
     GET_UNREAD_NOTIFICATIONS : "/api/notifications/unread",
-    CONFIRM_DELIVERY: "/delivery-confirmations/confirm",
+    CONFIRM_DELIVERY: "/api/delivery-confirmations/confirm",
+    OPEN_AND_SAVE_DELIVERY_CONFIRMATION : "/api/delivery-confirmations/open",
+    UPDATE_NOTIFICATION : "/api/notifications",
+    SAVE_SIGNATURE_API : "/api/delivery-confirmations/signature",
+    SAVE_DELIVERY_IMAGE_API : "/api/delivery-confirmations/delivery-image"
 }

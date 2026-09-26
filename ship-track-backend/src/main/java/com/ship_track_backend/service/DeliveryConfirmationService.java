@@ -1,6 +1,9 @@
 package com.ship_track_backend.service;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.time.LocalDateTime;
+import java.util.Base64;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -10,6 +13,8 @@ import com.ship_track_backend.entity.ShipmentEntity;
 import com.ship_track_backend.entity.UserEntity;
 import com.ship_track_backend.enums.ShipmentStatus;
 import com.ship_track_backend.pojo.DeliveryConfirmationResponseDto;
+import com.ship_track_backend.pojo.DeliveryImageRequest;
+import com.ship_track_backend.pojo.SignatureRequest;
 import com.ship_track_backend.repository.DeliveryConfirmationRepository;
 import com.ship_track_backend.repository.ShipmentRepository;
 import com.ship_track_backend.repository.UserRepository;
@@ -39,43 +44,36 @@ public class DeliveryConfirmationService {
     public DeliveryConfirmationEntity openDeliveryConfirmation(
             String trackingNumber) {
 
-        // Get logged-in operator
         String email = SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getName();
 
-        // Find shipment
         ShipmentEntity shipment = shipmentRepository
                 .findByTrackingNumber(trackingNumber)
                 .orElseThrow(() ->
                         new RuntimeException("Shipment not found"));
 
-        // Get logged-in operator
         UserEntity operator = userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("Operator not found"));
 
-        // Get customer
         UserEntity customer = shipment.getReceiver();
 
         if (customer == null) {
-
             throw new RuntimeException(
                     "No customer is associated with this shipment");
         }
 
-        // Check whether confirmation already exists
         if (deliveryConfirmationRepository
                 .findByShipment_TrackingNumber(trackingNumber)
                 .isPresent()) {
 
             throw new RuntimeException(
-                    "Delivery confirmation already exists for this shipment");
+                    "Delivery confirmation already sent for this shipment");
         }
 
-        // Create delivery confirmation
         DeliveryConfirmationEntity confirmation =
                 new DeliveryConfirmationEntity();
 
@@ -84,44 +82,50 @@ public class DeliveryConfirmationService {
         confirmation.setOperator(operator);
         confirmation.setConfirmed(false);
 
-        // Save confirmation
         DeliveryConfirmationEntity savedConfirmation =
                 deliveryConfirmationRepository.save(confirmation);
 
-        // Create notification for customer
         notificationService.createNotification(
                 customer,
                 shipment,
-                "Delivery Confirmation Required"
-        );
+                "Delivery Confirmation Required");
 
         return savedConfirmation;
     }
 
-
-    // ================= CONFIRM DELIVERY =================
+    // ================= FINAL CONFIRM DELIVERY =================
 
     public DeliveryConfirmationResponseDto confirmDelivery(
             String trackingNumber) {
 
-        // Find delivery confirmation
         DeliveryConfirmationEntity confirmation =
                 deliveryConfirmationRepository
                         .findByShipment_TrackingNumber(trackingNumber)
                         .orElseThrow(() ->
                                 new RuntimeException(
-                                        "Delivery confirmation request not found"
-                                ));
+                                        "Delivery confirmation request not found"));
 
-        // Check if already confirmed
         if (confirmation.isConfirmed()) {
-
             throw new RuntimeException(
-                    "Delivery has already been confirmed"
-            );
+                    "Delivery has already been confirmed");
         }
 
-        // Get logged-in customer
+        // Signature must be saved first
+        if (confirmation.getSignaturePath() == null ||
+                confirmation.getSignaturePath().isBlank()) {
+
+            throw new RuntimeException(
+                    "Please save your signature before confirming delivery");
+        }
+
+        // Delivery image must be saved first
+        if (confirmation.getDeliveryImagePath() == null ||
+                confirmation.getDeliveryImagePath().isBlank()) {
+
+            throw new RuntimeException(
+                    "Please save the delivery image before confirming delivery");
+        }
+
         String email = SecurityContextHolder
                 .getContext()
                 .getAuthentication()
@@ -131,52 +135,40 @@ public class DeliveryConfirmationService {
                 .findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException(
-                                "Customer not found"
-                        ));
+                                "Customer not found"));
 
-        // Make sure the logged-in customer
-        // is the customer associated with this shipment
         if (!confirmation.getCustomer().getId()
                 .equals(customer.getId())) {
 
             throw new RuntimeException(
-                    "You are not authorized to confirm this delivery"
-            );
+                    "You are not authorized to confirm this delivery");
         }
 
-        // Confirm delivery
+        // Final confirmation
         confirmation.setConfirmed(true);
 
         confirmation.setConfirmedByName(
-                customer.getName()
-        );
+                customer.getName());
 
         confirmation.setConfirmedAt(
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
 
-        // Get shipment
         ShipmentEntity shipment =
                 confirmation.getShipment();
 
-        // Update shipment status
+        // Only NOW change shipment status
         shipment.setStatus(
-                ShipmentStatus.DELIVERED
-        );
+                ShipmentStatus.DELIVERED);
 
         shipment.setUpdatedAt(
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
 
         shipmentRepository.save(shipment);
 
-        // Save confirmation
         DeliveryConfirmationEntity savedConfirmation =
                 deliveryConfirmationRepository.save(
-                        confirmation
-                );
+                        confirmation);
 
-        // Return safe DTO
         return new DeliveryConfirmationResponseDto(
                 savedConfirmation.getId(),
                 shipment.getTrackingNumber(),
@@ -184,7 +176,218 @@ public class DeliveryConfirmationService {
                 savedConfirmation.getConfirmedByName(),
                 savedConfirmation.getRequestedAt(),
                 savedConfirmation.getConfirmedAt(),
-                shipment.getStatus().name()
-        );
+                shipment.getStatus().name());
+    }
+
+    // ================= SAVE SIGNATURE =================
+
+    public String saveSignature(
+            String trackingNumber,
+            SignatureRequest request) {
+
+        DeliveryConfirmationEntity confirmation =
+                deliveryConfirmationRepository
+                        .findByShipment_TrackingNumber(trackingNumber)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Delivery confirmation request not found"));
+
+        // IMPORTANT:
+        // Do NOT require confirmation.isConfirmed() here.
+        // Signature must be saved BEFORE final confirmation.
+
+        if (confirmation.isConfirmed()) {
+            throw new RuntimeException(
+                    "Delivery has already been confirmed");
+        }
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        UserEntity customer = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Customer not found"));
+
+        if (!confirmation.getCustomer().getId()
+                .equals(customer.getId())) {
+
+            throw new RuntimeException(
+                    "You are not authorized to save this signature");
+        }
+
+        if (request == null ||
+                request.getSignature() == null ||
+                request.getSignature().isBlank()) {
+
+            throw new RuntimeException(
+                    "Signature is required");
+        }
+
+        try {
+            String signatureData =
+                    request.getSignature();
+
+            if (signatureData.contains(",")) {
+                signatureData =
+                        signatureData.substring(
+                                signatureData.indexOf(",") + 1);
+            }
+
+            byte[] imageBytes =
+                    Base64.getDecoder()
+                            .decode(signatureData);
+
+            File uploadDirectory =
+                    new File("uploads/signatures");
+
+            if (!uploadDirectory.exists()) {
+                uploadDirectory.mkdirs();
+            }
+
+            String fileName =
+                    trackingNumber + "_" +
+                    System.currentTimeMillis() +
+                    ".png";
+
+            File signatureFile =
+                    new File(uploadDirectory, fileName);
+
+            try (FileOutputStream outputStream =
+                         new FileOutputStream(signatureFile)) {
+
+                outputStream.write(imageBytes);
+            }
+
+            String signaturePath =
+                    "uploads/signatures/" + fileName;
+
+            confirmation.setSignaturePath(
+                    signaturePath);
+
+            deliveryConfirmationRepository.save(
+                    confirmation);
+
+            return signaturePath;
+
+        } catch (IllegalArgumentException ex) {
+
+            throw new RuntimeException(
+                    "Invalid signature image");
+
+        } catch (Exception ex) {
+
+            throw new RuntimeException(
+                    "Unable to save signature");
+        }
+    }
+
+    // ================= SAVE DELIVERY IMAGE =================
+
+    public String saveDeliveryImage(
+            String trackingNumber,
+            DeliveryImageRequest request) {
+
+        DeliveryConfirmationEntity confirmation =
+                deliveryConfirmationRepository
+                        .findByShipment_TrackingNumber(trackingNumber)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Delivery confirmation request not found"));
+
+        // IMPORTANT:
+        // Do NOT require confirmation.isConfirmed() here.
+        // Image must be saved BEFORE final confirmation.
+
+        if (confirmation.isConfirmed()) {
+            throw new RuntimeException(
+                    "Delivery has already been confirmed");
+        }
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        UserEntity customer = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Customer not found"));
+
+        if (!confirmation.getCustomer().getId()
+                .equals(customer.getId())) {
+
+            throw new RuntimeException(
+                    "You are not authorized to save this delivery image");
+        }
+
+        if (request == null ||
+                request.getImage() == null ||
+                request.getImage().isBlank()) {
+
+            throw new RuntimeException(
+                    "Delivery image is required");
+        }
+
+        try {
+            String imageData =
+                    request.getImage();
+
+            if (imageData.contains(",")) {
+                imageData =
+                        imageData.substring(
+                                imageData.indexOf(",") + 1);
+            }
+
+            byte[] imageBytes =
+                    Base64.getDecoder()
+                            .decode(imageData);
+
+            File uploadDirectory =
+                    new File("uploads/delivery-images");
+
+            if (!uploadDirectory.exists()) {
+                uploadDirectory.mkdirs();
+            }
+
+            String fileName =
+                    trackingNumber + "_" +
+                    System.currentTimeMillis() +
+                    ".png";
+
+            File imageFile =
+                    new File(uploadDirectory, fileName);
+
+            try (FileOutputStream outputStream =
+                         new FileOutputStream(imageFile)) {
+
+                outputStream.write(imageBytes);
+            }
+
+            String imagePath =
+                    "uploads/delivery-images/" + fileName;
+
+            confirmation.setDeliveryImagePath(
+                    imagePath);
+
+            deliveryConfirmationRepository.save(
+                    confirmation);
+
+            return imagePath;
+
+        } catch (IllegalArgumentException ex) {
+
+            throw new RuntimeException(
+                    "Invalid delivery image");
+
+        } catch (Exception ex) {
+
+            throw new RuntimeException(
+                    "Unable to save delivery image");
+        }
     }
 }

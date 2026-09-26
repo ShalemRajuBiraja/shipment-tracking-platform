@@ -3,9 +3,12 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import DashboardHeader from "./DashboardHeader";
 import RecentShipments from "./RecentShipments";
-import { trackShipmentApi} from "../../services/shipmentService";
+import { trackShipmentApi } from "../../services/shipmentService";
 import GoogleShipmentMap from "../../components/GoogleShipmentMap";
-import { getShipmentLocation, getShipmentRoute } from "../../services/operatorService";
+import {
+  getShipmentLocation,
+  getShipmentRoute,
+} from "../../services/operatorService";
 
 const CustomerDashboard = () => {
 
@@ -20,28 +23,86 @@ const CustomerDashboard = () => {
   // Load recent shipments and remove expired records
   useEffect(() => {
 
-    const storedShipments =
-      JSON.parse(localStorage.getItem("recentShipments")) || [];
+    const loadRecentShipments = async () => {
 
-    const now = new Date().getTime();
+      const storedShipments =
+        JSON.parse(localStorage.getItem("recentShipments")) || [];
 
-    // Keep only shipments tracked within last 24 hours
-    const validShipments = storedShipments.filter((item) => {
+      const now = new Date().getTime();
 
-      const trackedTime =  new Date(item.trackedAt).getTime();
-      const timeDifference =  now - trackedTime;
+      // Keep only shipments tracked within last 24 hours
+      const validShipments = storedShipments.filter((item) => {
 
-      return timeDifference < 24 * 60 * 60 * 1000;
+        const trackedTime =
+          new Date(item.trackedAt).getTime();
 
-    });
+        const timeDifference =
+          now - trackedTime;
 
-    // Update localStorage after removing expired shipments
-    localStorage.setItem(
-      "recentShipments",
-      JSON.stringify(validShipments)
-    );
+        return timeDifference < 24 * 60 * 60 * 1000;
 
-    setRecentShipments(validShipments);
+      });
+
+
+      // Fetch latest shipment status from backend
+      const updatedShipments = await Promise.all(
+        validShipments.map(async (item) => {
+
+          try {
+
+            const response =
+              await trackShipmentApi(item.trackingNumber);
+
+            if (response.data.success === true) {
+
+              const shipmentData =
+                response.data.data;
+
+              return {
+                ...item,
+                currentStatus:
+                  shipmentData.currentStatus,
+                senderName:
+                  shipmentData.senderName,
+                receiverName:
+                  shipmentData.receiverName,
+              };
+
+            }
+
+            return item;
+
+          } catch (error) {
+
+            console.error(
+              `Error updating shipment ${item.trackingNumber}:`,
+              error
+            );
+
+            // Keep existing localStorage data
+            // if backend request fails
+            return item;
+
+          }
+
+        })
+      );
+
+
+      // Update localStorage with latest shipment statuses
+      localStorage.setItem(
+        "recentShipments",
+        JSON.stringify(updatedShipments)
+      );
+
+
+      // Update React state
+      setRecentShipments(updatedShipments);
+
+    };
+
+
+    loadRecentShipments();
 
   }, []);
 
@@ -106,51 +167,87 @@ const CustomerDashboard = () => {
 
 
     try {
+
       setLoading(true);
 
+
       // Call tracking API
-      const response = await trackShipmentApi(  trimmedTrackingNumber );
+      const response =
+        await trackShipmentApi(
+          trimmedTrackingNumber
+        );
 
-     if (response.data.success === true) {
-  const shipmentData = response.data.data;
 
-  setShipment(shipmentData);
-  saveRecentShipment(shipmentData);
+      if (response.data.success === true) {
 
-  // Fetch latest shipment location
-  try {
-    const locationResponse = await getShipmentLocation( shipmentData.trackingNumber );
-    console.log("CUSTOMER SHIPMENT LOCATION:", locationResponse.data);
+        const shipmentData =
+          response.data.data;
 
-    setShipmentLocation(locationResponse.data);
-  } catch (locationError) {
-    console.error(
-      "Error fetching shipment location:",
-      locationError
-    );
 
-    setShipmentLocation(null);
-  }
+        setShipment(shipmentData);
 
-  // Fetch planned shipment route
-  try {
-    const routeResponse = await getShipmentRoute(
-      shipmentData.pickupAddress,
-      shipmentData.deliveryAddress
-    );
+        saveRecentShipment(shipmentData);
 
-    setRoute(routeResponse.data);
-  } catch (routeError) {
-    console.error(
-      "Error fetching shipment route:",
-      routeError
-    );
 
-    setRoute(null);
-  }
+        // Fetch latest shipment location
+        try {
 
-  toast.success("Shipment found successfully!");
-}else {
+          const locationResponse =
+            await getShipmentLocation(
+              shipmentData.trackingNumber
+            );
+
+          console.log(
+            "CUSTOMER SHIPMENT LOCATION:",
+            locationResponse.data
+          );
+
+          setShipmentLocation(
+            locationResponse.data
+          );
+
+        } catch (locationError) {
+
+          console.error(
+            "Error fetching shipment location:",
+            locationError
+          );
+
+          setShipmentLocation(null);
+
+        }
+
+
+        // Fetch planned shipment route
+        try {
+
+          const routeResponse =
+            await getShipmentRoute(
+              shipmentData.pickupAddress,
+              shipmentData.deliveryAddress
+            );
+
+          setRoute(
+            routeResponse.data
+          );
+
+        } catch (routeError) {
+
+          console.error(
+            "Error fetching shipment route:",
+            routeError
+          );
+
+          setRoute(null);
+
+        }
+
+
+        toast.success(
+          "Shipment found successfully!"
+        );
+
+      } else {
 
         setShipment(null);
         setShipmentLocation(null);
@@ -164,12 +261,18 @@ const CustomerDashboard = () => {
 
     } catch (error) {
 
-      console.error( "Error tracking shipment:", error );
+      console.error(
+        "Error tracking shipment:",
+        error
+      );
 
       setShipment(null);
       setShipmentLocation(null);
 
-      toast.error(  error.response?.data?.message || "Shipment not found. Please check the tracking number." );
+      toast.error(
+        error.response?.data?.message ||
+        "Shipment not found. Please check the tracking number."
+      );
 
     } finally {
 
@@ -247,4 +350,3 @@ const CustomerDashboard = () => {
 
 
 export default CustomerDashboard;
-

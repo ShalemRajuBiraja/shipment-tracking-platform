@@ -12,5 +12,5 @@ export const getUnreadNotifications = async () => {
 };
 
 export const markNotificationAsRead = async (notificationId) => {
-    return await axiosInstance.put(  `/notifications/${notificationId}/read` );
+      return await axiosInstance.put( `${API_END_POINTS.UPDATE_NOTIFICATION}/${notificationId}/read`);
 };

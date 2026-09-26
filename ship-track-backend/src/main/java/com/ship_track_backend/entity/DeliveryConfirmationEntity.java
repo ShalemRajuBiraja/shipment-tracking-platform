@@ -50,6 +50,9 @@ public class DeliveryConfirmationEntity {
     // POD file will be added in the next step
     @Column(name = "pod_file_path")
     private String podFilePath;
+    
+    @Column(name = "delivery_image_path")
+    private String deliveryImagePath;
 
     // When operator opened the delivery confirmation
     @Column(name = "requested_at", nullable = false)
