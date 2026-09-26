@@ -247,10 +247,9 @@ public class ShipmentService {
         response.setPickupCity(shipment.getPickupCity());
         response.setPickupState(shipment.getPickupState());
         response.setPickupPincode(shipment.getPickupPincode());
-
-        response.setDeliveryCity(shipment.getDeliveryCity());
-        response.setDeliveryState(shipment.getDeliveryState());
-        response.setDeliveryPincode(shipment.getDeliveryPincode());
+		response.setDeliveryCity(shipment.getDeliveryCity());
+		response.setDeliveryState(shipment.getDeliveryState());
+		response.setDeliveryPincode(shipment.getDeliveryPincode());
 
         // Convert tracking entities to DTO
         List<TrackingHistoryDto> trackingHistory =

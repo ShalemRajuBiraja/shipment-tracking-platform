@@ -52,12 +52,17 @@ export default function DeliveryConfirmation() {
     try {
       setLoading(true);
 
-      const response =  await trackShipmentApi(trackingNumber);
+      const response = await trackShipmentApi(trackingNumber);
       const data = response?.data?.data || response?.data;
-console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
+
+      console.log(
+        "DELIVERY CONFIRMATION SHIPMENT RESPONSE:",
+        data
+      );
+
       setShipment(data);
 
-      if (data?.status === "DELIVERED") {
+      if (data?.currentStatus === "DELIVERED") {
         setConfirmed(true);
       }
     } catch (error) {
@@ -213,17 +218,21 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
       return;
     }
 
-    if (imagePreview &&
-        imagePreview.startsWith("blob:")) {
+    if (
+      imagePreview &&
+      imagePreview.startsWith("blob:")
+    ) {
       URL.revokeObjectURL(
         imagePreview
       );
     }
 
     setSelectedImage(file);
+
     setImagePreview(
       URL.createObjectURL(file)
     );
+
     setCapturedPhoto(null);
     setImageSaved(false);
 
@@ -567,12 +576,12 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-5">
 
         {/* HEADER */}
 
-        <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
-          <h1 className="text-2xl font-bold text-slate-800">
+        <div className="bg-white border border-slate-200 rounded-xl shadow-sm px-5 py-4">
+          <h1 className="text-xl font-bold text-slate-800">
             Delivery Confirmation
           </h1>
 
@@ -582,97 +591,188 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
         </div>
 
         {/* SHIPMENT DETAILS */}
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-  <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-    Shipment Details
-  </h2>
 
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+        <section className="bg-white border border-slate-200 rounded-xl shadow-sm px-5 py-4">
 
-    <div>
-      <p className="text-sm text-gray-500">Tracking Number</p>
-      <p className="mt-1 text-lg font-medium text-gray-900">
-        {shipment?.trackingNumber || "N/A"}
-      </p>
-    </div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-slate-800">
+              Shipment Details
+            </h2>
 
-    <div>
-      <p className="text-sm text-gray-500">Status</p>
-      <p className="mt-1 text-lg font-medium text-gray-900">
-        {shipment?.currentStatus || "N/A"}
-      </p>
-    </div>
+            <span className="text-xs font-medium text-slate-500">
+              {shipment?.trackingNumber || "N/A"}
+            </span>
+          </div>
 
-    <div>
-      <p className="text-sm text-gray-500">Sender Name</p>
-      <p className="mt-1 text-lg font-medium text-gray-900">
-        {shipment?.senderName || "N/A"}
-      </p>
-    </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-5 gap-y-4">
 
-    <div>
-      <p className="text-sm text-gray-500">Receiver Name</p>
-      <p className="mt-1 text-lg font-medium text-gray-900">
-        {shipment?.receiverName || "N/A"}
-      </p>
-    </div>
+            {/* TRACKING NUMBER */}
 
-    <div>
-      <p className="text-sm text-gray-500">Receiver Phone</p>
-      <p className="mt-1 text-lg font-medium text-gray-900">
-        {shipment?.receiverPhone || "N/A"}
-      </p>
-    </div>
+            <div>
+              <p className="text-xs text-slate-500">
+                Tracking Number
+              </p>
 
-    <div>
-      <p className="text-sm text-gray-500">Weight</p>
-      <p className="mt-1 text-lg font-medium text-gray-900">
-        {shipment?.weight !== null && shipment?.weight !== undefined
-          ? `${shipment.weight} kg`
-          : "N/A"}
-      </p>
-    </div>
+              <p className="mt-1 text-sm font-semibold text-slate-800 break-all">
+                {shipment?.trackingNumber || "N/A"}
+              </p>
+            </div>
 
-    <div>
-      <p className="text-sm text-gray-500">Pickup Address</p>
-      <p className="mt-1 text-lg font-medium text-gray-900">
-        {shipment?.pickupAddress || "N/A"}
-      </p>
-    </div>
+            {/* STATUS */}
 
-    <div>
-      <p className="text-sm text-gray-500">Delivery Address</p>
-      <p className="mt-1 text-lg font-medium text-gray-900">
-        {shipment?.deliveryAddress || "N/A"}
-      </p>
-    </div>
+            <div>
+              <p className="text-xs text-slate-500">
+                Status
+              </p>
 
-    <div className="md:col-span-2">
-      <p className="text-sm text-gray-500">Package Description</p>
-      <p className="mt-1 text-lg font-medium text-gray-900">
-        {shipment?.packageDescription || "N/A"}
-      </p>
-    </div>
+              <p className="mt-1 text-sm font-semibold text-slate-800">
+                {shipment?.currentStatus || "N/A"}
+              </p>
+            </div>
 
-    <div className="md:col-span-2">
-      <p className="text-sm text-gray-500">Created At</p>
-      <p className="mt-1 text-lg font-medium text-gray-900">
-        {shipment?.createdAt
-          ? new Date(shipment.createdAt).toLocaleString()
-          : "N/A"}
-      </p>
-    </div>
+            {/* SENDER */}
 
-  </div>
+            <div>
+              <p className="text-xs text-slate-500">
+                Sender
+              </p>
 
-</section>
+              <p className="mt-1 text-sm font-semibold text-slate-800">
+                {shipment?.senderName || "N/A"}
+              </p>
+            </div>
+
+            {/* RECEIVER */}
+
+            <div>
+              <p className="text-xs text-slate-500">
+                Receiver
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-slate-800">
+                {shipment?.receiverName || "N/A"}
+              </p>
+            </div>
+
+            {/* PHONE */}
+
+            <div>
+              <p className="text-xs text-slate-500">
+                Receiver Phone
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-slate-800">
+                {shipment?.receiverPhone || "N/A"}
+              </p>
+            </div>
+
+            {/* WEIGHT */}
+
+            <div>
+              <p className="text-xs text-slate-500">
+                Weight
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-slate-800">
+                {shipment?.weight !== null &&
+                shipment?.weight !== undefined
+                  ? `${shipment.weight} kg`
+                  : "N/A"}
+              </p>
+            </div>
+
+            {/* CREATED AT */}
+
+            <div>
+              <p className="text-xs text-slate-500">
+                Created At
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-slate-800">
+                {shipment?.createdAt
+                  ? new Date(
+                      shipment.createdAt
+                    ).toLocaleString()
+                  : "N/A"}
+              </p>
+            </div>
+
+            {/* PACKAGE */}
+
+            <div>
+              <p className="text-xs text-slate-500">
+                Package
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-slate-800 truncate">
+                {shipment?.packageDescription ||
+                  "N/A"}
+              </p>
+            </div>
+
+            {/* PICKUP ADDRESS */}
+
+            <div className="col-span-2 md:col-span-2">
+              <p className="text-xs text-slate-500">
+                Pickup Address
+              </p>
+
+              <p className="mt-1 text-sm font-medium text-slate-800 leading-5">
+                {shipment?.pickupAddress ||
+                  "N/A"}
+              </p>
+
+              <p className="text-xs text-slate-500 mt-0.5">
+                {[
+                  shipment?.pickupCity,
+                  shipment?.pickupState
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
+
+                {shipment?.pickupPincode
+                  ? ` - ${shipment.pickupPincode}`
+                  : ""}
+              </p>
+            </div>
+
+            {/* DELIVERY ADDRESS */}
+
+            <div className="col-span-2 md:col-span-2">
+              <p className="text-xs text-slate-500">
+                Delivery Address
+              </p>
+
+              <p className="mt-1 text-sm font-medium text-slate-800 leading-5">
+                {shipment?.deliveryAddress ||
+                  "N/A"}
+              </p>
+
+              <p className="text-xs text-slate-500 mt-0.5">
+                {[
+                  shipment?.deliveryCity,
+                  shipment?.deliveryState
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
+
+                {shipment?.deliveryPincode
+                  ? ` - ${shipment.deliveryPincode}`
+                  : ""}
+              </p>
+            </div>
+
+          </div>
+
+        </section>
 
         {/* DIGITAL SIGNATURE */}
 
         {!confirmed && (
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
 
             <div className="flex items-center justify-between">
+
               <div>
                 <h2 className="text-lg font-semibold text-slate-800">
                   Digital Signature
@@ -688,9 +788,11 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
                   ✓ Saved
                 </span>
               )}
+
             </div>
 
-            <div className="mt-5 border border-slate-300 rounded-lg overflow-hidden bg-white">
+            <div className="mt-4 border border-slate-300 rounded-lg overflow-hidden bg-white">
+
               <SignatureCanvas
                 ref={signatureRef}
                 penColor="black"
@@ -699,6 +801,7 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
                     "w-full h-48 cursor-crosshair"
                 }}
               />
+
             </div>
 
             <div className="flex flex-wrap gap-3 mt-4">
@@ -733,15 +836,17 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
               </button>
 
             </div>
+
           </div>
         )}
 
         {/* DELIVERY IMAGE */}
 
         {!confirmed && (
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
 
             <div className="flex items-center justify-between">
+
               <div>
                 <h2 className="text-lg font-semibold text-slate-800">
                   Delivery Image
@@ -757,6 +862,7 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
                   ✓ Saved
                 </span>
               )}
+
             </div>
 
             {/* GALLERY INPUT */}
@@ -774,7 +880,7 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
             {/* CAMERA ERROR */}
 
             {cameraError && (
-              <div className="mt-5 bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
                 <p className="text-sm text-red-700">
                   {cameraError}
                 </p>
@@ -784,7 +890,7 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
             {/* LIVE CAMERA */}
 
             {cameraOpen && (
-              <div className="mt-5 border border-slate-200 rounded-xl overflow-hidden bg-black">
+              <div className="mt-4 border border-slate-200 rounded-xl overflow-hidden bg-black">
 
                 <div className="relative">
 
@@ -828,6 +934,7 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
                   </button>
 
                 </div>
+
               </div>
             )}
 
@@ -835,7 +942,7 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
 
             {capturedPhoto &&
               !cameraOpen && (
-                <div className="mt-5 border border-slate-200 rounded-xl overflow-hidden">
+                <div className="mt-4 border border-slate-200 rounded-xl overflow-hidden">
 
                   <img
                     src={
@@ -868,6 +975,7 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
                     </button>
 
                   </div>
+
                 </div>
             )}
 
@@ -876,7 +984,7 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
             {imagePreview &&
               !cameraOpen &&
               !capturedPhoto && (
-                <div className="mt-5 border border-slate-200 rounded-xl overflow-hidden">
+                <div className="mt-4 border border-slate-200 rounded-xl overflow-hidden">
 
                   <img
                     src={
@@ -899,6 +1007,7 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
                     </button>
 
                   </div>
+
                 </div>
             )}
 
@@ -907,7 +1016,7 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
             {!cameraOpen &&
               !capturedPhoto &&
               !imagePreview && (
-                <div className="mt-5 flex flex-col sm:flex-row gap-3">
+                <div className="mt-4 flex flex-col sm:flex-row gap-3">
 
                   <button
                     type="button"
@@ -971,7 +1080,7 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
         {/* FINAL CONFIRM DELIVERY */}
 
         {!confirmed && (
-          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-5">
 
             <h2 className="text-lg font-semibold text-slate-800">
               Complete Delivery
@@ -991,7 +1100,7 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
                 !imageSaved ||
                 confirming
               }
-              className="mt-5 w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-5 py-3 rounded-lg font-semibold text-sm transition"
+              className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-5 py-3 rounded-lg font-semibold text-sm transition"
             >
               {confirming
                 ? "Confirming Delivery..."
@@ -1015,7 +1124,7 @@ console.log("DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data);
         {/* COMPLETED */}
 
         {confirmed && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
 
             <h2 className="text-lg font-semibold text-emerald-800">
               ✓ Delivery Completed

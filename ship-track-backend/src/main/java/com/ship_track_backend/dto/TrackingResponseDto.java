@@ -31,7 +31,14 @@ public class TrackingResponseDto {
 
     // Address Information
     private String pickupAddress;
+    private String pickupCity;
+    private String pickupState;
+    private String pickupPincode;
+
     private String deliveryAddress;
+    private String deliveryCity;
+    private String deliveryState;
+    private String deliveryPincode;
 
     // Tracking Timeline
     private List<TrackingHistoryDto> trackingHistory;
