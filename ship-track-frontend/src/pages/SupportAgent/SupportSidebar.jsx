@@ -177,28 +177,7 @@ const SupportSidebar = () => {
             {/* Divider */}
             <div className="border-t border-emerald-800 mb-5" />
 
-            {/* Need Help Section */}
-            <div
-                onClick={handleSupportClick}
-                className="bg-emerald-900/70 border border-emerald-800 rounded-xl px-4 py-3
-                flex items-center gap-3 cursor-pointer hover:bg-emerald-900 transition mb-4"
-            >
-                <Headphones
-                size={22}
-                className="text-emerald-300"
-                />
-
-                <div>
-                <h3 className="font-semibold text-sm">
-                    Need Help?
-                </h3>
-
-                <p className="text-xs text-emerald-100 mt-0.5">
-                    Contact Administrator
-                </p>
-                </div>
-            </div>
-
+           
 
             {/* Logout */}
             <button

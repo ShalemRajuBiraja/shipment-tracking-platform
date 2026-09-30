@@ -86,10 +86,8 @@ public class ShipmentService {
 
         shipment.setPickupLatitude(pickup.getLatitude());
         shipment.setPickupLongitude(pickup.getLongitude());
-
         shipment.setDeliveryLatitude(delivery.getLatitude());
         shipment.setDeliveryLongitude(delivery.getLongitude());
-        
         shipment.setSender(sender);
         shipment.setReceiverName( createShipmentData.getReceiverName());
         shipment.setReceiverPhone(createShipmentData.getReceiverPhone());
@@ -105,6 +103,7 @@ public class ShipmentService {
         shipment.setWeight(createShipmentData.getWeight());
         shipment.setStatus( ShipmentStatus.CREATED);
         shipment.setCreatedAt( LocalDateTime.now());
+        shipment.setDeliveredAt(LocalDateTime.now());
         shipment.setUpdatedAt( LocalDateTime.now());
         shipment.setTrackingNumber( generateTrackingNumber());
         UserEntity operator = userRepository
@@ -224,25 +223,16 @@ public class ShipmentService {
 
         // Create response
         TrackingResponseDto response = new TrackingResponseDto();
-
         response.setTrackingNumber(shipment.getTrackingNumber());
-
         response.setCurrentStatus(shipment.getStatus());
-
         response.setCreatedAt(shipment.getCreatedAt());
-
+        
         response.setSenderName(shipment.getSender().getName());
-
         response.setReceiverName(shipment.getReceiverName());
-
         response.setReceiverPhone(shipment.getReceiverPhone());
-
         response.setPackageDescription(shipment.getPackageDescription());
-
         response.setWeight(shipment.getWeight());
-
         response.setPickupAddress(shipment.getPickupAddress());
-
         response.setDeliveryAddress(shipment.getDeliveryAddress());
         response.setPickupCity(shipment.getPickupCity());
         response.setPickupState(shipment.getPickupState());
@@ -279,10 +269,12 @@ public class ShipmentService {
     
     
  // ================= SUPPORT AGENT SHIPMENT LOOKUP =================
+ // ================= SUPPORT AGENT SHIPMENT LOOKUP =================
 
-    public ShipmentLookupResponse getShipmentForSupportAgent(String trackingNumber) {
+    public ShipmentLookupResponse getShipmentForSupportAgent(
+            String trackingNumber) {
 
-        // FIND SHIPMENT
+        // ================= FIND SHIPMENT =================
 
         ShipmentEntity shipment =
                 shipmentRepository
@@ -295,7 +287,7 @@ public class ShipmentService {
                         );
 
 
-        // FIND LATEST TRACKING LOCATION
+        // ================= FIND LATEST TRACKING =================
 
         ShipmentTrackingEntity latestTracking =
                 shipmentTrackingRepository
@@ -305,33 +297,86 @@ public class ShipmentService {
                         .orElse(null);
 
 
-        // CREATE RESPONSE
+        // ================= CREATE RESPONSE =================
 
         ShipmentLookupResponse response =
                 new ShipmentLookupResponse();
+
+
+        // ================= BASIC DETAILS =================
 
         response.setTrackingNumber(
                 shipment.getTrackingNumber()
         );
 
         response.setCustomer(
-                shipment.getSender().getName()
+                shipment.getSender() != null
+                        ? shipment.getSender().getName()
+                        : null
+        );
+
+        response.setReceiver(
+                shipment.getReceiverName()
+        );
+
+        response.setReceiverPhone(
+                shipment.getReceiverPhone()
         );
 
         response.setStatus(
                 shipment.getStatus()
         );
 
-        response.setOrigin(
+        response.setPackageDescription(
+                shipment.getPackageDescription()
+        );
+
+        response.setWeight(
+                shipment.getWeight() != null
+                        ? shipment.getWeight().toString()
+                        : null
+        );
+
+
+        // ================= PICKUP ADDRESS =================
+
+        response.setPickupAddress(
+                shipment.getPickupAddress()
+        );
+
+        response.setPickupCity(
                 shipment.getPickupCity()
         );
 
-        response.setDestination(
-                shipment.getDeliveryCity()
+        response.setPickupState(
+                shipment.getPickupState()
+        );
+
+        response.setPickupPincode(
+                shipment.getPickupPincode()
         );
 
 
-        // SET CURRENT LOCATION
+        // ================= DELIVERY ADDRESS =================
+
+        response.setDeliveryAddress(
+                shipment.getDeliveryAddress()
+        );
+
+        response.setDeliveryCity(
+                shipment.getDeliveryCity()
+        );
+
+        response.setDeliveryState(
+                shipment.getDeliveryState()
+        );
+
+        response.setDeliveryPincode(
+                shipment.getDeliveryPincode()
+        );
+
+
+        // ================= CURRENT LOCATION =================
 
         if (latestTracking != null) {
 
@@ -347,9 +392,25 @@ public class ShipmentService {
         }
 
 
+        // ================= ASSIGNED OPERATOR =================
+
+        if (shipment.getAssignedOperator() != null) {
+
+            response.setAssignedOperator(
+                    shipment.getAssignedOperator().getName()
+            );
+        }
+
+
+        // ================= CREATED DATE =================
+
+        response.setCreatedAt(
+                shipment.getCreatedAt()
+        );
+
+
         return response;
-    }
-    
+    }    
     public ShipmentResponseDto getShipmentById(Long id) {
 
         // ================= FIND SHIPMENT =================

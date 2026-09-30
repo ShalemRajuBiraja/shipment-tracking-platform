@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   Navigation,
   ShieldAlert,
+  Download,
 } from "lucide-react";
 import * as operatorService from "../../services/operatorService";
 import { updateShipmentLocation } from "../../services/shipmentService";
@@ -20,7 +21,10 @@ import {
   getLatestShipmentLocation,
   getCurrentLocationToDeliveryRoute,
 } from "../../services/LocationService";
-import { openDeliveryConfirmation } from "../../services/deliveryConfirmationService";
+import {
+  openDeliveryConfirmation,
+  downloadPodApi,
+} from "../../services/deliveryConfirmationService";
 
 const {
   getOperatorShipmentById,
@@ -98,6 +102,7 @@ const OperatorShipmentDetails = () => {
   const [deliveryForecast, setDeliveryForecast] = useState(null);
   const [liveLocation, setLiveLocation] = useState(null);
   const [locationInput, setLocationInput] = useState("");
+  const [downloadingPod, setDownloadingPod] = useState(false);
   const shipmentRef = useRef(shipment);
 
   useEffect(() => {
@@ -118,7 +123,7 @@ const OperatorShipmentDetails = () => {
     }
     const interval = setInterval(() => {
       const currentShipment = shipmentRef.current;
-      if (currentShipment?.trackingNumber) {
+      if (currentShipment?.trackingNumber && currentShipment.status !== "DELIVERED") {
         fetchShipmentLocation(
           currentShipment.trackingNumber,
           currentShipment
@@ -128,19 +133,19 @@ const OperatorShipmentDetails = () => {
     return () => {
       clearInterval(interval);
     };
-  }, [shipment?.trackingNumber]);
+  }, [shipment?.trackingNumber, shipment?.status]);
 
   useEffect(() => {
     fetchShipmentDetails();
   }, [id]);
 
   useEffect(() => {
-    if (!shipment?.trackingNumber) {
+    if (!shipment?.trackingNumber || shipment.status === "DELIVERED") {
       return;
     }
     fetchShipmentRouteHistory(shipment.trackingNumber);
     fetchRoadFollowingRouteHistory(shipment.trackingNumber);
-  }, [shipment?.trackingNumber]);
+  }, [shipment?.trackingNumber, shipment?.status]);
 
   const fetchShipmentDetails = async () => {
     try {
@@ -149,6 +154,23 @@ const OperatorShipmentDetails = () => {
       if (response.data.success === true) {
         const shipmentData = response.data.data;
         setShipment(shipmentData);
+
+        if (shipmentData.status === "DELIVERED") {
+          setShipmentLocation(null);
+          setLiveLocation(null);
+          setRoute(null);
+          setEncodedPolyline(null);
+          setCurrentRoutePolyline(null);
+          setEta(null);
+          setLocationLoading(false);
+          setRouteLoading(false);
+          setEtaLoading(false);
+          setDelayPrediction(null);
+          setDeliveryForecast(null);
+          setDelayLoading(false);
+          return;
+        }
+
         fetchShipmentLocation(
           shipmentData.trackingNumber,
           shipmentData
@@ -166,6 +188,20 @@ const OperatorShipmentDetails = () => {
     trackingNumber,
     shipmentData
   ) => {
+    if (shipmentData?.status === "DELIVERED") {
+      setShipmentLocation(null);
+      setLiveLocation(null);
+      setRoute(null);
+      setEncodedPolyline(null);
+      setCurrentRoutePolyline(null);
+      setEncodedPolyline(null);
+      setEta(null);
+      setLocationLoading(false);
+      setRouteLoading(false);
+      setEtaLoading(false);
+      return;
+    }
+
     try {
       setLocationLoading(true);
       setRouteLoading(true);
@@ -473,6 +509,22 @@ const OperatorShipmentDetails = () => {
         setShipment( updatedShipment );
         setSelectedStatus("");
 
+        if (updatedShipment.status === "DELIVERED") {
+          setShipmentLocation(null);
+          setLiveLocation(null);
+          setRoute(null);
+          setEncodedPolyline(null);
+          setCurrentRoutePolyline(null);
+          setEta(null);
+          setLocationLoading(false);
+          setRouteLoading(false);
+          setEtaLoading(false);
+          setDelayPrediction(null);
+          setDeliveryForecast(null);
+          setDelayLoading(false);
+          return;
+        }
+
         fetchShipmentLocation(
           updatedShipment.trackingNumber,
           updatedShipment
@@ -513,6 +565,33 @@ const OperatorShipmentDetails = () => {
          toast.error(errorMessage);  
        }
     };
+
+  const handleDownloadPod = async () => {
+    if (!shipment?.trackingNumber) {
+      toast.error("Tracking number is unavailable.");
+      return;
+    }
+
+    try {
+      setDownloadingPod(true);
+      const response = await downloadPodApi(shipment.trackingNumber);
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `POD-${shipment.trackingNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("POD downloaded successfully.");
+    } catch (error) {
+      console.error("Error downloading POD:", error);
+      toast.error(error.response?.data?.message || "Unable to download POD.");
+    } finally {
+      setDownloadingPod(false);
+    }
+  };
 
   const handleLocationUpdate = async () => {
     const newLocation =
@@ -564,7 +643,7 @@ const OperatorShipmentDetails = () => {
       <div className="flex min-h-[60vh] flex-col items-center justify-center p-8">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
         <p className="mt-4 text-sm font-medium text-slate-600">
-          Loading operator shipment telemetry...
+          Loading shipment details...
         </p>
       </div>
     );
@@ -572,23 +651,20 @@ const OperatorShipmentDetails = () => {
 
   if (!shipment) {
     return (
-      <div className="mx-auto max-w-lg rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-          <ShieldAlert className="h-7 w-7 text-slate-600" />
+      <div className="mx-auto max-w-lg rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+          <ShieldAlert className="h-6 w-6 text-slate-500" />
         </div>
-        <h2 className="text-xl font-bold text-slate-800">
-          Shipment Unreachable
+        <h2 className="mt-4 text-lg font-bold text-slate-800">
+          Shipment Not Found
         </h2>
         <p className="mt-2 text-sm text-slate-500">
-          We could not locate records for shipment ID:{" "}
-          <span className="font-mono font-semibold text-slate-700">
-            {id}
-          </span>
-          .
+          We could not locate this shipment.
         </p>
         <button
+          type="button"
           onClick={() => navigate(-1)}
-          className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow"
+          className="mt-5 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Shipments
@@ -597,720 +673,262 @@ const OperatorShipmentDetails = () => {
     );
   }
 
-  const nextStatus =
-    getNextStatus();
-
-  const isCompleted =
-    shipment.status === "DELIVERED";
-
-  const isCancelled =
-    shipment.status === "CANCELLED";
-
+  const nextStatus = getNextStatus();
+  const isCompleted = shipment.status === "DELIVERED";
+  const isCancelled = shipment.status === "CANCELLED";
   const estimatedArrival =
-    eta?.estimatedArrival ||
-    deliveryForecast?.forecastedDeliveryTime;
-
+    eta?.estimatedArrival || deliveryForecast?.forecastedDeliveryTime;
   const isDelayed =
-    delayPrediction?.prediction ===
-      "DELAYED" ||
+    delayPrediction?.prediction === "DELAYED" ||
     delayPrediction?.delayMinutes > 0;
-
-  const isOnTime =
-    delayPrediction?.prediction ===
-    "ON_TIME";
+  const isOnTime = delayPrediction?.prediction === "ON_TIME";
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 pb-12">
-      <div className="flex flex-col gap-4 border-b border-slate-200 pb-5">
-        <div className="flex items-center gap-3">
+    <div className="mx-auto max-w-7xl space-y-4 pb-8">
+      {/* Header */}
+      <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow active:scale-[0.98]"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Shipments
+            Back
           </button>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                Shipment Details
-              </h1>
-              <span className="rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl font-bold text-slate-900">Shipment Details</h1>
+              <span className="rounded-md bg-slate-100 px-2 py-1 font-mono text-xs font-semibold text-slate-600">
                 #{shipment.trackingNumber}
               </span>
             </div>
-            <p className="mt-1 text-sm text-slate-500">
-              Manage operator controls, stage transitions, and live route vectors.
-            </p>
+            <p className="mt-0.5 text-xs text-slate-500">Operator shipment management</p>
           </div>
-          <span
-            className={`inline-flex w-fit items-center rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider ${getStatusStyle(
-              shipment.status
-            )}`}
-          >
-            {formatStatus(
-              shipment.status
-            )}
-          </span>
         </div>
+        <span className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold uppercase ${getStatusStyle(shipment.status)}`}>
+          {formatStatus(shipment.status)}
+        </span>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex w-full flex-col gap-2 xl:max-w-[500px] xl:flex-1">
-            <p className="px-1 text-xs font-semibold text-slate-500">
-              Update Shipment Location here
-            </p>
-            <div className="flex w-full flex-col gap-2 sm:flex-row">
-              <input
-                type="text"
-                value={locationInput}
-                onChange={(e) =>
-                  setLocationInput(
-                    e.target.value
-                  )
-                }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleLocationUpdate();
-                  }
-                }}
-                placeholder="Enter current location"
-                className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-              />
-              <button
-                type="button"
-                onClick={
-                  handleLocationUpdate
-                }
-                disabled={
-                  locationUpdating
-                }
-                className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm ring-1 transition-all disabled:cursor-not-allowed disabled:opacity-60 ${
-                  locationInput.trim()
-                    ? "bg-emerald-600 text-white ring-emerald-600 hover:bg-emerald-700 hover:ring-emerald-700"
-                    : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50 hover:ring-emerald-300"
-                }`}
-              >
-                <MapPin
-                  className={`h-4 w-4 ${
-                    locationInput.trim()
-                      ? "text-white"
-                      : "text-emerald-600"
-                  }`}
-                />
-                {locationUpdating
-                  ? "Updating..."
-                  : "Update Location"}
-              </button>
+      {/* Shipment summary */}
+      <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-100 px-4 py-3">
+          <h2 className="text-sm font-bold text-slate-900">Shipment Information</h2>
+        </div>
+        <div className="grid grid-cols-1 divide-y divide-slate-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
+          <div className="p-4">
+            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <User className="h-4 w-4 text-emerald-600" /> Sender
             </div>
+            <p className="text-sm font-semibold text-slate-800">{shipment.senderName || "N/A"}</p>
           </div>
+          <div className="p-4">
+            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <User className="h-4 w-4 text-blue-600" /> Receiver
+            </div>
+            <p className="text-sm font-semibold text-slate-800">{shipment.receiverName || "N/A"}</p>
+            <p className="mt-1 flex items-center gap-1 text-xs text-slate-500"><Phone className="h-3.5 w-3.5" />{shipment.receiverPhone || "N/A"}</p>
+          </div>
+          <div className="p-4">
+            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <MapPin className="h-4 w-4 text-purple-600" /> Pickup
+            </div>
+            <p className="text-sm font-semibold text-slate-800">{shipment.pickupAddress || "N/A"}</p>
+            <p className="mt-1 text-xs text-slate-500">{[shipment.pickupCity, shipment.pickupState].filter(Boolean).join(", ") || "N/A"}</p>
+            <p className="mt-0.5 font-mono text-[11px] text-slate-400">PIN: {shipment.pickupPincode || "N/A"}</p>
+          </div>
+          <div className="p-4">
+            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-slate-500">
+              <MapPin className="h-4 w-4 text-orange-600" /> Delivery
+            </div>
+            <p className="text-sm font-semibold text-slate-800">{shipment.deliveryAddress || "N/A"}</p>
+            <p className="mt-1 text-xs text-slate-500">{[shipment.deliveryCity, shipment.deliveryState].filter(Boolean).join(", ") || "N/A"}</p>
+            <p className="mt-0.5 font-mono text-[11px] text-slate-400">PIN: {shipment.deliveryPincode || "N/A"}</p>
+          </div>
+        </div>
+      </section>
 
-          <div className="flex w-full flex-col gap-3 xl:w-auto xl:min-w-[390px]">
-            <p className="px-1 text-xs font-semibold text-slate-500">
-              Shipment Actions
-            </p>
-
-            {!isCompleted &&
-            !isCancelled &&
-            nextStatus ? (
-              <div className="flex w-full flex-col gap-2 sm:flex-row">
-                <select
-                  value={selectedStatus}
-                  onChange={(e) =>
-                    setSelectedStatus(
-                      e.target.value
-                    )
-                  }
-                  className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                >
-                  <option value="">
-                    Select next status
-                  </option>
-                  <option value={nextStatus}>
-                    {formatStatus(
-                      nextStatus
-                    )}
-                  </option>
-                </select>
+      {/* Controls */}
+      <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="grid grid-cols-1 divide-y divide-slate-100 lg:grid-cols-[1fr_auto] lg:divide-x lg:divide-y-0">
+          {!isCompleted && !isCancelled && (
+            <div className="p-4">
+              <p className="mb-2 text-xs font-semibold text-slate-500">Update Shipment Location</p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="text"
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleLocationUpdate()}
+                  placeholder="Enter current location"
+                  className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
                 <button
-                  onClick={
-                    handleStatusUpdate
-                  }
-                  disabled={
-                    !selectedStatus ||
-                    updating
-                  }
-                  className="inline-flex shrink-0 items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  type="button"
+                  onClick={handleLocationUpdate}
+                  disabled={locationUpdating}
+                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition disabled:opacity-60 ${locationInput.trim() ? "bg-emerald-600 text-white hover:bg-emerald-700" : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}
                 >
-                  {updating
-                    ? "Updating..."
-                    : "Update Status"}
+                  <MapPin className={`h-4 w-4 ${locationInput.trim() ? "text-white" : "text-emerald-600"}`} />
+                  {locationUpdating ? "Updating..." : "Update Location"}
                 </button>
               </div>
-            ) : (
-              <p className="py-2 text-xs font-medium text-slate-500">
-                {isCompleted
-                  ? "Shipment has been delivered successfully."
-                  : "This shipment status is locked."}
-              </p>
-            )}
+            </div>
+          )}
 
-            {shipment.status ===
-              "OUT_FOR_DELIVERY" && (
-              <button
-                type="button"
-                onClick={
-                  handleOpenDeliveryConfirmation
-                }
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-600 bg-white px-5 py-2.5 text-sm font-semibold text-emerald-700 shadow-sm transition-all hover:bg-emerald-50 hover:shadow active:scale-[0.98]"
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                Open Delivery Confirmation
-              </button>
-            )}
-          </div>
+         
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-4 flex items-center gap-3 border-b border-slate-100 pb-3">
-            <div className="rounded-lg bg-emerald-50 p-2 text-emerald-600">
-              <User className="h-4 w-4" />
-            </div>
-            <h2 className="text-sm font-bold text-slate-900">
-              Sender Information
-            </h2>
+      {isCompleted ? (
+        <section className="rounded-xl border border-emerald-200 bg-white shadow-sm">
+          <div className="flex flex-col items-center justify-center px-5 py-8 text-center">
+            <CheckCircle2 className="h-10 w-10 text-emerald-600" />
+            <h2 className="mt-3 text-lg font-bold text-slate-900">Shipment Delivered</h2>
+            <p className="mt-1 max-w-md text-xs text-slate-500">Live tracking is no longer required. Download the Proof of Delivery document when needed.</p>
+            <button
+              type="button"
+              onClick={handleDownloadPod}
+              disabled={downloadingPod}
+              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+            >
+              <Download className="h-4 w-4" />
+              {downloadingPod ? "Downloading..." : "Download POD"}
+            </button>
           </div>
-          <div className="space-y-1">
-            <span className="text-xs font-medium text-slate-400">
-              Sender Name
-            </span>
-            <p className="text-sm font-semibold text-slate-800">
-              {shipment.senderName ||
-                "N/A"}
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-4 flex items-center gap-3 border-b border-slate-100 pb-3">
-            <div className="rounded-lg bg-blue-50 p-2 text-blue-600">
-              <User className="h-4 w-4" />
-            </div>
-            <h2 className="text-sm font-bold text-slate-900">
-              Receiver Information
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <span className="text-xs font-medium text-slate-400">
-                Receiver Name
-              </span>
-              <p className="text-sm font-semibold text-slate-800">
-                {shipment.receiverName ||
-                  "N/A"}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 pt-3 sm:pt-0">
-              <Phone className="h-4 w-4 text-slate-400" />
-              <span className="text-sm font-semibold text-slate-700">
-                {shipment.receiverPhone ||
-                  "N/A"}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-4 flex items-center gap-3 border-b border-slate-100 pb-3">
-            <div className="rounded-lg bg-purple-50 p-2 text-purple-600">
-              <MapPin className="h-4 w-4" />
-            </div>
-            <h2 className="text-sm font-bold text-slate-900">
-              Pickup Location
-            </h2>
-          </div>
-          <div className="space-y-1 text-sm text-slate-700">
-            <p className="font-semibold">
-              {shipment.pickupAddress ||
-                "N/A"}
-            </p>
-            <p className="text-xs text-slate-500">
-              {[shipment.pickupCity, shipment.pickupState]
-                .filter(Boolean)
-                .join(", ") ||
-                "N/A"}
-            </p>
-            <p className="font-mono text-xs text-slate-400">
-              PIN: {shipment.pickupPincode ||
-                "N/A"}
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="mb-4 flex items-center gap-3 border-b border-slate-100 pb-3">
-            <div className="rounded-lg bg-orange-50 p-2 text-orange-600">
-              <MapPin className="h-4 w-4" />
-            </div>
-            <h2 className="text-sm font-bold text-slate-900">
-              Delivery Location
-            </h2>
-          </div>
-          <div className="space-y-1 text-sm text-slate-700">
-            <p className="font-semibold">
-              {shipment.deliveryAddress ||
-                "N/A"}
-            </p>
-            <p className="text-xs text-slate-500">
-              {[shipment.deliveryCity, shipment.deliveryState]
-                .filter(Boolean)
-                .join(", ") ||
-                "N/A"}
-            </p>
-            <p className="font-mono text-xs text-slate-400">
-              PIN: {shipment.deliveryPincode ||
-                "N/A"}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
-          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                  <Navigation className="h-4 w-4" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900">
-                    Live Route Map
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Pickup to delivery route coordinate vector
-                  </p>
-                </div>
-              </div>
-              {shipmentLocation && (
-                <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-xs font-semibold text-emerald-700">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                  </span>
-                  Signal Active
-                </div>
-              )}
-            </div>
-
-            {!locationLoading &&
-              shipmentLocation && (
-                <div className="grid grid-cols-1 divide-y divide-slate-100 border-b border-slate-100 bg-white sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-                  <div className="flex items-center gap-3.5 p-4">
-                    <div className="rounded-xl bg-slate-100 p-2.5 text-slate-600">
-                      <MapPin className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <span className="block text-xs font-medium uppercase tracking-wider text-slate-500">
-                        Distance
-                      </span>
-                      <span className="text-base font-bold text-slate-900">
-                        {routeLoading
-                          ? "Calculating..."
-                          : route?.distanceMeters !=
-                            null
-                          ? formatDistance(
-                              route.distanceMeters
-                            )
-                          : eta?.distanceKm !=
-                            null
-                          ? `${Number(
-                              eta.distanceKm
-                            ).toFixed(2)} km`
-                          : "N/A"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3.5 p-4">
-                    <div className="rounded-xl bg-slate-100 p-2.5 text-slate-600">
-                      <Clock className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <span className="block text-xs font-medium uppercase tracking-wider text-slate-500">
-                        Est. Transit Time
-                      </span>
-                      <span className="text-base font-bold text-slate-900">
-                        {routeLoading
-                          ? "Calculating..."
-                          : route?.duration
-                          ? formatDuration(
-                              route.duration
-                            )
-                          : eta?.durationSeconds
-                          ? formatTravelTime(
-                              eta.durationSeconds
-                            )
-                          : eta?.travelTime ||
-                            "N/A"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3.5 bg-emerald-50/30 p-4">
-                    <div className="rounded-xl bg-emerald-100 p-2.5 text-emerald-700">
-                      <TrendingUp className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <span className="block text-xs font-medium uppercase tracking-wider text-emerald-800">
-                        Estimated Arrival
-                      </span>
-                      <span className="text-base font-bold text-emerald-700">
-                        {etaLoading
-                          ? "Calculating..."
-                          : estimatedArrival ||
-                            "N/A"}
-                      </span>
-                    </div>
+        </section>
+      ) : !isCancelled && (
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+          {/* Tracking */}
+          <div className="min-w-0 space-y-4">
+            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <Navigation className="h-4 w-4 text-emerald-600" />
+                  <div>
+                    <h2 className="text-sm font-bold text-slate-900">Live Route Map</h2>
+                    <p className="text-[11px] text-slate-500">Pickup to delivery tracking</p>
                   </div>
                 </div>
-              )}
-
-            <div className="bg-slate-50 p-4">
-              {locationLoading ? (
-                <div className="flex h-[380px] w-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
-                  <p className="mt-3 text-xs font-medium text-slate-500">
-                    Loading Google Map vector...
-                  </p>
-                </div>
-              ) : shipmentLocation ? (
-                <div className="overflow-hidden rounded-xl border border-slate-200 shadow-inner">
-                  <GoogleShipmentMap
-                    pickupLatitude={
-                      shipmentLocation.pickupLatitude
-                    }
-                    pickupLongitude={
-                      shipmentLocation.pickupLongitude
-                    }
-                    deliveryLatitude={
-                      shipmentLocation.deliveryLatitude
-                    }
-                    deliveryLongitude={
-                      shipmentLocation.deliveryLongitude
-                    }
-                    currentLatitude={
-                      liveLocation?.latitude
-                    }
-                    currentLongitude={
-                      liveLocation?.longitude
-                    }
-                    encodedPolyline={
-                      encodedPolyline
-                    }
-                    currentRoutePolyline={
-                      currentRoutePolyline
-                    }
-                  />
-                </div>
-              ) : (
-                <div className="flex h-[380px] w-full flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-6 text-center">
-                  <MapPin className="h-8 w-8 text-slate-300" />
-                  <p className="mt-2 text-sm font-semibold text-slate-700">
-                    Current Location Unavailable
-                  </p>
-                  <p className="mt-1 max-w-xs text-xs text-slate-500">
-                    No active GPS vector coordinate logs found for this tracking session yet.
-                  </p>
-                </div>
-              )}
-            </div>
-          </section>
-
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
-                <div className="rounded-lg bg-blue-50 p-2 text-blue-600">
-                  <CheckCircle2 className="h-4 w-4" />
-                </div>
-                <h2 className="text-sm font-bold text-slate-900">
-                  Delivery Forecast
-                </h2>
-              </div>
-
-              {deliveryForecast ? (
-                <div className="mt-4 space-y-3">
-                  <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-                    <span className="text-xs font-medium text-slate-500">
-                      Status
-                    </span>
-                    <span className="text-xs font-bold text-slate-800">
-                      {deliveryForecast.currentStatus ||
-                        deliveryForecast.status ||
-                        "N/A"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-                    <span className="text-xs font-medium text-slate-500">
-                      Forecast Target
-                    </span>
-                    <span className="text-xs font-bold text-emerald-600">
-                      {deliveryForecast.forecastedDelivery
-                        ? new Date(
-                            deliveryForecast.forecastedDelivery
-                          ).toLocaleString([], {
-                            dateStyle:
-                              "short",
-                            timeStyle:
-                              "short",
-                          })
-                        : "N/A"}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="rounded-xl border border-slate-100 p-2.5 text-center">
-                      <span className="block text-[11px] text-slate-400">
-                        Est. Distance
-                      </span>
-                      <span className="text-xs font-bold text-slate-700">
-                        {deliveryForecast.distanceMeters !=
-                        null
-                          ? formatDistance(
-                              deliveryForecast.distanceMeters
-                            )
-                          : "N/A"}
-                      </span>
-                    </div>
-
-                    <div className="rounded-xl border border-slate-100 p-2.5 text-center">
-                      <span className="block text-[11px] text-slate-400">
-                        Est. Time
-                      </span>
-                      <span className="text-xs font-bold text-slate-700">
-                        {deliveryForecast.travelTimeMinutes !=
-                        null
-                          ? formatTravelTime(
-                              deliveryForecast.travelTimeMinutes *
-                                60
-                            )
-                          : "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <p className="mt-6 text-center text-xs text-slate-400">
-                  Delivery forecast telemetry unavailable.
-                </p>
-              )}
-            </section>
-
-            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={`rounded-lg p-2 ${
-                      isDelayed
-                        ? "bg-amber-50 text-amber-600"
-                        : "bg-emerald-50 text-emerald-600"
-                    }`}
-                  >
-                    <AlertTriangle className="h-4 w-4" />
-                  </div>
-                  <h2 className="text-sm font-bold text-slate-900">
-                    Delay Assessment
-                  </h2>
-                </div>
-
-                {delayPrediction && (
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                      isDelayed
-                        ? "bg-amber-100 text-amber-800"
-                        : "bg-emerald-100 text-emerald-800"
-                    }`}
-                  >
-                    {isDelayed
-                      ? "Risk Flagged"
-                      : "On Schedule"}
+                {shipmentLocation && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Signal Active
                   </span>
                 )}
               </div>
 
-              {delayPrediction ? (
-                <div className="mt-4 space-y-3">
-                  <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-                    <span className="text-xs font-medium text-slate-500">
-                      Prediction Model
-                    </span>
-                    <span className="text-xs font-bold text-slate-800">
-                      {delayPrediction.prediction ||
-                        "N/A"}
-                    </span>
+              {shipmentLocation && !locationLoading && (
+                <div className="grid grid-cols-3 divide-x divide-slate-100 border-b border-slate-100">
+                  <div className="px-3 py-3">
+                    <span className="block text-[10px] uppercase tracking-wide text-slate-400">Distance</span>
+                    <span className="text-sm font-bold text-slate-800">{routeLoading ? "Calculating..." : route?.distanceMeters != null ? formatDistance(route.distanceMeters) : eta?.distanceKm != null ? `${Number(eta.distanceKm).toFixed(2)} km` : "N/A"}</span>
                   </div>
-
-                  <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-                    <span className="text-xs font-medium text-slate-500">
-                      Estimated Variance
-                    </span>
-                    <span
-                      className={`text-xs font-bold ${
-                        isDelayed
-                          ? "text-amber-600"
-                          : "text-slate-800"
-                      }`}
-                    >
-                      {delayPrediction.delayMinutes !=
-                      null
-                        ? `+${delayPrediction.delayMinutes} mins`
-                        : "0 mins"}
-                    </span>
+                  <div className="px-3 py-3">
+                    <span className="block text-[10px] uppercase tracking-wide text-slate-400">Transit Time</span>
+                    <span className="text-sm font-bold text-slate-800">{routeLoading ? "Calculating..." : route?.duration ? formatDuration(route.duration) : eta?.durationSeconds ? formatTravelTime(eta.durationSeconds) : eta?.travelTime || "N/A"}</span>
                   </div>
-
-                  <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-3">
-                    <span className="block text-[11px] font-semibold uppercase text-slate-400">
-                      Analysis Note
-                    </span>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                      {delayPrediction.message ||
-                        "No operational warnings logged for current trajectory."}
-                    </p>
+                  <div className="bg-emerald-50/40 px-3 py-3">
+                    <span className="block text-[10px] uppercase tracking-wide text-emerald-700">Estimated Arrival</span>
+                    <span className="text-sm font-bold text-emerald-700">{etaLoading ? "Calculating..." : estimatedArrival || "N/A"}</span>
                   </div>
                 </div>
-              ) : (
-                <p className="mt-6 text-center text-xs text-slate-400">
-                  Delay prediction models unavailable.
-                </p>
               )}
-            </section>
-          </div>
-        </div>
 
-        <div className="space-y-6 lg:col-span-1">
-          <div className="sticky top-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="border-b border-slate-100 bg-slate-50/50 px-5 py-4">
-              <h2 className="text-base font-bold text-slate-900">
-                Tracking Progress
-              </h2>
-              <p className="text-xs text-slate-500">
-                Checkpoint verification status flow
-              </p>
-            </div>
-
-            <div className="p-5">
-              <div className="relative pl-7">
-                <div className="absolute bottom-2 left-[10px] top-2 w-[2px] bg-slate-200" />
-
-                {shipmentStatusFlow.map(
-                  (status, index) => {
-                    const currentIndex =
-                      shipmentStatusFlow.indexOf(
-                        shipment.status
-                      );
-
-                    const isCompletedStep =
-                      !isCancelled &&
-                      index <= currentIndex;
-
-                    const isCurrentStep =
-                      !isCancelled &&
-                      index === currentIndex;
-
-                    return (
-                      <div
-                        key={status}
-                        className="relative mb-6 last:mb-0"
-                      >
-                        <div
-                          className={`absolute -left-[25px] top-0.5 h-5 w-5 rounded-full border-2 transition-all ${
-                            isCurrentStep
-                              ? "border-emerald-600 bg-emerald-600 ring-4 ring-emerald-100"
-                              : isCompletedStep
-                              ? "border-emerald-600 bg-emerald-600"
-                              : "border-slate-300 bg-white"
-                          }`}
-                        />
-
-                        <p
-                          className={`text-sm font-semibold ${
-                            isCurrentStep
-                              ? "text-emerald-700"
-                              : isCompletedStep
-                              ? "text-slate-800"
-                              : "text-slate-400"
-                          }`}
-                        >
-                          {formatStatus(
-                            status
-                          )}
-                        </p>
-
-                        {isCurrentStep && (
-                          <span className="mt-1 inline-block rounded border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
-                            Current Stage
-                          </span>
-                        )}
-                      </div>
-                    );
-                  }
+              <div className="p-3">
+                {locationLoading ? (
+                  <div className="flex h-[360px] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50">
+                    <div className="text-center"><div className="mx-auto h-7 w-7 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" /><p className="mt-2 text-xs text-slate-500">Loading map...</p></div>
+                  </div>
+                ) : shipmentLocation ? (
+                  <div className="overflow-hidden rounded-lg border border-slate-200">
+                    <GoogleShipmentMap
+                      pickupLatitude={shipmentLocation.pickupLatitude}
+                      pickupLongitude={shipmentLocation.pickupLongitude}
+                      deliveryLatitude={shipmentLocation.deliveryLatitude}
+                      deliveryLongitude={shipmentLocation.deliveryLongitude}
+                      currentLatitude={liveLocation?.latitude}
+                      currentLongitude={liveLocation?.longitude}
+                      encodedPolyline={encodedPolyline}
+                      currentRoutePolyline={currentRoutePolyline}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-[360px] flex-col items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-center">
+                    <MapPin className="h-7 w-7 text-slate-300" />
+                    <p className="mt-2 text-sm font-semibold text-slate-700">Current Location Unavailable</p>
+                    <p className="mt-1 max-w-xs text-xs text-slate-500">No active GPS location is available for this shipment yet.</p>
+                  </div>
                 )}
               </div>
+            </section>
 
-              <div className="mt-6 border-t border-slate-100 pt-4">
-                <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  Delivery Expectation
-                </span>
-
-                <p
-                  className={`mt-1 text-xs font-bold ${
-                    isDelayed
-                      ? "text-red-600"
-                      : isOnTime
-                      ? "text-emerald-600"
-                      : "text-slate-700"
-                  }`}
-                >
-                  {delayLoading
-                    ? "Calculating..."
-                    : isDelayed
-                    ? "Shipment may arrive late"
-                    : isOnTime
-                    ? "Shipment is on schedule"
-                    : deliveryForecast?.forecast ===
-                      "DELIVERED"
-                    ? "Shipment has been delivered"
-                    : "Prediction unavailable"}
-                </p>
-
-                {isDelayed &&
-                  delayPrediction?.delayMinutes !=
-                    null && (
-                    <div className="mt-2 rounded-lg border border-red-100 bg-red-50 p-2">
-                      <span className="text-xs text-red-600">
-                        Estimated delay:{" "}
-                        <strong className="font-bold">
-                          {
-                            delayPrediction.delayMinutes
-                          }{" "}
-                          min
-                        </strong>
-                      </span>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5">
+                  <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                  <h2 className="text-sm font-bold text-slate-900">Delivery Forecast</h2>
+                </div>
+                {deliveryForecast ? (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><span className="text-xs text-slate-500">Status</span><span className="text-xs font-bold text-slate-800">{deliveryForecast.currentStatus || deliveryForecast.status || "N/A"}</span></div>
+                    <div className="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><span className="text-xs text-slate-500">Forecast</span><span className="text-right text-xs font-bold text-emerald-600">{deliveryForecast.forecastedDelivery ? new Date(deliveryForecast.forecastedDelivery).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "N/A"}</span></div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="rounded-lg border border-slate-100 p-2 text-center"><span className="block text-[10px] text-slate-400">Distance</span><span className="text-xs font-bold text-slate-700">{deliveryForecast.distanceMeters != null ? formatDistance(deliveryForecast.distanceMeters) : "N/A"}</span></div>
+                      <div className="rounded-lg border border-slate-100 p-2 text-center"><span className="block text-[10px] text-slate-400">Time</span><span className="text-xs font-bold text-slate-700">{deliveryForecast.travelTimeMinutes != null ? formatTravelTime(deliveryForecast.travelTimeMinutes * 60) : "N/A"}</span></div>
                     </div>
-                  )}
-              </div>
+                  </div>
+                ) : <p className="mt-5 text-center text-xs text-slate-400">Delivery forecast unavailable.</p>}
+              </section>
+
+              <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <div className="flex items-center gap-2"><AlertTriangle className={`h-4 w-4 ${isDelayed ? "text-amber-600" : "text-emerald-600"}`} /><h2 className="text-sm font-bold text-slate-900">Delay Assessment</h2></div>
+                  {delayPrediction && <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isDelayed ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>{isDelayed ? "Risk Flagged" : "On Schedule"}</span>}
+                </div>
+                {delayPrediction ? (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><span className="text-xs text-slate-500">Prediction</span><span className="text-xs font-bold text-slate-800">{delayPrediction.prediction || "N/A"}</span></div>
+                    <div className="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><span className="text-xs text-slate-500">Variance</span><span className={`text-xs font-bold ${isDelayed ? "text-amber-600" : "text-slate-800"}`}>{delayPrediction.delayMinutes != null ? `+${delayPrediction.delayMinutes} mins` : "0 mins"}</span></div>
+                    <div className="rounded-lg bg-slate-50 px-3 py-2"><span className="block text-[10px] font-semibold uppercase text-slate-400">Analysis</span><p className="mt-1 text-xs leading-relaxed text-slate-600">{delayPrediction.message || "No operational warnings logged."}</p></div>
+                  </div>
+                ) : <p className="mt-5 text-center text-xs text-slate-400">Delay prediction unavailable.</p>}
+              </section>
             </div>
           </div>
+
+          {/* Progress */}
+          <aside className="min-w-0 rounded-xl border border-slate-200 bg-white shadow-sm lg:sticky lg:top-4">
+            <div className="border-b border-slate-100 px-4 py-3">
+              <h2 className="text-sm font-bold text-slate-900">Tracking Progress</h2>
+              <p className="text-[11px] text-slate-500">Shipment status flow</p>
+            </div>
+            <div className="p-4">
+              <div className="relative pl-6">
+                <div className="absolute bottom-2 left-[8px] top-2 w-px bg-slate-200" />
+                {shipmentStatusFlow.map((status, index) => {
+                  const currentIndex = shipmentStatusFlow.indexOf(shipment.status);
+                  const isCompletedStep = !isCancelled && index <= currentIndex;
+                  const isCurrentStep = !isCancelled && index === currentIndex;
+                  return (
+                    <div key={status} className="relative mb-5 last:mb-0">
+                      <div className={`absolute -left-[23px] top-0.5 h-4 w-4 rounded-full border-2 ${isCurrentStep ? "border-emerald-600 bg-emerald-600 ring-4 ring-emerald-100" : isCompletedStep ? "border-emerald-600 bg-emerald-600" : "border-slate-300 bg-white"}`} />
+                      <p className={`text-xs font-semibold ${isCurrentStep ? "text-emerald-700" : isCompletedStep ? "text-slate-800" : "text-slate-400"}`}>{formatStatus(status)}</p>
+                      {isCurrentStep && <span className="mt-1 inline-block rounded bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600">Current Stage</span>}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-5 border-t border-slate-100 pt-3">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Delivery Expectation</span>
+                <p className={`mt-1 text-xs font-bold ${isDelayed ? "text-red-600" : isOnTime ? "text-emerald-600" : "text-slate-700"}`}>
+                  {delayLoading ? "Calculating..." : isDelayed ? "Shipment may arrive late" : isOnTime ? "Shipment is on schedule" : deliveryForecast?.forecast === "DELIVERED" ? "Shipment has been delivered" : "Prediction unavailable"}
+                </p>
+                {isDelayed && delayPrediction?.delayMinutes != null && <p className="mt-2 rounded-md bg-red-50 px-2 py-1.5 text-[11px] text-red-600">Estimated delay: <strong>{delayPrediction.delayMinutes} min</strong></p>}
+              </div>
+            </div>
+          </aside>
         </div>
-      </div>
+      )}
     </div>
   );
 };

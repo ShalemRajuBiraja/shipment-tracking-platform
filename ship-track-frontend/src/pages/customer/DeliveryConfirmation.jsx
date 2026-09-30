@@ -5,8 +5,10 @@ import SignatureCanvas from "react-signature-canvas";
 import { trackShipmentApi } from "../../services/shipmentService";
 import {
   confirmDeliveryApi,
+  openDeliveryConfirmation,
   saveSignatureApi,
-  saveDeliveryImageApi
+  saveDeliveryImageApi,
+  downloadPodApi,
 } from "../../services/deliveryConfirmationService";
 import { markNotificationAsRead } from "../../services/notificationService";
 
@@ -55,10 +57,7 @@ export default function DeliveryConfirmation() {
       const response = await trackShipmentApi(trackingNumber);
       const data = response?.data?.data || response?.data;
 
-      console.log(
-        "DELIVERY CONFIRMATION SHIPMENT RESPONSE:",
-        data
-      );
+      console.log(  "DELIVERY CONFIRMATION SHIPMENT RESPONSE:", data );
 
       setShipment(data);
 
@@ -573,6 +572,41 @@ export default function DeliveryConfirmation() {
       </div>
     );
   }
+
+  // DOWNLOAD Proof of the Delivery
+  const handleDownloadPod = async () => {
+  try {
+    const response = await downloadPodApi(trackingNumber);
+
+    const blob = new Blob(
+      [response.data],
+      { type: "application/pdf" }
+    );
+
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `POD-${trackingNumber}.pdf`;
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+    window.URL.revokeObjectURL(url);
+
+  } catch (error) {
+    console.error("POD download failed:", error);
+
+    toast.error("Unable to download POD");
+  }
+};
+
+
+
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
@@ -1133,6 +1167,28 @@ export default function DeliveryConfirmation() {
             <p className="text-sm text-emerald-700 mt-1">
               Delivery confirmation, digital signature, and delivery image have been successfully completed.
             </p>
+
+            {/* PROOF OF DELIVERY */}
+
+            <div className="mt-5 border-t border-emerald-200 pt-5">
+
+              <h3 className="text-base font-semibold text-emerald-800">
+                Proof of Delivery
+              </h3>
+
+              <p className="text-sm text-emerald-700 mt-1">
+                Your Proof of Delivery PDF has been generated successfully.
+              </p>
+
+              <button
+                type="button"
+                onClick={handleDownloadPod}
+                className="mt-4 w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-lg font-semibold text-sm transition"
+              >
+                Download POD PDF
+              </button>
+
+            </div>
 
           </div>
         )}

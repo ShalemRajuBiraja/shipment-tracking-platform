@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import {
   Package,
   Search,
@@ -12,6 +14,7 @@ const ShipmentHistory = () => {
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
 
   // ================= FETCH SHIPMENT HISTORY =================
@@ -349,23 +352,18 @@ const ShipmentHistory = () => {
 
                     </td>
 
+                  {/* ACTION */}
 
-                    {/* ACTION */}
-
-                    <td className="px-4 py-4 text-center">
-
-                      <button
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-100 transition"
-                      >
-
-                        <Eye size={16} />
-
-                        View Details
-
-                      </button>
-
-                    </td>
-
+                  <td className="px-4 py-4 text-center">
+                    <button
+                      onClick={() =>
+                        navigate(`/customer/shipment/${shipment.trackingNumber}`)
+                      }
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-100 transition"
+                    >
+                      View Details
+                    </button>
+                  </td>
                   </tr>
 
                 ))

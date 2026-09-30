@@ -82,6 +82,8 @@ public class ShipmentEntity {
     // ================= TIMESTAMPS =================
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }

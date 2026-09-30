@@ -71,6 +71,7 @@ public class ShipmentResponseDto {
     // ================= DATES =================
 
     private LocalDateTime createdAt;
+    private LocalDateTime deliveredAt;
 
     private LocalDateTime updatedAt;
 }

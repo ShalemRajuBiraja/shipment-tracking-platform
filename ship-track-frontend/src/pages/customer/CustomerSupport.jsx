@@ -1,15 +1,16 @@
+
 import { useState } from "react";
 import { Headphones, Send } from "lucide-react";
 import { toast } from "react-toastify";
 import { supportRequestApi } from "../../services/shipmentService";
 
 const CustomerSupport = () => {
- const [formData, setFormData] = useState({
-  name: "",
-  phoneNumber: "",
-  issue: "",
-  description: "",
-});
+  const [formData, setFormData] = useState({
+    name: "",
+    phoneNumber: "",
+    issue: "",
+    description: "",
+  });
 
   const handleChange = (e) => {
     setFormData({
@@ -21,116 +22,123 @@ const CustomerSupport = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.issue || !formData.description || !formData.name || !formData.phoneNumber) {
+    if (
+      !formData.issue ||
+      !formData.description ||
+      !formData.name ||
+      !formData.phoneNumber
+    ) {
       toast.error("Please fill all fields.");
       return;
     }
 
-   try {
-        const response = await supportRequestApi(formData);
+    try {
+      const response = await supportRequestApi(formData);
 
-        if (response.data.success === true) {    
-          toast.success("Support request sent successfully!");
-          setFormData({
-            name: "",
-            phoneNumber: "",
-            issue: "",
-            description: "",
-          });
-        } else {
-          toast.error("Failed to submit support request. Please try again.");
-        }
-   } catch (error) {
-        console.error("Error submitting support request:", error);
+      if (response.data.success === true) {
+        toast.success("Support request sent successfully!");
+
+        setFormData({
+          name: "",
+          phoneNumber: "",
+          issue: "",
+          description: "",
+        });
+      } else {
         toast.error("Failed to submit support request. Please try again.");
-   }
-
+      }
+    } catch (error) {
+      console.error("Error submitting support request:", error);
+      toast.error("Failed to submit support request. Please try again.");
+    }
   };
 
   return (
-    <div className="p-5 md:p-7 max-w-3xl">
+    <div className="p-3 max-w-md">
 
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-3">
+        <div className="flex items-center gap-2.5">
 
-        <div className="flex items-center gap-3">
-
-          <div className="p-3 bg-emerald-50 rounded-xl">
+          <div className="p-2 bg-emerald-50 rounded-lg">
             <Headphones
-              size={24}
+              size={20}
               className="text-emerald-600"
             />
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">
+            <h1 className="text-lg font-bold text-slate-800">
               Contact Support
             </h1>
 
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-xs text-slate-500">
               Send your issue to our support team.
             </p>
           </div>
 
         </div>
-
       </div>
 
-
       {/* Support Form */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
 
-        <div className="px-6 py-5 border-b border-slate-100">
+        {/* Form Header */}
+        <div className="px-3 py-3 border-b border-slate-100">
 
-          <h2 className="font-semibold text-slate-800">
+          <h2 className="text-sm font-semibold text-slate-800">
             Submit Support Request
           </h2>
 
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-0.5">
             Describe your issue clearly and our support agent will assist you.
           </p>
 
         </div>
 
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="p-3 space-y-3"
+        >
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5" >
-            {/* Name */}
-                <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                    Full Name
-                </label>
-
-                <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Enter your name"
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                    required
-                />
-                </div>
-
-            {/* Phone Number */}
-            <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Phone Number
+          {/* Name */}
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              Full Name
             </label>
 
             <input
-                type="tel"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                placeholder="Enter your phone number"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                required
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Enter your name"
+              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+              required
             />
-            </div> 
+          </div>
+
+          {/* Phone Number */}
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              Phone Number
+            </label>
+
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              placeholder="Enter your phone number"
+              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+              required
+            />
+          </div>
 
           {/* Issue */}
-            <div>
-             <label className="block text-sm font-medium text-slate-700 mb-2">
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               Issue
             </label>
 
@@ -140,43 +148,37 @@ const CustomerSupport = () => {
               value={formData.issue}
               onChange={handleChange}
               placeholder="Enter issue"
-              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+              required
             />
-
           </div>
 
-
-          {/* Message */}
+          {/* Description */}
           <div>
-
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-xs font-medium text-slate-700 mb-1">
               Describe Your Issue
             </label>
 
             <textarea
-              rows="6"
+              rows="3"
               name="description"
               value={formData.description}
               onChange={handleChange}
               placeholder="Enter your tracking number and explain your issue..."
-              className="w-full border border-slate-300 rounded-lg px-4 py-3 text-sm outline-none resize-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none resize-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+              required
             />
-
           </div>
-
 
           {/* Submit */}
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg text-sm font-semibold transition"
+            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-md text-sm font-semibold transition"
           >
-
-            <Send size={18} />
-
+            <Send size={16} />
             Send Support Request
-
           </button>
-         
+
         </form>
 
       </div>
@@ -186,3 +188,4 @@ const CustomerSupport = () => {
 };
 
 export default CustomerSupport;
+

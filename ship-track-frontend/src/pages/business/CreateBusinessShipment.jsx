@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "react-toastify";
 
@@ -64,10 +65,13 @@ const CreateShipment = () => {
 
     try {
       setLoading(true);
-  console.log("Sending shipment data:", formData);
+
+      console.log("Sending shipment data:", formData);
 
       const response = await createShipmentApi(formData);
-console.log("Create shipment response:", response.data);
+
+      console.log("Create shipment response:", response.data);
+
       if (response.data.success === true) {
         toast.success("Shipment created successfully!");
 
@@ -106,74 +110,67 @@ console.log("Create shipment response:", response.data);
   };
 
   return (
-    <div className="p-5 md:p-7 max-w-6xl mx-auto">
+    <div className="p-3 max-w-4xl">
 
       {/* PAGE HEADER */}
-      <div className="mb-6">
+      <div className="mb-3">
+        <div className="flex items-center gap-2.5">
 
-        <div className="flex items-center gap-3">
-
-          <div className="p-3 bg-emerald-50 rounded-xl">
+          <div className="p-2 bg-emerald-50 rounded-lg">
             <PackagePlus
-              size={24}
+              size={20}
               className="text-emerald-600"
             />
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">
+            <h1 className="text-lg font-bold text-slate-800">
               Create Shipment
             </h1>
 
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-xs text-slate-500">
               Enter shipment details to create a new delivery.
             </p>
           </div>
 
         </div>
-
       </div>
-
 
       {/* MAIN FORM */}
       <form
         onSubmit={handleSubmit}
-        className="space-y-6"
+        className="space-y-3"
       >
 
         {/* RECEIVER INFORMATION */}
-        <section className="bg-white border border-slate-200 rounded-xl shadow-sm">
+        <section className="bg-white border border-slate-200 rounded-lg shadow-sm">
 
-          {/* Section Header */}
-          <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
+          <div className="flex items-center gap-2.5 px-3 py-3 border-b border-slate-100">
 
             <div className="p-2 bg-emerald-50 rounded-lg">
               <User
-                size={20}
+                size={18}
                 className="text-emerald-600"
               />
             </div>
 
             <div>
-              <h2 className="font-semibold text-slate-800">
+              <h2 className="text-sm font-semibold text-slate-800">
                 Receiver Information
               </h2>
 
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500">
                 Enter the recipient details.
               </p>
             </div>
 
           </div>
 
-
-          {/* Fields */}
-          <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-3">
 
             {/* Receiver Name */}
             <div>
-
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Receiver Name
               </label>
 
@@ -183,16 +180,14 @@ console.log("Create shipment response:", response.data);
                 value={formData.receiverName}
                 onChange={handleChange}
                 placeholder="Enter receiver name"
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                required
               />
-
             </div>
-
 
             {/* Receiver Phone */}
             <div>
-
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Phone Number
               </label>
 
@@ -202,296 +197,265 @@ console.log("Create shipment response:", response.data);
                 value={formData.receiverPhone}
                 onChange={handleChange}
                 placeholder="Enter phone number"
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                required
               />
-
             </div>
 
           </div>
-
         </section>
 
 
-        {/* PICKUP LOCATION */}
-        <section className="bg-white border border-slate-200 rounded-xl shadow-sm">
+        {/* PICKUP + DELIVERY */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-          {/* Header */}
-          <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
+          {/* PICKUP LOCATION */}
+          <section className="bg-white border border-slate-200 rounded-lg shadow-sm">
 
-            <div className="p-2 bg-emerald-50 rounded-lg">
-              <MapPin
-                size={20}
-                className="text-emerald-600"
-              />
-            </div>
+            <div className="flex items-center gap-2.5 px-3 py-3 border-b border-slate-100">
 
-            <div>
-              <h2 className="font-semibold text-slate-800">
-                Pickup Location
-              </h2>
-
-              <p className="text-xs text-slate-500 mt-0.5">
-                Enter where the shipment will be collected.
-              </p>
-            </div>
-
-          </div>
-
-
-          {/* Fields */}
-          <div className="p-5 space-y-5">
-
-            {/* Pickup Address */}
-            <div>
-
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Pickup Address
-              </label>
-
-              <textarea
-                rows="3"
-                name="pickupAddress"
-                value={formData.pickupAddress}
-                onChange={handleChange}
-                placeholder="Enter complete pickup address"
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm outline-none resize-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-              />
-
-            </div>
-
-
-            {/* City State Pincode */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-              {/* City */}
-              <div>
-
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  City
-                </label>
-
-                <input
-                  type="text"
-                  name="pickupCity"
-                  value={formData.pickupCity}
-                  onChange={handleChange}
-                  placeholder="Enter city"
-                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              <div className="p-2 bg-emerald-50 rounded-lg">
+                <MapPin
+                  size={18}
+                  className="text-emerald-600"
                 />
-
               </div>
 
-
-              {/* State */}
               <div>
+                <h2 className="text-sm font-semibold text-slate-800">
+                  Pickup Location
+                </h2>
 
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  State
-                </label>
-
-                <input
-                  type="text"
-                  name="pickupState"
-                  value={formData.pickupState}
-                  onChange={handleChange}
-                  placeholder="Enter state"
-                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                />
-
-              </div>
-
-
-              {/* Pincode */}
-              <div>
-
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Pincode
-                </label>
-
-                <input
-                  type="text"
-                  name="pickupPincode"
-                  value={formData.pickupPincode}
-                  onChange={handleChange}
-                  placeholder="Enter pincode"
-                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                />
-
+                <p className="text-xs text-slate-500">
+                  Shipment collection location.
+                </p>
               </div>
 
             </div>
 
-          </div>
+            <div className="p-3 space-y-3">
 
-        </section>
-
-
-        {/* DELIVERY LOCATION */}
-        <section className="bg-white border border-slate-200 rounded-xl shadow-sm">
-
-          {/* Header */}
-          <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
-
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <Truck
-                size={20}
-                className="text-blue-600"
-              />
-            </div>
-
-            <div>
-              <h2 className="font-semibold text-slate-800">
-                Delivery Location
-              </h2>
-
-              <p className="text-xs text-slate-500 mt-0.5">
-                Enter where the shipment should be delivered.
-              </p>
-            </div>
-
-          </div>
-
-
-          {/* Fields */}
-          <div className="p-5 space-y-5">
-
-            {/* Delivery Address */}
-            <div>
-
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Delivery Address
-              </label>
-
-              <textarea
-                rows="3"
-                name="deliveryAddress"
-                value={formData.deliveryAddress}
-                onChange={handleChange}
-                placeholder="Enter complete delivery address"
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm outline-none resize-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-              />
-
-            </div>
-
-
-            {/* City State Pincode */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-              {/* City */}
+              {/* Pickup Address */}
               <div>
-
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  City
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Pickup Address
                 </label>
 
-                <input
-                  type="text"
-                  name="deliveryCity"
-                  value={formData.deliveryCity}
+                <textarea
+                  rows="2"
+                  name="pickupAddress"
+                  value={formData.pickupAddress}
                   onChange={handleChange}
-                  placeholder="Enter city"
-                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  placeholder="Enter complete pickup address"
+                  className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none resize-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  required
                 />
-
               </div>
 
+              {/* City / State / Pincode */}
+              <div className="grid grid-cols-3 gap-2">
 
-              {/* State */}
-              <div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    City
+                  </label>
 
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  State
-                </label>
+                  <input
+                    type="text"
+                    name="pickupCity"
+                    value={formData.pickupCity}
+                    onChange={handleChange}
+                    placeholder="City"
+                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                    required
+                  />
+                </div>
 
-                <input
-                  type="text"
-                  name="deliveryState"
-                  value={formData.deliveryState}
-                  onChange={handleChange}
-                  placeholder="Enter state"
-                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                />
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    State
+                  </label>
 
-              </div>
+                  <input
+                    type="text"
+                    name="pickupState"
+                    value={formData.pickupState}
+                    onChange={handleChange}
+                    placeholder="State"
+                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                    required
+                  />
+                </div>
 
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Pincode
+                  </label>
 
-              {/* Pincode */}
-              <div>
-
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  Pincode
-                </label>
-
-                <input
-                  type="text"
-                  name="deliveryPincode"
-                  value={formData.deliveryPincode}
-                  onChange={handleChange}
-                  placeholder="Enter pincode"
-                  className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                />
+                  <input
+                    type="text"
+                    name="pickupPincode"
+                    value={formData.pickupPincode}
+                    onChange={handleChange}
+                    placeholder="Pincode"
+                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                    required
+                  />
+                </div>
 
               </div>
 
             </div>
+          </section>
 
-          </div>
 
-        </section>
+          {/* DELIVERY LOCATION */}
+          <section className="bg-white border border-slate-200 rounded-lg shadow-sm">
+
+            <div className="flex items-center gap-2.5 px-3 py-3 border-b border-slate-100">
+
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <Truck
+                  size={18}
+                  className="text-blue-600"
+                />
+              </div>
+
+              <div>
+                <h2 className="text-sm font-semibold text-slate-800">
+                  Delivery Location
+                </h2>
+
+                <p className="text-xs text-slate-500">
+                  Shipment delivery location.
+                </p>
+              </div>
+
+            </div>
+
+            <div className="p-3 space-y-3">
+
+              {/* Delivery Address */}
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Delivery Address
+                </label>
+
+                <textarea
+                  rows="2"
+                  name="deliveryAddress"
+                  value={formData.deliveryAddress}
+                  onChange={handleChange}
+                  placeholder="Enter complete delivery address"
+                  className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none resize-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  required
+                />
+              </div>
+
+              {/* City / State / Pincode */}
+              <div className="grid grid-cols-3 gap-2">
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    City
+                  </label>
+
+                  <input
+                    type="text"
+                    name="deliveryCity"
+                    value={formData.deliveryCity}
+                    onChange={handleChange}
+                    placeholder="City"
+                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    State
+                  </label>
+
+                  <input
+                    type="text"
+                    name="deliveryState"
+                    value={formData.deliveryState}
+                    onChange={handleChange}
+                    placeholder="State"
+                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                    Pincode
+                  </label>
+
+                  <input
+                    type="text"
+                    name="deliveryPincode"
+                    value={formData.deliveryPincode}
+                    onChange={handleChange}
+                    placeholder="Pincode"
+                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                    required
+                  />
+                </div>
+
+              </div>
+
+            </div>
+          </section>
+
+        </div>
 
 
         {/* PACKAGE DETAILS */}
-        <section className="bg-white border border-slate-200 rounded-xl shadow-sm">
+        <section className="bg-white border border-slate-200 rounded-lg shadow-sm">
 
-          {/* Header */}
-          <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
+          <div className="flex items-center gap-2.5 px-3 py-3 border-b border-slate-100">
 
             <div className="p-2 bg-amber-50 rounded-lg">
               <Package
-                size={20}
+                size={18}
                 className="text-amber-600"
               />
             </div>
 
             <div>
-              <h2 className="font-semibold text-slate-800">
+              <h2 className="text-sm font-semibold text-slate-800">
                 Package Details
               </h2>
 
-              <p className="text-xs text-slate-500 mt-0.5">
-                Enter information about the shipment package.
+              <p className="text-xs text-slate-500">
+                Enter package information.
               </p>
             </div>
 
           </div>
 
-
-          {/* Fields */}
-          <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-3">
 
             {/* Package Description */}
             <div>
-
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Package Description
               </label>
 
               <textarea
-                rows="3"
+                rows="2"
                 name="packageDescription"
                 value={formData.packageDescription}
                 onChange={handleChange}
                 placeholder="Describe the package contents"
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm outline-none resize-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none resize-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
               />
-
             </div>
-
 
             {/* Weight */}
             <div>
-
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Package Weight (kg)
               </label>
 
@@ -503,33 +467,32 @@ console.log("Create shipment response:", response.data);
                 min="0.1"
                 step="0.1"
                 placeholder="Enter weight in kg"
-                className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                required
               />
 
-              <p className="text-xs text-slate-400 mt-2">
+              <p className="text-xs text-slate-400 mt-1">
                 Minimum weight: 0.1 kg
               </p>
-
             </div>
 
           </div>
-
         </section>
 
 
         {/* SUBMIT BUTTON */}
-        <div className="flex justify-end pb-6">
+        <div className="flex justify-end">
 
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-6 py-3 rounded-lg text-sm font-semibold transition shadow-sm"
+            className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-5 py-2 rounded-md text-sm font-medium transition"
           >
 
             {loading ? (
               <>
                 <Loader2
-                  size={18}
+                  size={16}
                   className="animate-spin"
                 />
 
@@ -537,7 +500,7 @@ console.log("Create shipment response:", response.data);
               </>
             ) : (
               <>
-                <PackagePlus size={18} />
+                <PackagePlus size={16} />
 
                 Create Shipment
               </>
@@ -548,7 +511,6 @@ console.log("Create shipment response:", response.data);
         </div>
 
       </form>
-
     </div>
   );
 };

@@ -1,6 +1,7 @@
 
 package com.ship_track_backend.controller;
 
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,14 @@ import com.ship_track_backend.pojo.DeliveryConfirmationResponseDto;
 import com.ship_track_backend.pojo.DeliveryImageRequest;
 import com.ship_track_backend.pojo.SignatureRequest;
 import com.ship_track_backend.service.DeliveryConfirmationService;
+import java.io.File;
+import java.nio.file.Files;
+
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
+
 
 @RestController
 @RequestMapping("/api/delivery-confirmations")
@@ -124,6 +133,43 @@ public class DeliveryConfirmationController {
                 .body(response);
     }
    
+    // 	GENERATE POD PDF
+ // ================= DOWNLOAD POD =================
+
+    @GetMapping("/pod/{trackingNumber}")
+    public ResponseEntity<Resource> downloadPod(
+            @PathVariable String trackingNumber) {
+
+        try {
+
+            File podFile = deliveryConfirmationService.getPodFile(trackingNumber);
+
+            byte[] fileBytes =
+                    Files.readAllBytes(podFile.toPath());
+
+            ByteArrayResource resource =
+                    new ByteArrayResource(fileBytes);
+
+            return ResponseEntity.ok()
+                    .contentType(
+                            MediaType.APPLICATION_PDF)
+                    .header(
+                            HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" +
+                                    podFile.getName() +
+                                    "\"")
+                    .contentLength(fileBytes.length)
+                    .body(resource);
+
+        } catch (Exception ex) {
+
+            ex.printStackTrace();
+
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+    }
 
 }
 

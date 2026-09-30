@@ -1,16 +1,16 @@
+
 import { useState } from "react";
 import { toast } from "react-toastify";
 
 import {
-  Building2,
   LockKeyhole,
   Eye,
   EyeOff,
 } from "lucide-react";
+
 import { updatePasswordApi } from "../../services/authService";
 
 const BusinessSettings = () => {
-
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -22,14 +22,12 @@ const BusinessSettings = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-
   const handlePasswordChange = (e) => {
     setPasswordData({
       ...passwordData,
       [e.target.name]: e.target.value,
     });
   };
-
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
@@ -43,71 +41,81 @@ const BusinessSettings = () => {
       return;
     }
 
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
+    if (
+      passwordData.newPassword !==
+      passwordData.confirmPassword
+    ) {
       toast.error("New passwords do not match.");
       return;
     }
 
     if (passwordData.newPassword.length < 6) {
-      toast.error("Password must contain at least 6 characters.");
+      toast.error(
+        "Password must contain at least 6 characters."
+      );
       return;
     }
 
     try {
-      const response = await updatePasswordApi(passwordData.currentPassword, passwordData.newPassword);
+      const response = await updatePasswordApi(
+        passwordData.currentPassword,
+        passwordData.newPassword
+      );
 
       if (response.data.success === true) {
         toast.success("Password updated successfully!");
+
         setPasswordData({
           currentPassword: "",
           newPassword: "",
           confirmPassword: "",
         });
       } else {
-        toast.error("Failed to update password. Please try again.");
+        toast.error(
+          "Failed to update password. Please try again."
+        );
       }
-
     } catch (error) {
       console.error("Error updating password:", error);
-      toast.error("Failed to update password. Please try again.");
+
+      toast.error(
+        "Failed to update password. Please try again."
+      );
     }
-    
   };
 
-
   return (
-    <div className="p-5 md:p-7 max-w-xl">
+    <div className="p-3 max-w-md">
 
       {/* PAGE HEADER */}
-      <div className="mb-6">
+      <div className="mb-3">
 
-        <h1 className="text-2xl font-bold text-slate-800">
+        <h1 className="text-lg font-bold text-slate-800">
           Settings
         </h1>
 
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-xs text-slate-500 mt-0.5">
           Manage your account security and password.
         </p>
 
       </div>
 
-
       {/* PASSWORD SETTINGS CARD */}
-      <section className="bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col">
+      <section className="bg-white border border-slate-200 rounded-lg shadow-sm">
 
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100">
+        <div className="flex items-center gap-2.5 px-3 py-3 border-b border-slate-100">
 
           <div className="p-2 bg-emerald-50 rounded-lg">
             <LockKeyhole
-              size={20}
+              size={19}
               className="text-emerald-600"
             />
           </div>
 
           <div>
 
-            <h2 className="font-semibold text-slate-800">
+            <h2 className="text-sm font-semibold text-slate-800">
               Password & Security
             </h2>
 
@@ -119,44 +127,50 @@ const BusinessSettings = () => {
 
         </div>
 
-
         {/* Password Form */}
         <form
           onSubmit={handlePasswordSubmit}
-          className="p-5"
+          className="p-3"
         >
 
-          <div className="space-y-4">
+          <div className="space-y-3">
 
             {/* Current Password */}
             <div>
 
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Current Password
               </label>
 
               <div className="relative">
 
                 <input
-                  type={showCurrentPassword ? "text" : "password"}
+                  type={
+                    showCurrentPassword
+                      ? "text"
+                      : "password"
+                  }
                   name="currentPassword"
                   value={passwordData.currentPassword}
                   onChange={handlePasswordChange}
                   placeholder="Enter current password"
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2.5 pr-11 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="w-full border border-slate-200 rounded-md px-3 py-2 pr-10 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  required
                 />
 
                 <button
                   type="button"
                   onClick={() =>
-                    setShowCurrentPassword(!showCurrentPassword)
+                    setShowCurrentPassword(
+                      !showCurrentPassword
+                    )
                   }
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
                 >
                   {showCurrentPassword ? (
-                    <EyeOff size={18} />
+                    <EyeOff size={16} />
                   ) : (
-                    <Eye size={18} />
+                    <Eye size={16} />
                   )}
                 </button>
 
@@ -164,36 +178,42 @@ const BusinessSettings = () => {
 
             </div>
 
-
             {/* New Password */}
             <div>
 
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 New Password
               </label>
 
               <div className="relative">
 
                 <input
-                  type={showNewPassword ? "text" : "password"}
+                  type={
+                    showNewPassword
+                      ? "text"
+                      : "password"
+                  }
                   name="newPassword"
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
                   placeholder="Enter new password"
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2.5 pr-11 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="w-full border border-slate-200 rounded-md px-3 py-2 pr-10 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  required
                 />
 
                 <button
                   type="button"
                   onClick={() =>
-                    setShowNewPassword(!showNewPassword)
+                    setShowNewPassword(
+                      !showNewPassword
+                    )
                   }
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
                 >
                   {showNewPassword ? (
-                    <EyeOff size={18} />
+                    <EyeOff size={16} />
                   ) : (
-                    <Eye size={18} />
+                    <Eye size={16} />
                   )}
                 </button>
 
@@ -201,43 +221,48 @@ const BusinessSettings = () => {
 
             </div>
 
-
             {/* Confirm Password */}
             <div>
 
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Confirm New Password
               </label>
 
               <div className="relative">
 
                 <input
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={
+                    showConfirmPassword
+                      ? "text"
+                      : "password"
+                  }
                   name="confirmPassword"
                   value={passwordData.confirmPassword}
                   onChange={handlePasswordChange}
                   placeholder="Confirm new password"
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2.5 pr-11 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  className="w-full border border-slate-200 rounded-md px-3 py-2 pr-10 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  required
                 />
 
                 <button
                   type="button"
                   onClick={() =>
-                    setShowConfirmPassword(!showConfirmPassword)
+                    setShowConfirmPassword(
+                      !showConfirmPassword
+                    )
                   }
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
                 >
                   {showConfirmPassword ? (
-                    <EyeOff size={18} />
+                    <EyeOff size={16} />
                   ) : (
-                    <Eye size={18} />
+                    <Eye size={16} />
                   )}
                 </button>
 
               </div>
 
             </div>
-
 
             {/* Password Requirement */}
             <p className="text-xs text-slate-400">
@@ -246,13 +271,12 @@ const BusinessSettings = () => {
 
           </div>
 
-
           {/* Update Button */}
-          <div className="mt-6">
+          <div className="mt-4">
 
             <button
               type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg text-sm font-medium transition"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-md text-sm font-medium transition"
             >
               Update Password
             </button>
@@ -268,3 +292,4 @@ const BusinessSettings = () => {
 };
 
 export default BusinessSettings;
+

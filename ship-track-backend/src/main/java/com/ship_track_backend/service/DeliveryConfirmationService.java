@@ -26,17 +26,20 @@ public class DeliveryConfirmationService {
     private final ShipmentRepository shipmentRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final PodPdfService podPdfService;
 
     public DeliveryConfirmationService(
             DeliveryConfirmationRepository deliveryConfirmationRepository,
             ShipmentRepository shipmentRepository,
             UserRepository userRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            PodPdfService podPdfService) {
 
         this.deliveryConfirmationRepository = deliveryConfirmationRepository;
         this.shipmentRepository = shipmentRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.podPdfService = podPdfService;
     }
 
     // ================= OPEN DELIVERY CONFIRMATION =================
@@ -74,16 +77,14 @@ public class DeliveryConfirmationService {
                     "Delivery confirmation already sent for this shipment");
         }
 
-        DeliveryConfirmationEntity confirmation =
-                new DeliveryConfirmationEntity();
+        DeliveryConfirmationEntity confirmation = new DeliveryConfirmationEntity();
 
         confirmation.setShipment(shipment);
         confirmation.setCustomer(customer);
         confirmation.setOperator(operator);
         confirmation.setConfirmed(false);
 
-        DeliveryConfirmationEntity savedConfirmation =
-                deliveryConfirmationRepository.save(confirmation);
+        DeliveryConfirmationEntity savedConfirmation =  deliveryConfirmationRepository.save(confirmation);
 
         notificationService.createNotification(
                 customer,
@@ -137,14 +138,13 @@ public class DeliveryConfirmationService {
                         new RuntimeException(
                                 "Customer not found"));
 
-        if (!confirmation.getCustomer().getId()
-                .equals(customer.getId())) {
+        if (!confirmation.getCustomer().getId().equals(customer.getId())) {
 
-            throw new RuntimeException(
-                    "You are not authorized to confirm this delivery");
+            throw new RuntimeException( "You are not authorized to confirm this delivery");
         }
 
         // Final confirmation
+     // Final confirmation
         confirmation.setConfirmed(true);
 
         confirmation.setConfirmedByName(
@@ -156,7 +156,7 @@ public class DeliveryConfirmationService {
         ShipmentEntity shipment =
                 confirmation.getShipment();
 
-        // Only NOW change shipment status
+        // Change shipment status
         shipment.setStatus(
                 ShipmentStatus.DELIVERED);
 
@@ -165,6 +165,37 @@ public class DeliveryConfirmationService {
 
         shipmentRepository.save(shipment);
 
+
+        // =========================
+        // GENERATE POD
+        // =========================
+
+        try {
+
+            String podPath = podPdfService.generatePodPdf(
+                    shipment.getTrackingNumber(),
+                    shipment.getReceiverName(),
+                    shipment.getDeliveryAddress(),
+                    shipment.getPackageDescription(),
+                    shipment.getWeight() != null
+                            ? shipment.getWeight().toString()
+                            : "",
+                    confirmation.getConfirmedByName(),
+                    confirmation.getConfirmedAt().toString(),
+                    confirmation.getSignaturePath(),
+                    confirmation.getDeliveryImagePath()
+            );
+
+            confirmation.setPodFilePath(podPath);
+
+        } catch (Exception ex) {
+
+            throw new RuntimeException(
+                    "Unable to generate Proof of Delivery");
+        }
+
+
+        // Save confirmation
         DeliveryConfirmationEntity savedConfirmation =
                 deliveryConfirmationRepository.save(
                         confirmation);
@@ -389,5 +420,122 @@ public class DeliveryConfirmationService {
             throw new RuntimeException(
                     "Unable to save delivery image");
         }
+    }
+    
+    
+    // ================= GET DELIVERY CONFIRMATION STATUS =================
+ // ================= DOWNLOAD POD =================
+
+    public File getPodFile(String trackingNumber) {
+
+        // Get logged-in user's email
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        // Find logged-in user
+        UserEntity loggedInUser = userRepository
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+
+        // Find shipment
+        ShipmentEntity shipment = shipmentRepository
+                .findByTrackingNumber(trackingNumber)
+                .orElseThrow(() ->
+                        new RuntimeException("Shipment not found"));
+
+        // Get user role
+        String role = loggedInUser.getRole().name();
+
+        // ================= AUTHORIZATION =================
+
+        // ADMIN and SUPPORT_AGENT can access all shipments
+        boolean isAdmin =
+                role.equals("ADMIN");
+
+        boolean isSupportAgent =
+                role.equals("SUPPORT_AGENT");
+
+        // CUSTOMER / BUSINESS_CLIENT
+        // can access their own shipments
+        boolean isSender =
+                shipment.getSender() != null &&
+                shipment.getSender().getId()
+                        .equals(loggedInUser.getId());
+
+        boolean isReceiver =
+                shipment.getReceiver() != null &&
+                shipment.getReceiver().getId()
+                        .equals(loggedInUser.getId());
+
+        // LOGISTICS_OPERATOR
+        // can access shipments assigned to them
+        boolean isAssignedOperator =
+                shipment.getAssignedOperator() != null &&
+                shipment.getAssignedOperator().getId()
+                        .equals(loggedInUser.getId());
+
+        System.out.println("========== POD DOWNLOAD DEBUG ==========");
+        System.out.println("Logged-in email: " + email);
+        System.out.println("Logged-in user ID: " + loggedInUser.getId());
+        System.out.println("Logged-in role: " + role);
+
+        System.out.println("Shipment tracking: " + trackingNumber);
+
+        System.out.println(
+            "Shipment sender ID: " +
+            (shipment.getSender() != null
+                ? shipment.getSender().getId()
+                : "NULL")
+        );
+
+        System.out.println(
+            "Assigned operator ID: " +
+            (shipment.getAssignedOperator() != null
+                ? shipment.getAssignedOperator().getId()
+                : "NULL")
+        );
+
+    
+        System.out.println("========================================");
+        // Allow access if user has permission
+        if (!isAdmin &&
+                !isSupportAgent &&
+                !isSender &&
+                !isReceiver &&
+                !isAssignedOperator) {
+
+            throw new RuntimeException(
+                    "You are not authorized to download this POD");
+        }
+
+        // ================= FIND POD =================
+
+        DeliveryConfirmationEntity confirmation =
+                deliveryConfirmationRepository
+                        .findByShipment_TrackingNumber(trackingNumber)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Delivery confirmation not found"));
+
+        if (confirmation.getPodFilePath() == null ||
+                confirmation.getPodFilePath().isBlank()) {
+
+            throw new RuntimeException(
+                    "Proof of Delivery not available");
+        }
+
+        File podFile = new File(
+                confirmation.getPodFilePath());
+
+        if (!podFile.exists()) {
+
+            throw new RuntimeException(
+                    "Proof of Delivery file not found");
+        }
+
+        return podFile;
     }
 }

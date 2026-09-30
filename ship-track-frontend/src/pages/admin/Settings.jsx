@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 
 import {
@@ -5,6 +6,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+
 import { updateAdminPasswordApi } from "../../services/adminService";
 import { toast } from "react-toastify";
 
@@ -22,85 +24,92 @@ const Settings = () => {
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
+
     setPasswordData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
-  }
+  };
 
   // ================= PASSWORD CHANGE =================
 
   const handlePasswordSubmit = async (e) => {
- 
-     e.preventDefault();
- 
-     if (
-       !passwordData.currentPassword ||
-       !passwordData.newPassword ||
-       !passwordData.confirmPassword
-     ) {
- 
-       toast.error("Please fill all password fields.");
-       return;
- 
-     }
- 
- 
-     if (
-       passwordData.newPassword !==
-       passwordData.confirmPassword
-     ) {
- 
-       toast.error("New passwords do not match.");
-       return;
- 
-     }
- 
- 
-     if (passwordData.newPassword.length < 6) {
- 
-       toast.error(
-         "Password must contain at least 6 characters."
-       );
- 
-       return;
- 
-     }
- 
-      try {
-           const response = await updateAdminPasswordApi(passwordData.currentPassword, passwordData.newPassword);
-     
-           if (response.data.success === true) {
-             toast.success("Password updated successfully!");
-             setPasswordData({
-               currentPassword: "",
-               newPassword: "",
-               confirmPassword: "",
-             });
-           } else {
-             toast.error("Failed to update password. Please try again.");
-           }
-     
-         } catch (error) {
-           console.error("Error updating password:", error);
-           toast.error("Failed to update password. Please try again.");
-         }
-   };
 
+    e.preventDefault();
+
+    if (
+      !passwordData.currentPassword ||
+      !passwordData.newPassword ||
+      !passwordData.confirmPassword
+    ) {
+      toast.error("Please fill all password fields.");
+      return;
+    }
+
+    if (
+      passwordData.newPassword !==
+      passwordData.confirmPassword
+    ) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error(
+        "Password must contain at least 6 characters."
+      );
+      return;
+    }
+
+    try {
+
+      const response = await updateAdminPasswordApi(
+        passwordData.currentPassword,
+        passwordData.newPassword
+      );
+
+      if (response.data.success === true) {
+
+        toast.success("Password updated successfully!");
+
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+
+      } else {
+
+        toast.error(
+          "Failed to update password. Please try again."
+        );
+
+      }
+
+    } catch (error) {
+
+      console.error("Error updating password:", error);
+
+      toast.error(
+        "Failed to update password. Please try again."
+      );
+
+    }
+  };
 
   return (
 
-    <div className="space-y-5">
+    <div className="p-3 max-w-md">
 
       {/* ================= PAGE HEADER ================= */}
 
-      <div>
+      <div className="mb-3">
 
-        <h1 className="text-xl md:text-2xl font-bold text-slate-800">
+        <h1 className="text-lg font-bold text-slate-800">
           Settings
         </h1>
 
-        <p className="text-sm text-slate-500 mt-1">
+        <p className="text-xs text-slate-500 mt-0.5">
           Manage your account security settings.
         </p>
 
@@ -109,16 +118,16 @@ const Settings = () => {
 
       {/* ================= PASSWORD SETTINGS ================= */}
 
-      <section className="bg-white border border-slate-200 rounded-xl shadow-sm w-full max-w-lg">
+      <section className="bg-white border border-slate-200 rounded-lg shadow-sm">
 
         {/* Section Header */}
 
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-200">
+        <div className="flex items-center gap-2.5 px-3 py-3 border-b border-slate-100">
 
-          <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+          <div className="p-2 bg-emerald-50 rounded-lg">
 
             <LockKeyhole
-              size={18}
+              size={19}
               className="text-emerald-600"
             />
 
@@ -127,7 +136,7 @@ const Settings = () => {
 
           <div>
 
-            <h2 className="text-base font-bold text-slate-800">
+            <h2 className="text-sm font-semibold text-slate-800">
               Update Password
             </h2>
 
@@ -144,20 +153,19 @@ const Settings = () => {
 
         <form
           onSubmit={handlePasswordSubmit}
-          className="p-5"
+          className="p-3"
         >
 
-          <div className="space-y-4">
+          <div className="space-y-3">
 
 
             {/* Current Password */}
 
             <div>
 
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Current Password
               </label>
-
 
               <div className="relative">
 
@@ -171,9 +179,9 @@ const Settings = () => {
                   placeholder="Enter current password"
                   value={passwordData.currentPassword}
                   onChange={handlePasswordChange}
-                  className="w-full px-4 py-2.5 pr-11 text-sm border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 pr-10 text-sm border border-slate-200 rounded-md outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  required
                 />
-
 
                 <button
                   type="button"
@@ -182,13 +190,13 @@ const Settings = () => {
                       !showCurrentPassword
                     )
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
                 >
 
                   {showCurrentPassword ? (
-                    <EyeOff size={18} />
+                    <EyeOff size={16} />
                   ) : (
-                    <Eye size={18} />
+                    <Eye size={16} />
                   )}
 
                 </button>
@@ -202,10 +210,9 @@ const Settings = () => {
 
             <div>
 
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 New Password
               </label>
-
 
               <div className="relative">
 
@@ -219,9 +226,9 @@ const Settings = () => {
                   placeholder="Enter new password"
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
-                  className="w-full px-4 py-2.5 pr-11 text-sm border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 pr-10 text-sm border border-slate-200 rounded-md outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  required
                 />
-
 
                 <button
                   type="button"
@@ -230,13 +237,13 @@ const Settings = () => {
                       !showNewPassword
                     )
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
                 >
 
                   {showNewPassword ? (
-                    <EyeOff size={18} />
+                    <EyeOff size={16} />
                   ) : (
-                    <Eye size={18} />
+                    <Eye size={16} />
                   )}
 
                 </button>
@@ -250,10 +257,9 @@ const Settings = () => {
 
             <div>
 
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-medium text-slate-700 mb-1">
                 Confirm New Password
               </label>
-
 
               <div className="relative">
 
@@ -267,9 +273,9 @@ const Settings = () => {
                   placeholder="Confirm new password"
                   value={passwordData.confirmPassword}
                   onChange={handlePasswordChange}
-                  className="w-full px-4 py-2.5 pr-11 text-sm border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-3 py-2 pr-10 text-sm border border-slate-200 rounded-md outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  required
                 />
-
 
                 <button
                   type="button"
@@ -278,13 +284,13 @@ const Settings = () => {
                       !showConfirmPassword
                     )
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
                 >
 
                   {showConfirmPassword ? (
-                    <EyeOff size={18} />
+                    <EyeOff size={16} />
                   ) : (
-                    <Eye size={18} />
+                    <Eye size={16} />
                   )}
 
                 </button>
@@ -293,6 +299,8 @@ const Settings = () => {
 
             </div>
 
+
+            {/* Password Requirement */}
 
             <p className="text-xs text-slate-400">
               Password must contain at least 6 characters.
@@ -303,14 +311,14 @@ const Settings = () => {
 
           {/* Update Button */}
 
-          <div className="flex justify-end mt-5">
+          <div className="mt-4">
 
             <button
               type="submit"
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition"
+              className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-md text-sm font-medium transition"
             >
 
-              <LockKeyhole size={17} />
+              <LockKeyhole size={16} />
 
               Update Password
 
@@ -321,11 +329,5 @@ const Settings = () => {
         </form>
 
       </section>
-
-    </div>
-
-  );
-
-};
-
-export default Settings;
+      </div>
+)}

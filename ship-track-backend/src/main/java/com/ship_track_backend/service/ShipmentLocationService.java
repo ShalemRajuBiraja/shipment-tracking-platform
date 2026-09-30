@@ -17,6 +17,7 @@ import com.ship_track_backend.dto.ShipmentLocationResponseDto;
 import com.ship_track_backend.entity.ShipmentEntity;
 import com.ship_track_backend.entity.ShipmentLocationEntity;
 import com.ship_track_backend.entity.UserEntity;
+import com.ship_track_backend.enums.ShipmentStatus;
 import com.ship_track_backend.repository.ShipmentLocationRepository;
 import com.ship_track_backend.repository.ShipmentRepository;
 
@@ -48,7 +49,16 @@ public class ShipmentLocationService {
                                 )
                         );
     	    	
+    	// ================= CHECK DELIVERY STATUS =================
 
+    	if (shipment.getStatus() == ShipmentStatus.DELIVERED) {
+
+    	    throw new ResponseStatusException(
+    	            HttpStatus.BAD_REQUEST,
+    	            "Cannot update shipment location after delivery"
+    	    );
+    	}
+    	
         // ================= CHECK ASSIGNED OPERATOR =================
         UserEntity assignedOperator =  shipment.getAssignedOperator();
 

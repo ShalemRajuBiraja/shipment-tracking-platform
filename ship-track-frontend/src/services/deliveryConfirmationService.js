@@ -27,3 +27,11 @@ export const saveDeliveryImageApi = async (trackingNumber, image) => {
     }
   );
 };
+
+export const downloadPodApi = async (trackingNumber) => {
+  return await axiosInstance.get( `${API_END_POINTS.DOWNLOAD_POD}/${trackingNumber}`,
+    {
+      responseType: "blob",
+    }
+  );
+};

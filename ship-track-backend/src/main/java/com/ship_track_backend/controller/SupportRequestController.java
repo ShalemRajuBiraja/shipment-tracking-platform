@@ -129,12 +129,9 @@ public class SupportRequestController {
     // ================= DELETE SUPPORT REQUEST =================
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>>
-    deleteSupportRequest(
-            @PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>>  deleteSupportRequest( @PathVariable Long id) {
 
-        supportRequestService
-                .deleteSupportRequest(id);
+        supportRequestService.deleteSupportRequest(id);
 
         ApiResponse<Void> apiResponse =
                 new ApiResponse<>(
