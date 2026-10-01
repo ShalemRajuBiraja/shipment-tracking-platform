@@ -2,6 +2,7 @@ import {
   Truck,
   LayoutDashboard,
   Package,
+  BarChart3,
   Users,
   Settings,
   LogOut,
@@ -11,6 +12,7 @@ import {
   Headphones,
   Copy,
   Check,
+  
 } from "lucide-react";
 
 import { NavLink, useNavigate } from "react-router-dom";
@@ -34,6 +36,11 @@ const AdminSidebar = () => {
       name: "Shipments",
       icon: Package,
       path: "/admin/shipments",
+    },
+    {
+      name: "Analytics",
+      icon: BarChart3,
+      path: "/admin/analytics",
     },
     {
       name: "Create Shipment",

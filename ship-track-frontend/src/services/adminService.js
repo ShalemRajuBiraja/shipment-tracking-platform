@@ -38,3 +38,11 @@ export const updateAdminPasswordApi = async (currentPassword, newPassword) => {
   return await axiosInstance.put( API_END_POINTS.UPDATE_ADMIN_PASSWORD, { currentPassword, newPassword } );
 };
 
+export const downloadAdminAnalyticsReportApi = async () => {
+  return await axiosInstance.get(
+    API_END_POINTS.ADMIN_ANALYTICS_REPORT,
+    {
+      responseType: "blob",
+    }
+  );
+};

@@ -22,6 +22,7 @@ import Users from "./pages/Admin/Users";
 import Settings from "./pages/Admin/Settings";
 import CreateShipment from "./pages/Admin/CreateShipment";
 import Shipments from "./pages/Admin/Shipments";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
 
 // Operator Pages
 import OperatorShipments from "./pages/LogisticsOperator/OperatorShipments";
@@ -86,6 +87,7 @@ function App() {
         <Route path="create-shipment"  element={<CreateShipment />} />
         <Route path="shipments"  element={<Shipments />}/>
         <Route path="/admin/shipments/:id" element={<AdminShipmentDetails />}/>
+        <Route path="analytics" element={<AdminAnalytics />} />
         </Route>
 
         {/* LOGISTICS OPERATOR ROUTES */}

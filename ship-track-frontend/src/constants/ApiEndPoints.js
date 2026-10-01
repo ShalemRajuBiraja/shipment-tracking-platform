@@ -38,4 +38,6 @@ export const API_END_POINTS = {
     SAVE_SIGNATURE_API : "/api/delivery-confirmations/signature",
     SAVE_DELIVERY_IMAGE_API : "/api/delivery-confirmations/delivery-image",
     DOWNLOAD_POD: "/api/delivery-confirmations/pod",
+    ADMIN_ANALYTICS: "/api/analytics/admin",
+    ADMIN_ANALYTICS_REPORT: "/api/analytics/admin/report",
 }
