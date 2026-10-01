@@ -1,21 +1,24 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Package, MapPin, Eye } from "lucide-react";
+import {
+  Search,
+  Package,
+  MapPin,
+  Eye,
+  UserRound,
+} from "lucide-react";
 import { getAllOperatorShipments } from "../../services/operatorService";
 
 const OperatorShipments = () => {
-
   const navigate = useNavigate();
 
   const [shipments, setShipments] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
-
   useEffect(() => {
     fetchShipments();
   }, []);
-
 
   const fetchShipments = async () => {
     try {
@@ -24,28 +27,34 @@ const OperatorShipments = () => {
       if (response.data.success === true) {
         setShipments(response.data.data);
       }
-
     } catch (error) {
       console.error("Error fetching shipments:", error);
-
     } finally {
       setLoading(false);
     }
   };
 
-
-  const filteredShipments = shipments.filter((shipment) =>
-    shipment.trackingNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    shipment.senderName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    shipment.receiverName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    shipment.pickupCity?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    shipment.deliveryCity?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredShipments = shipments.filter(
+    (shipment) =>
+      shipment.trackingNumber
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      shipment.senderName
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      shipment.receiverName
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      shipment.pickupCity
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      shipment.deliveryCity
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase())
   );
-
 
   const getStatusStyle = (status) => {
     switch (status) {
-
       case "DELIVERED":
         return "bg-green-100 text-green-700";
 
@@ -69,7 +78,6 @@ const OperatorShipments = () => {
     }
   };
 
-
   const formatStatus = (status) => {
     return status
       ?.replaceAll("_", " ")
@@ -77,29 +85,36 @@ const OperatorShipments = () => {
       .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-
   const handleViewDetails = (id) => {
     navigate(`/logistics-operator/shipments/${id}`);
   };
 
-
   if (loading) {
-    return <div>Loading shipments...</div>;
+    return (
+      <div className="p-4 text-sm text-slate-500">
+        Loading shipments...
+      </div>
+    );
   }
-
 
   return (
     <div className="space-y-5">
 
       {/* Page Header */}
-      <div>
-        <h1 className="text-xl font-bold text-slate-800">
-          My Shipments
-        </h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 
-        <p className="mt-1 text-sm text-slate-500">
-          View and manage all shipments.
-        </p>
+        {/* Left */}
+        <div>
+          <h1 className="text-xl font-bold text-slate-800">
+            My Shipments
+          </h1>
+
+          <p className="mt-1 text-sm text-slate-500">
+            View and manage all shipments.
+          </p>
+        </div>
+
+
       </div>
 
 

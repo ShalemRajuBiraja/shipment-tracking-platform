@@ -232,23 +232,22 @@ public class GoogleRoutesService {
 
 
         // ================= DESTINATION =================
+     // ================= DESTINATION =================
 
         Map<String, Object> destinationWaypoint;
 
-        if (destination != null && destination.contains(",")) {
+        if (destination != null
+                && destination.matches(
+                        "^-?\\d+(\\.\\d+)?\\s*,\\s*-?\\d+(\\.\\d+)?$")) {
 
-            String[] destinationParts =
-                    destination.split(",");
+            // Destination is latitude,longitude
+            String[] destinationParts = destination.split(",");
 
             double destinationLatitude =
-                    Double.parseDouble(
-                            destinationParts[0].trim()
-                    );
+                    Double.parseDouble(destinationParts[0].trim());
 
             double destinationLongitude =
-                    Double.parseDouble(
-                            destinationParts[1].trim()
-                    );
+                    Double.parseDouble(destinationParts[1].trim());
 
             destinationWaypoint =
                     Map.of(
@@ -258,7 +257,6 @@ public class GoogleRoutesService {
                                     Map.of(
                                             "latitude",
                                             destinationLatitude,
-
                                             "longitude",
                                             destinationLongitude
                                     )
@@ -267,6 +265,7 @@ public class GoogleRoutesService {
 
         } else {
 
+            // Destination is an address
             destinationWaypoint =
                     Map.of(
                             "address",
@@ -278,7 +277,7 @@ public class GoogleRoutesService {
                 "destination",
                 destinationWaypoint
         );
-
+ 
 
         // ================= TRAVEL MODE =================
 

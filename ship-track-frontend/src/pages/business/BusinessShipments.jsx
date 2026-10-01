@@ -103,9 +103,9 @@ const BusinessShipments = () => {
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">
+            <h5 className="text-2xl font-bold text-slate-800">
               My Shipments
-            </h1>
+            </h5>
 
             <p className="text-sm text-slate-500 mt-1">
               View and manage your business shipments.

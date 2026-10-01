@@ -331,3 +331,5 @@ const Settings = () => {
       </section>
       </div>
 )}
+
+export default Settings;

@@ -3,21 +3,21 @@ import {
   Truck,
   CheckCircle,
   Clock,
+  UserRound,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getShipmentsApi } from "../../services/shipmentService";
 
 const BusinessDashboard = () => {
-
   const [shipments, setShipments] = useState([]);
 
   useEffect(() => {
-
     const fetchShipments = async () => {
       try {
-
         const response = await getShipmentsApi();
+
         console.log("Fetched shipments:", response.data);
+
         if (response.data.success === true) {
           setShipments(response.data.data);
         } else {
@@ -26,16 +26,13 @@ const BusinessDashboard = () => {
             response.data.message
           );
         }
-
       } catch (error) {
         console.error("Error fetching dashboard shipments:", error);
       }
     };
 
     fetchShipments();
-
   }, []);
-
 
   // Statistics
   const stats = [
@@ -71,7 +68,6 @@ const BusinessDashboard = () => {
     },
   ];
 
-
   // Latest 4 shipments
   const recentShipments = [...shipments]
     .sort(
@@ -80,11 +76,8 @@ const BusinessDashboard = () => {
     )
     .slice(0, 4);
 
-
   const getStatusStyle = (status) => {
-
     switch (status) {
-
       case "DELIVERED":
         return "bg-green-100 text-green-700";
 
@@ -99,26 +92,11 @@ const BusinessDashboard = () => {
     }
   };
 
-
   return (
     <div className="p-5 md:p-7">
 
-      {/* Header */}
-      <div className="mb-6">
-
-        <h1 className="text-2xl font-bold text-slate-800">
-          Business Client Dashboard
-        </h1>
-
-        <p className="text-sm text-slate-500 mt-1">
-          Overview of your company's shipments.
-        </p>
-
-      </div>
-
-
       {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
         {stats.map((stat) => {
 
@@ -127,10 +105,10 @@ const BusinessDashboard = () => {
           return (
             <div
               key={stat.title}
-              className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm"
+              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
             >
 
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between">
 
                 <div>
 
@@ -138,13 +116,13 @@ const BusinessDashboard = () => {
                     {stat.title}
                   </p>
 
-                  <h2 className="text-2xl font-bold text-slate-800 mt-1">
+                  <h2 className="mt-1 text-2xl font-bold text-slate-800">
                     {stat.value}
                   </h2>
 
                 </div>
 
-                <div className="p-2 bg-emerald-50 rounded-lg">
+                <div className="rounded-lg bg-emerald-50 p-2">
 
                   <Icon
                     size={22}
@@ -155,7 +133,7 @@ const BusinessDashboard = () => {
 
               </div>
 
-              <p className="text-xs text-slate-400 mt-3">
+              <p className="mt-3 text-xs text-slate-400">
                 {stat.description}
               </p>
 
@@ -167,15 +145,15 @@ const BusinessDashboard = () => {
 
 
       {/* Recent Shipments */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm mt-6">
+      <div className="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
 
-        <div className="px-5 py-4 border-b border-slate-100">
+        <div className="border-b border-slate-100 px-5 py-4">
 
           <h2 className="font-semibold text-slate-800">
             Recent Shipments
           </h2>
 
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="mt-1 text-sm text-slate-500">
             Latest shipments created by your business.
           </p>
 
@@ -190,15 +168,15 @@ const BusinessDashboard = () => {
 
               <tr>
 
-                <th className="text-left px-5 py-3">
+                <th className="px-5 py-3 text-left">
                   Tracking Number
                 </th>
 
-                <th className="text-left px-5 py-3">
+                <th className="px-5 py-3 text-left">
                   Destination
                 </th>
 
-                <th className="text-left px-5 py-3">
+                <th className="px-5 py-3 text-left">
                   Status
                 </th>
 
@@ -229,7 +207,7 @@ const BusinessDashboard = () => {
                     <td className="px-5 py-4">
 
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusStyle(
                           shipment.status
                         )}`}
                       >
@@ -248,7 +226,7 @@ const BusinessDashboard = () => {
 
                   <td
                     colSpan="3"
-                    className="text-center py-8 text-slate-500"
+                    className="py-8 text-center text-slate-500"
                   >
                     No recent shipments found.
                   </td>

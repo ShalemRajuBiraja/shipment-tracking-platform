@@ -751,32 +751,113 @@ const OperatorShipmentDetails = () => {
       {/* Controls */}
       <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="grid grid-cols-1 divide-y divide-slate-100 lg:grid-cols-[1fr_auto] lg:divide-x lg:divide-y-0">
+
+          {/* Update Shipment Location */}
           {!isCompleted && !isCancelled && (
             <div className="p-4">
-              <p className="mb-2 text-xs font-semibold text-slate-500">Update Shipment Location</p>
+              <p className="mb-2 text-xs font-semibold text-slate-500">
+                Update Shipment Location
+              </p>
+
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   type="text"
                   value={locationInput}
                   onChange={(e) => setLocationInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleLocationUpdate()}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && handleLocationUpdate()
+                  }
                   placeholder="Enter current location"
                   className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
                 />
+
                 <button
                   type="button"
                   onClick={handleLocationUpdate}
                   disabled={locationUpdating}
-                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition disabled:opacity-60 ${locationInput.trim() ? "bg-emerald-600 text-white hover:bg-emerald-700" : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}
+                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition disabled:opacity-60 ${
+                    locationInput.trim()
+                      ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                      : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  }`}
                 >
-                  <MapPin className={`h-4 w-4 ${locationInput.trim() ? "text-white" : "text-emerald-600"}`} />
-                  {locationUpdating ? "Updating..." : "Update Location"}
+                  <MapPin
+                    className={`h-4 w-4 ${
+                      locationInput.trim()
+                        ? "text-white"
+                        : "text-emerald-600"
+                    }`}
+                  />
+
+                  {locationUpdating
+                    ? "Updating..."
+                    : "Update Location"}
                 </button>
               </div>
             </div>
           )}
 
-         
+          {/* Shipment Actions */}
+          {!isCompleted && !isCancelled && (
+            <div className="p-4 lg:min-w-[360px]">
+
+              <p className="mb-2 text-xs font-semibold text-slate-500">
+                Shipment Actions
+              </p>
+
+              {/* Update Shipment Status */}
+              {nextStatus ? (
+                <div className="flex flex-col gap-2 sm:flex-row">
+
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) =>
+                      setSelectedStatus(e.target.value)
+                    }
+                    className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                  >
+                    <option value="">
+                      Select next status
+                    </option>
+
+                    <option value={nextStatus}>
+                      {formatStatus(nextStatus)}
+                    </option>
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={handleStatusUpdate}
+                    disabled={!selectedStatus || updating}
+                    className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {updating
+                      ? "Updating..."
+                      : "Update Status"}
+                  </button>
+
+                </div>
+              ) : (
+                <p className="py-2 text-xs font-medium text-slate-500">
+                  This shipment status is locked.
+                </p>
+              )}
+
+              {/* Open Delivery Confirmation */}
+              {shipment.status === "OUT_FOR_DELIVERY" && (
+                <button
+                  type="button"
+                  onClick={handleOpenDeliveryConfirmation}
+                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-white px-4 py-2.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Open Delivery Confirmation
+                </button>
+              )}
+
+            </div>
+          )}
+
         </div>
       </section>
 

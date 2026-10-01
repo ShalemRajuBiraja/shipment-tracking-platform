@@ -1,7 +1,7 @@
 package com.ship_track_backend.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.time.ZoneId;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +32,11 @@ public class DeliveryForecastingService {
     public DeliveryForecastResponseDto forecastDelivery(
             String trackingNumber) {
 
+        System.out.println("========================================");
+        System.out.println("Delivery forecast started");
+        System.out.println("Tracking Number: " + trackingNumber);
+        System.out.println("========================================");
+
         // ================= FIND SHIPMENT =================
 
         ShipmentEntity shipment =
@@ -44,18 +49,18 @@ public class DeliveryForecastingService {
                                 )
                         );
 
+        System.out.println("Shipment found successfully");
+
         DeliveryForecastResponseDto response =
                 new DeliveryForecastResponseDto();
 
         response.setTrackingNumber(trackingNumber);
 
-        response.setCurrentStatus(
-                shipment.getStatus().name()
-        );
-
         // ================= CHECK SHIPMENT STATUS =================
 
         if (shipment.getStatus() == null) {
+
+            System.out.println("Shipment status is NULL");
 
             response.setForecast("NOT_STARTED");
 
@@ -65,6 +70,15 @@ public class DeliveryForecastingService {
 
             return response;
         }
+
+        response.setCurrentStatus(
+                shipment.getStatus().name()
+        );
+
+        System.out.println(
+                "Shipment Status: " +
+                shipment.getStatus().name()
+        );
 
         // ================= GET CURRENT LOCATION =================
 
@@ -77,6 +91,10 @@ public class DeliveryForecastingService {
 
         if (currentLocation == null) {
 
+            System.out.println(
+                    "Current shipment location NOT FOUND"
+            );
+
             response.setForecast("NOT_STARTED");
 
             response.setMessage(
@@ -85,6 +103,18 @@ public class DeliveryForecastingService {
 
             return response;
         }
+
+        System.out.println("Current location found");
+
+        System.out.println(
+                "Current Latitude: " +
+                currentLocation.getLatitude()
+        );
+
+        System.out.println(
+                "Current Longitude: " +
+                currentLocation.getLongitude()
+        );
 
         // ================= DELIVERY ADDRESS =================
 
@@ -97,19 +127,69 @@ public class DeliveryForecastingService {
                 + ", "
                 + shipment.getDeliveryPincode();
 
-        // ================= CURRENT ROUTE =================
+        System.out.println("========================================");
+        System.out.println("DELIVERY FORECAST ETA DEBUG");
+        System.out.println("Tracking Number: " + trackingNumber);
+        System.out.println(
+                "Current Latitude: " +
+                currentLocation.getLatitude()
+        );
+        System.out.println(
+                "Current Longitude: " +
+                currentLocation.getLongitude()
+        );
+        System.out.println(
+                "Destination: " +
+                destination
+        );
+        System.out.println("========================================");
 
-        Map<String, Object> currentRoute =
-                googleRoutesService.calculateEta(
-                        currentLocation.getLatitude(),
-                        currentLocation.getLongitude(),
-                        destination
-                );
+        // ================= CALCULATE ETA =================
 
-        if (
-                currentRoute == null
-                || currentRoute.get("routes") == null
-        ) {
+        Map<String, Object> etaResponse;
+
+        try {
+
+            etaResponse =
+                    googleRoutesService.calculateEta(
+                            currentLocation.getLatitude(),
+                            currentLocation.getLongitude(),
+                            destination
+                    );
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "ERROR INSIDE calculateEta()"
+            );
+
+            System.out.println(
+                    "Exception Type: " +
+                    e.getClass().getName()
+            );
+
+            System.out.println(
+                    "Exception Message: " +
+                    e.getMessage()
+            );
+
+            e.printStackTrace();
+
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Unable to calculate delivery forecast",
+                    e
+            );
+        }
+
+        // ================= CHECK ETA RESPONSE =================
+
+        System.out.println("========================================");
+        System.out.println("ETA RESPONSE");
+        System.out.println("ETA Response: " + etaResponse);
+        System.out.println("========================================");
+
+        if (etaResponse == null) {
 
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
@@ -117,45 +197,63 @@ public class DeliveryForecastingService {
             );
         }
 
-        List<Map<String, Object>> routes =
-                (List<Map<String, Object>>)
-                        currentRoute.get("routes");
+        // ================= GET DURATION =================
 
-        if (routes.isEmpty()) {
+        Object durationObject =
+                etaResponse.get("durationSeconds");
+
+        if (durationObject == null) {
+
+            System.out.println(
+                    "ERROR: durationSeconds is missing"
+            );
 
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
-                    "No route found for delivery forecast"
+                    "Travel duration is not available"
             );
         }
 
-        Map<String, Object> routeData =
-                routes.get(0);
+        long durationSeconds;
+
+        try {
+
+            durationSeconds =
+                    ((Number) durationObject).longValue();
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "ERROR: Invalid durationSeconds: " +
+                    durationObject
+            );
+
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Invalid travel duration"
+            );
+        }
 
         // ================= TRAVEL TIME =================
-
-        String duration =
-                (String) routeData.get("duration");
-
-        long durationSeconds =
-                Long.parseLong(
-                        duration.replace("s", "")
-                );
 
         long travelTimeMinutes =
                 durationSeconds / 60;
 
         // ================= DISTANCE =================
 
-        Number distance =
-                (Number) routeData.get(
-                        "distanceMeters"
-                );
+        Object distanceObject =
+                etaResponse.get("distanceKm");
+
+        double distanceKm = 0.0;
+
+        if (distanceObject instanceof Number) {
+
+            distanceKm =
+                    ((Number) distanceObject).doubleValue();
+        }
 
         long distanceMeters =
-                distance != null
-                        ? distance.longValue()
-                        : 0L;
+                Math.round(distanceKm * 1000);
 
         // ================= FORECASTED DELIVERY TIME =================
 
@@ -168,7 +266,7 @@ public class DeliveryForecastingService {
         response.setForecastedDeliveryTime(
                 forecastedDelivery
                         .atZone(
-                                java.time.ZoneId.systemDefault()
+                                ZoneId.systemDefault()
                         )
                         .toInstant()
                         .toEpochMilli()
@@ -202,6 +300,29 @@ public class DeliveryForecastingService {
                     "Shipment is currently expected to be delivered based on its current location and route."
             );
         }
+
+        // ================= FINAL DEBUG =================
+
+        System.out.println("========================================");
+        System.out.println("DELIVERY FORECAST SUCCESS");
+        System.out.println("Tracking Number: " + trackingNumber);
+        System.out.println(
+                "Travel Time Minutes: " +
+                travelTimeMinutes
+        );
+        System.out.println(
+                "Distance KM: " +
+                distanceKm
+        );
+        System.out.println(
+                "Distance Meters: " +
+                distanceMeters
+        );
+        System.out.println(
+                "Forecast: " +
+                response.getForecast()
+        );
+        System.out.println("========================================");
 
         return response;
     }

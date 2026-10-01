@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.time.LocalDateTime;
 import java.util.Base64;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -425,93 +426,9 @@ public class DeliveryConfirmationService {
     
     // ================= GET DELIVERY CONFIRMATION STATUS =================
  // ================= DOWNLOAD POD =================
+ // ================= DOWNLOAD POD =================
 
     public File getPodFile(String trackingNumber) {
-
-        // Get logged-in user's email
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
-
-        // Find logged-in user
-        UserEntity loggedInUser = userRepository
-                .findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
-
-        // Find shipment
-        ShipmentEntity shipment = shipmentRepository
-                .findByTrackingNumber(trackingNumber)
-                .orElseThrow(() ->
-                        new RuntimeException("Shipment not found"));
-
-        // Get user role
-        String role = loggedInUser.getRole().name();
-
-        // ================= AUTHORIZATION =================
-
-        // ADMIN and SUPPORT_AGENT can access all shipments
-        boolean isAdmin =
-                role.equals("ADMIN");
-
-        boolean isSupportAgent =
-                role.equals("SUPPORT_AGENT");
-
-        // CUSTOMER / BUSINESS_CLIENT
-        // can access their own shipments
-        boolean isSender =
-                shipment.getSender() != null &&
-                shipment.getSender().getId()
-                        .equals(loggedInUser.getId());
-
-        boolean isReceiver =
-                shipment.getReceiver() != null &&
-                shipment.getReceiver().getId()
-                        .equals(loggedInUser.getId());
-
-        // LOGISTICS_OPERATOR
-        // can access shipments assigned to them
-        boolean isAssignedOperator =
-                shipment.getAssignedOperator() != null &&
-                shipment.getAssignedOperator().getId()
-                        .equals(loggedInUser.getId());
-
-        System.out.println("========== POD DOWNLOAD DEBUG ==========");
-        System.out.println("Logged-in email: " + email);
-        System.out.println("Logged-in user ID: " + loggedInUser.getId());
-        System.out.println("Logged-in role: " + role);
-
-        System.out.println("Shipment tracking: " + trackingNumber);
-
-        System.out.println(
-            "Shipment sender ID: " +
-            (shipment.getSender() != null
-                ? shipment.getSender().getId()
-                : "NULL")
-        );
-
-        System.out.println(
-            "Assigned operator ID: " +
-            (shipment.getAssignedOperator() != null
-                ? shipment.getAssignedOperator().getId()
-                : "NULL")
-        );
-
-    
-        System.out.println("========================================");
-        // Allow access if user has permission
-        if (!isAdmin &&
-                !isSupportAgent &&
-                !isSender &&
-                !isReceiver &&
-                !isAssignedOperator) {
-
-            throw new RuntimeException(
-                    "You are not authorized to download this POD");
-        }
-
-        // ================= FIND POD =================
 
         DeliveryConfirmationEntity confirmation =
                 deliveryConfirmationRepository
@@ -527,8 +444,8 @@ public class DeliveryConfirmationService {
                     "Proof of Delivery not available");
         }
 
-        File podFile = new File(
-                confirmation.getPodFilePath());
+        File podFile =
+                new File(confirmation.getPodFilePath());
 
         if (!podFile.exists()) {
 
@@ -538,4 +455,57 @@ public class DeliveryConfirmationService {
 
         return podFile;
     }
+
+    // =========================================================
+    // GET EXISTING POD FILE
+    // =========================================================
+
+    private File getExistingPodFile(
+            String trackingNumber) {
+
+        DeliveryConfirmationEntity confirmation =
+                deliveryConfirmationRepository
+                        .findByShipment_TrackingNumber(
+                                trackingNumber
+                        )
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Delivery confirmation not found"
+                                ));
+
+
+        // =====================================================
+        // POD PATH
+        // =====================================================
+
+        if (confirmation.getPodFilePath() == null ||
+                confirmation.getPodFilePath().isBlank()) {
+
+            throw new RuntimeException(
+                    "Proof of Delivery not available"
+            );
+        }
+
+
+        // =====================================================
+        // POD FILE
+        // =====================================================
+
+        File podFile =
+                new File(
+                        confirmation.getPodFilePath()
+                );
+
+
+        if (!podFile.exists()) {
+
+            throw new RuntimeException(
+                    "Proof of Delivery file not found"
+            );
+        }
+
+
+        return podFile;
+    }
+    
 }

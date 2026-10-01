@@ -15,59 +15,50 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalException {
-	
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationErrors(
-            MethodArgumentNotValidException ex) {
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationErrors(MethodArgumentNotValidException ex) {
 
-        Map<String, String> fieldErrors = new HashMap<>();
+		Map<String, String> fieldErrors = new HashMap<>();
 
-        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-            fieldErrors.put(error.getField(), error.getDefaultMessage());
-        }
+		for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+			fieldErrors.put(error.getField(), error.getDefaultMessage());
+		}
 
-        ApiResponse<Map<String, String>> response =
-                new ApiResponse<>(false, "Enter correct data", fieldErrors);
+		ApiResponse<Map<String, String>> response = new ApiResponse<>(false, "Enter correct data", fieldErrors);
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
 
-    // Handles exceptions you throw yourself in services, e.g.:
-    // throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ApiResponse<Object>> handleResponseStatusException(
-            ResponseStatusException ex) {
+	// Handles exceptions you throw yourself in services, e.g.:
+	// throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already
+	// registered");
+	@ExceptionHandler(ResponseStatusException.class)
+	public ResponseEntity<ApiResponse<Object>> handleResponseStatusException(ResponseStatusException ex) {
 
-        ApiResponse<Object> response =  new ApiResponse<>(false, ex.getReason(), null);
+		ApiResponse<Object> response = new ApiResponse<>(false, ex.getReason(), null);
 
-        return ResponseEntity.status(ex.getStatusCode()).body(response);
-    }
-    
+		return ResponseEntity.status(ex.getStatusCode()).body(response);
+	}
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Object>> handleGenericException(Exception ex) {
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<?> handleException(Exception ex) {
 
-        ApiResponse<Object> response =
-                new ApiResponse<>(false, "Something went wrong. Please try again later.", null);
+		System.err.println("========== EXCEPTION ==========");
+		System.err.println("TYPE: " + ex.getClass().getName());
+		System.err.println("MESSAGE: " + ex.getMessage());
+		ex.printStackTrace();
+		System.err.println("================================");
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
-    
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<Object>> handleRuntimeException(
-            RuntimeException ex) {
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+	}
 
-        ApiResponse<Object> response =
-                new ApiResponse<>(
-                        false,
-                        ex.getMessage(),
-                        null
-                );
+	@ExceptionHandler(RuntimeException.class)
+	public ResponseEntity<ApiResponse<Object>> handleRuntimeException(RuntimeException ex) {
 
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(response);
-    }
-  
+		ApiResponse<Object> response = new ApiResponse<>(false, ex.getMessage(), null);
+
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
+
 }

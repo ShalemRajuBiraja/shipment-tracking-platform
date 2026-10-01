@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
@@ -15,93 +14,258 @@ import {
   Clock,
   TrendingUp,
   ShieldAlert,
+  AlertTriangle,
+  CheckCircle2,
+  FileDown,
   X,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import GoogleShipmentMap from "../../components/GoogleShipmentMap";
+
 import { getShipmentByIdApi } from "../../services/shipmentService";
 
 import {
   getShipmentLocation,
   getShipmentRoute,
+  getShipmentEta,
+  getShipmentDelayPrediction,
+  getShipmentDeliveryForecast,
 } from "../../services/operatorService";
 
+import { downloadPodApi } from "../../services/deliveryConfirmationService";
+
+
+// =========================================================
+// ADMIN SHIPMENT DETAILS
+// =========================================================
 
 const AdminShipmentDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // =======================================================
+  // SHIPMENT
+  // =======================================================
+
   const [shipment, setShipment] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // =======================================================
+  // LOCATION / ROUTE
+  // =======================================================
 
   const [shipmentLocation, setShipmentLocation] =
     useState(null);
 
   const [locationLoading, setLocationLoading] =
-    useState(true);
+    useState(false);
 
   const [route, setRoute] = useState(null);
 
   const [routeLoading, setRouteLoading] =
-    useState(true);
+    useState(false);
 
-  // Google's encoded road route
   const [encodedPolyline, setEncodedPolyline] =
-    useState("");
+    useState(null);
+
+  // =======================================================
+  // ETA
+  // =======================================================
+
+  const [etaInfo, setEtaInfo] = useState(null);
+  const [etaLoading, setEtaLoading] = useState(false);
+
+  // =======================================================
+  // DELIVERY FORECAST
+  // =======================================================
+
+  const [deliveryForecast, setDeliveryForecast] =
+    useState(null);
+
+  const [forecastLoading, setForecastLoading] =
+    useState(false);
+
+  // =======================================================
+  // DELAY PREDICTION
+  // =======================================================
+
+  const [delayPrediction, setDelayPrediction] =
+    useState(null);
+
+  const [delayLoading, setDelayLoading] =
+    useState(false);
+
+  // =======================================================
+  // POD
+  // =======================================================
+
+  const [podDownloading, setPodDownloading] =
+    useState(false);
 
 
-  // =========================================================
-  // FETCH SHIPMENT DETAILS
-  // =========================================================
+  // =======================================================
+  // FORMAT TRAVEL TIME
+  // =======================================================
+
+  const formatTravelTime = (seconds) => {
+    if (
+      seconds === null ||
+      seconds === undefined
+    ) {
+      return "N/A";
+    }
+
+    const totalMinutes = Math.round(
+      Number(seconds) / 60
+    );
+
+    const hours = Math.floor(
+      totalMinutes / 60
+    );
+
+    const minutes = totalMinutes % 60;
+
+    if (hours > 0 && minutes > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+
+    if (hours > 0) {
+      return `${hours}h`;
+    }
+
+    return `${minutes}m`;
+  };
+
+
+  // =======================================================
+  // FORMAT DISTANCE
+  // =======================================================
+
+  const formatDistance = (meters) => {
+    if (
+      meters === null ||
+      meters === undefined
+    ) {
+      return "N/A";
+    }
+
+    return `${(
+      Number(meters) / 1000
+    ).toFixed(2)} km`;
+  };
+
+
+  // =======================================================
+  // FORMAT ROUTE DURATION
+  // =======================================================
+
+  const formatRouteDuration = (duration) => {
+    if (!duration) {
+      return "N/A";
+    }
+
+    if (
+      typeof duration === "string" &&
+      duration.endsWith("s")
+    ) {
+      const totalSeconds = parseInt(
+        duration.replace("s", ""),
+        10
+      );
+
+      if (!Number.isNaN(totalSeconds)) {
+        return formatTravelTime(
+          totalSeconds
+        );
+      }
+    }
+
+    return duration;
+  };
+
+
+  // =======================================================
+  // DELIVERY ADDRESS
+  // =======================================================
+
+  const getDeliveryAddress = (
+    shipmentData
+  ) => {
+    return [
+      shipmentData?.deliveryAddress,
+      shipmentData?.deliveryCity,
+      shipmentData?.deliveryState,
+      shipmentData?.deliveryPincode,
+    ]
+      .filter(Boolean)
+      .join(", ");
+  };
+
+
+  // =======================================================
+  // FETCH SHIPMENT
+  // =======================================================
 
   useEffect(() => {
     const fetchShipmentDetails = async () => {
       try {
+        setLoading(true);
+
         const response =
           await getShipmentByIdApi(id);
 
-        if (response.data.success === true) {
-
-          const shipmentData =
-            response.data.data;
-
-          setShipment(shipmentData);
-
-          /*
-           * DELIVERED SHIPMENTS
-           *
-           * Do not fetch live location or route
-           * after delivery.
-           */
-
-          const isDelivered =
-            shipmentData?.status?.toUpperCase() ===
-            "DELIVERED";
-
-          if (!isDelivered) {
-            await fetchShipmentLocationAndRoute(
-              shipmentData.trackingNumber
-            );
-          } else {
-            setShipmentLocation(null);
-            setRoute(null);
-            setEncodedPolyline("");
-            setLocationLoading(false);
-            setRouteLoading(false);
-          }
-
-        } else {
-
+        if (
+          response.data?.success !== true
+        ) {
           toast.error(
-            response.data.message ||
-              "Failed to fetch shipment details"
+            response.data?.message ||
+              "Failed to fetch shipment details."
           );
+
+          setShipment(null);
+          return;
+        }
+
+        const shipmentData =
+          response.data?.data;
+
+        if (!shipmentData) {
+          toast.error(
+            "Shipment details are unavailable."
+          );
+
+          setShipment(null);
+          return;
+        }
+
+        setShipment(shipmentData);
+
+        // =================================================
+        // IMPORTANT:
+        // Delivered shipment must NOT request:
+        // location
+        // route
+        // ETA
+        // forecast
+        // delay prediction
+        // =================================================
+
+        const isDelivered =
+          shipmentData.status?.toUpperCase() ===
+          "DELIVERED";
+
+        if (!isDelivered) {
+          await fetchShipmentTrackingData(
+            shipmentData.trackingNumber,
+            shipmentData
+          );
+        } else {
+          clearTrackingData();
         }
 
       } catch (error) {
-
         console.error(
           "Error fetching shipment details:",
           error
@@ -109,46 +273,44 @@ const AdminShipmentDetails = () => {
 
         toast.error(
           error.response?.data?.message ||
-            "Failed to fetch shipment details"
+            "Failed to fetch shipment details."
         );
+
+        setShipment(null);
 
       } finally {
         setLoading(false);
       }
     };
 
-    fetchShipmentDetails();
+    if (id) {
+      fetchShipmentDetails();
+    }
   }, [id]);
 
 
-  // =========================================================
+  // =======================================================
   // LIVE LOCATION POLLING
-  // =========================================================
+  // =======================================================
 
   useEffect(() => {
-
     if (!shipment?.trackingNumber) {
       return;
     }
 
-    /*
-     * IMPORTANT:
-     * Do not poll location after shipment is delivered.
-     */
-
-    if (
+    const isDelivered =
       shipment.status?.toUpperCase() ===
-      "DELIVERED"
-    ) {
+      "DELIVERED";
+
+    if (isDelivered) {
       return;
     }
 
     const interval = setInterval(() => {
-
-      fetchShipmentLocationAndRoute(
-        shipment.trackingNumber
+      fetchShipmentTrackingData(
+        shipment.trackingNumber,
+        shipment
       );
-
     }, 900000);
 
     return () => {
@@ -161,49 +323,67 @@ const AdminShipmentDetails = () => {
   ]);
 
 
-  // =========================================================
-  // FETCH LOCATION + ROUTE
-  // =========================================================
+  // =======================================================
+  // CLEAR TRACKING DATA
+  // =======================================================
 
-  const fetchShipmentLocationAndRoute = async (
-    trackingNumber
+  const clearTrackingData = () => {
+    setShipmentLocation(null);
+    setRoute(null);
+    setEncodedPolyline(null);
+
+    setEtaInfo(null);
+    setDeliveryForecast(null);
+    setDelayPrediction(null);
+
+    setLocationLoading(false);
+    setRouteLoading(false);
+    setEtaLoading(false);
+    setForecastLoading(false);
+    setDelayLoading(false);
+  };
+
+
+  // =======================================================
+  // FETCH LOCATION + ROUTE + ETA + FORECAST + DELAY
+  // =======================================================
+
+  const fetchShipmentTrackingData = async (
+    trackingNumber,
+    shipmentData
   ) => {
+
+    // Safety check
+    if (
+      shipmentData?.status?.toUpperCase() ===
+      "DELIVERED"
+    ) {
+      clearTrackingData();
+      return;
+    }
 
     try {
 
-      /*
-       * Safety check:
-       * Never request live location for a delivered shipment.
-       */
-
-      if (
-        shipment?.status?.toUpperCase() ===
-        "DELIVERED"
-      ) {
-        setShipmentLocation(null);
-        setRoute(null);
-        setEncodedPolyline("");
-        setLocationLoading(false);
-        setRouteLoading(false);
-        return;
-      }
+      // =================================================
+      // RESET TRACKING DATA
+      // =================================================
 
       setLocationLoading(true);
       setRouteLoading(true);
+      setEtaLoading(true);
+      setForecastLoading(true);
+      setDelayLoading(true);
 
-      // Clear old route while loading new data
       setRoute(null);
-      setEncodedPolyline("");
+      setEncodedPolyline(null);
+      setEtaInfo(null);
+      setDeliveryForecast(null);
+      setDelayPrediction(null);
 
 
-      // =====================================================
-      // STEP 1: GET SHIPMENT LOCATION / COORDINATES
-      // =====================================================
-
-      console.log(
-        "Fetching shipment location:",
-        trackingNumber
-      );
+      // =================================================
+      // 1. GET SHIPMENT LOCATION
+      // =================================================
 
       const locationResponse =
         await getShipmentLocation(
@@ -213,11 +393,6 @@ const AdminShipmentDetails = () => {
       const locationData =
         locationResponse.data?.data;
 
-      console.log(
-        "SHIPMENT LOCATION DATA:",
-        locationData
-      );
-
 
       if (!locationData) {
 
@@ -226,18 +401,22 @@ const AdminShipmentDetails = () => {
         );
 
         setShipmentLocation(null);
+        setRoute(null);
+        setEncodedPolyline(null);
+        setEtaInfo(null);
 
         return;
       }
+
 
       setShipmentLocation(
         locationData
       );
 
 
-      // =====================================================
-      // STEP 2: GET PICKUP / DELIVERY COORDINATES
-      // =====================================================
+      // =================================================
+      // 2. GET COORDINATES
+      // =================================================
 
       const pickupLatitude =
         locationData.pickupLatitude;
@@ -252,31 +431,6 @@ const AdminShipmentDetails = () => {
         locationData.deliveryLongitude;
 
 
-      console.log(
-        "PICKUP LATITUDE:",
-        pickupLatitude
-      );
-
-      console.log(
-        "PICKUP LONGITUDE:",
-        pickupLongitude
-      );
-
-      console.log(
-        "DELIVERY LATITUDE:",
-        deliveryLatitude
-      );
-
-      console.log(
-        "DELIVERY LONGITUDE:",
-        deliveryLongitude
-      );
-
-
-      // =====================================================
-      // STEP 3: CHECK COORDINATES
-      // =====================================================
-
       if (
         pickupLatitude == null ||
         pickupLongitude == null ||
@@ -285,16 +439,20 @@ const AdminShipmentDetails = () => {
       ) {
 
         console.warn(
-          "Shipment coordinates are missing."
+          "Pickup or delivery coordinates are missing."
         );
+
+        setRoute(null);
+        setEncodedPolyline(null);
+        setEtaInfo(null);
 
         return;
       }
 
 
-      // =====================================================
-      // STEP 4: CREATE COORDINATE STRINGS
-      // =====================================================
+      // =================================================
+      // 3. GET PLANNED ROUTE
+      // =================================================
 
       const origin =
         `${pickupLatitude},${pickupLongitude}`;
@@ -303,134 +461,301 @@ const AdminShipmentDetails = () => {
         `${deliveryLatitude},${deliveryLongitude}`;
 
 
-      console.log(
-        "ROUTE ORIGIN:",
-        origin
-      );
+      try {
 
-      console.log(
-        "ROUTE DESTINATION:",
-        destination
-      );
+        const routeResponse =
+          await getShipmentRoute(
+            origin,
+            destination
+          );
+
+        const routeData =
+          routeResponse.data?.data?.routes?.[0];
 
 
-      // =====================================================
-      // STEP 5: CALL GOOGLE ROUTES BACKEND
-      // =====================================================
+        if (routeData) {
 
-      const routeResponse =
-        await getShipmentRoute(
-          origin,
-          destination
+          setRoute(routeData);
+
+          const polyline =
+            routeData?.polyline?.encodedPolyline;
+
+          setEncodedPolyline(
+            polyline || null
+          );
+
+        } else {
+
+          setRoute(null);
+          setEncodedPolyline(null);
+        }
+
+      } catch (routeError) {
+
+        console.error(
+          "Error fetching shipment route:",
+          routeError
         );
 
+        setRoute(null);
+        setEncodedPolyline(null);
 
-      console.log(
-        "FULL ROUTE RESPONSE:",
-        routeResponse.data
-      );
+      } finally {
 
+        setRouteLoading(false);
 
-      // =====================================================
-      // STEP 6: GET ROUTES ARRAY
-      // =====================================================
-
-      const routes =
-        routeResponse.data?.data?.routes;
-
-
-      if (
-        !routes ||
-        routes.length === 0
-      ) {
-
-        console.warn(
-          "No route returned from backend."
-        );
-
-        return;
       }
 
 
-      // =====================================================
-      // STEP 7: GET FIRST ROUTE
-      // =====================================================
+      // =================================================
+      // 4. GET ETA
+      // =================================================
 
-      const routeData =
-        routes[0];
+      try {
 
-
-      console.log(
-        "ROUTE DATA:",
-        routeData
-      );
+        const deliveryAddress =
+          getDeliveryAddress(
+            shipmentData
+          );
 
 
-      setRoute(
-        routeData
-      );
+        if (
+          deliveryAddress &&
+          pickupLatitude != null &&
+          pickupLongitude != null
+        ) {
+
+          const etaResponse =
+            await getShipmentEta(
+              pickupLatitude,
+              pickupLongitude,
+              deliveryAddress
+            );
 
 
-      // =====================================================
-      // STEP 8: GET ENCODED POLYLINE
-      // =====================================================
+          if (etaResponse.data) {
 
-      const polyline =
-        routeData?.polyline?.encodedPolyline;
+            setEtaInfo(
+              etaResponse.data
+            );
 
+          } else {
 
-      console.log(
-        "ENCODED POLYLINE:",
-        polyline
-      );
+            setEtaInfo(null);
+          }
 
+        } else {
 
-      if (!polyline) {
+          setEtaInfo(null);
+        }
 
-        console.warn(
-          "Google route returned without encoded polyline."
+      } catch (etaError) {
+
+        console.error(
+          "Error fetching shipment ETA:",
+          etaError
         );
 
-        setEncodedPolyline("");
+        setEtaInfo(null);
 
-        return;
+      } finally {
+
+        setEtaLoading(false);
+
       }
 
 
-      // =====================================================
-      // STEP 9: STORE POLYLINE
-      // =====================================================
+      // =================================================
+      // 5. GET DELIVERY FORECAST
+      // =================================================
 
-      setEncodedPolyline(
-        polyline
-      );
+      try {
 
-      console.log(
-        "BLUE ROUTE POLYLINE STORED SUCCESSFULLY"
-      );
+        const forecastResponse =
+          await getShipmentDeliveryForecast(
+            trackingNumber
+          );
+
+
+        if (forecastResponse.data) {
+
+          setDeliveryForecast(
+            forecastResponse.data
+          );
+
+        } else {
+
+          setDeliveryForecast(null);
+        }
+
+      } catch (forecastError) {
+
+        console.error(
+          "Error fetching delivery forecast:",
+          forecastError
+        );
+
+        setDeliveryForecast(null);
+
+      } finally {
+
+        setForecastLoading(false);
+
+      }
+
+
+      // =================================================
+      // 6. GET DELAY PREDICTION
+      // =================================================
+
+      try {
+
+        const delayResponse =
+          await getShipmentDelayPrediction(
+            trackingNumber
+          );
+
+
+        if (delayResponse.data) {
+
+          setDelayPrediction(
+            delayResponse.data
+          );
+
+        } else {
+
+          setDelayPrediction(null);
+        }
+
+      } catch (delayError) {
+
+        console.error(
+          "Error fetching delay prediction:",
+          delayError
+        );
+
+        setDelayPrediction(null);
+
+      } finally {
+
+        setDelayLoading(false);
+
+      }
 
     } catch (error) {
 
       console.error(
-        "Error fetching shipment location/route:",
+        "Error fetching shipment tracking data:",
         error
       );
 
+      setShipmentLocation(null);
       setRoute(null);
-      setEncodedPolyline("");
+      setEncodedPolyline(null);
+      setEtaInfo(null);
+      setDeliveryForecast(null);
+      setDelayPrediction(null);
 
     } finally {
 
       setLocationLoading(false);
       setRouteLoading(false);
+      setEtaLoading(false);
+      setForecastLoading(false);
+      setDelayLoading(false);
 
     }
   };
 
 
-  // =========================================================
-  // STATUS
-  // =========================================================
+  // =======================================================
+  // DOWNLOAD POD
+  // =======================================================
+
+  const handleDownloadPod = async () => {
+
+    if (!shipment?.trackingNumber) {
+      toast.error(
+        "Tracking number is unavailable."
+      );
+      return;
+    }
+
+
+    try {
+
+      setPodDownloading(true);
+
+      const response =
+        await downloadPodApi(
+          shipment.trackingNumber
+        );
+
+
+      const blob =
+        new Blob(
+          [response.data],
+          {
+            type:
+              "application/pdf",
+          }
+        );
+
+
+      const url =
+        window.URL.createObjectURL(
+          blob
+        );
+
+
+      const link =
+        document.createElement("a");
+
+      link.href = url;
+
+      link.download =
+        `POD-${shipment.trackingNumber}.pdf`;
+
+      document.body.appendChild(
+        link
+      );
+
+      link.click();
+
+      link.remove();
+
+      window.URL.revokeObjectURL(
+        url
+      );
+
+
+      toast.success(
+        "POD downloaded successfully."
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Error downloading POD:",
+        error
+      );
+
+      toast.error(
+        error.response?.data?.message ||
+          "Unable to download POD."
+      );
+
+    } finally {
+
+      setPodDownloading(false);
+
+    }
+  };
+
+
+  // =======================================================
+  // STATUS FORMAT
+  // =======================================================
 
   const formatStatus = (status) => {
 
@@ -443,18 +768,21 @@ const AdminShipmentDetails = () => {
       .toLowerCase()
       .replace(
         /\b\w/g,
-        (char) => char.toUpperCase()
+        (char) =>
+          char.toUpperCase()
       );
   };
 
 
-  // =========================================================
+  // =======================================================
   // STATUS STYLE
-  // =========================================================
+  // =======================================================
 
   const getStatusStyle = (status) => {
 
-    switch (status?.toUpperCase()) {
+    switch (
+      status?.toUpperCase()
+    ) {
 
       case "CREATED":
         return "bg-purple-100 text-purple-700";
@@ -469,7 +797,7 @@ const AdminShipmentDetails = () => {
         return "bg-yellow-100 text-yellow-700";
 
       case "DELIVERED":
-        return "bg-green-100 text-green-700";
+        return "bg-emerald-100 text-emerald-700";
 
       case "CANCELLED":
         return "bg-red-100 text-red-700";
@@ -480,9 +808,9 @@ const AdminShipmentDetails = () => {
   };
 
 
-  // =========================================================
-  // DATE
-  // =========================================================
+  // =======================================================
+  // DATE FORMAT
+  // =======================================================
 
   const formatDate = (date) => {
 
@@ -490,30 +818,60 @@ const AdminShipmentDetails = () => {
       return "-";
     }
 
-    return new Date(date).toLocaleString();
+    return new Date(
+      date
+    ).toLocaleString();
   };
 
 
-  // =========================================================
+  // =======================================================
+  // FORECAST DATE
+  // =======================================================
+
+  const formatForecastDate = (
+    value
+  ) => {
+
+    if (!value) {
+      return "N/A";
+    }
+
+    try {
+
+      return new Date(
+        value
+      ).toLocaleString(
+        [],
+        {
+          dateStyle:
+            "short",
+          timeStyle:
+            "short",
+        }
+      );
+
+    } catch {
+      return value;
+    }
+  };
+
+
+  // =======================================================
   // LOADING
-  // =========================================================
+  // =======================================================
 
   if (loading) {
 
     return (
-      <div className="mx-auto max-w-7xl p-5 md:p-7">
+      <div className="flex min-h-[60vh] items-center justify-center px-4">
 
-        <div className="flex min-h-[300px] items-center justify-center">
+        <div className="text-center">
 
-          <div className="text-center">
+          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
 
-            <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
-
-            <p className="text-sm text-slate-500">
-              Loading shipment details...
-            </p>
-
-          </div>
+          <p className="text-sm text-slate-500">
+            Loading shipment details...
+          </p>
 
         </div>
 
@@ -522,36 +880,39 @@ const AdminShipmentDetails = () => {
   }
 
 
-  // =========================================================
+  // =======================================================
   // NOT FOUND
-  // =========================================================
+  // =======================================================
 
   if (!shipment) {
 
     return (
-      <div className="mx-auto max-w-7xl px-4 pb-8 pt-5 sm:px-5 md:px-7">
+      <div className="mx-auto max-w-lg px-4 py-10">
 
-        <button
-          onClick={() =>
-            navigate("/admin/shipments")
-          }
-          className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-emerald-600"
-        >
-          <ArrowLeft size={18} />
-          Back to Shipments
-        </button>
+        <div className="rounded-xl border border-slate-200 bg-white p-7 text-center shadow-sm">
 
-
-        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-
-          <Package
-            size={38}
+          <ShieldAlert
+            size={36}
             className="mx-auto mb-3 text-slate-300"
           />
 
-          <h2 className="font-semibold text-slate-700">
+          <h2 className="text-lg font-semibold text-slate-800">
             Shipment not found
           </h2>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Shipment details could not be loaded.
+          </p>
+
+          <button
+            onClick={() =>
+              navigate("/admin/shipments")
+            }
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+          >
+            <ArrowLeft size={16} />
+            Back to Shipments
+          </button>
 
         </div>
 
@@ -560,9 +921,18 @@ const AdminShipmentDetails = () => {
   }
 
 
-  // =========================================================
-  // STATUS STEPS
-  // =========================================================
+  // =======================================================
+  // DERIVED VALUES
+  // =======================================================
+
+  const isDelivered =
+    shipment.status?.toUpperCase() ===
+    "DELIVERED";
+
+  const isCancelled =
+    shipment.status?.toUpperCase() ===
+    "CANCELLED";
+
 
   const steps = [
     "CREATED",
@@ -579,72 +949,74 @@ const AdminShipmentDetails = () => {
     );
 
 
-  const isCancelled =
-    shipment.status?.toUpperCase() ===
-    "CANCELLED";
+  const isDelayed =
+    delayPrediction?.prediction ===
+      "DELAYED" ||
+    Number(
+      delayPrediction?.delayMinutes
+    ) > 0;
 
 
-  // =========================================================
-  // DELIVERED CHECK
-  // =========================================================
-
-  const isDelivered =
-    shipment.status?.toUpperCase() ===
-    "DELIVERED";
+  const isOnTime =
+    delayPrediction?.prediction ===
+    "ON_TIME";
 
 
-  // =========================================================
-  // RETURN
-  // =========================================================
+  const estimatedArrival =
+    etaInfo?.estimatedArrival ||
+    deliveryForecast?.forecastedDelivery ||
+    "N/A";
+
+
+  // =======================================================
+  // MAIN UI
+  // =======================================================
 
   return (
+    <div className="mx-auto max-w-7xl space-y-4 px-3 pb-8 pt-4 sm:px-5 lg:px-6">
 
-    <div className="mx-auto max-w-7xl space-y-5 px-4 pb-10 pt-5 sm:px-5 md:px-7">
+      {/* ===================================================
+          HEADER
+      =================================================== */}
 
-
-      {/* =====================================================
-          HEADER / TRACKING
-      ===================================================== */}
-
-      <section className="border-b border-slate-200 pb-4">
+      <section className="border-b border-slate-200 pb-3">
 
         <button
           onClick={() =>
             navigate("/admin/shipments")
           }
-          className="mb-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+          className="mb-3 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700"
         >
-          <ArrowLeft size={17} />
+          <ArrowLeft size={15} />
           Back to Shipments
         </button>
 
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 
-          <div>
+          <div className="min-w-0">
 
             <div className="flex flex-wrap items-center gap-2">
 
-              <h1 className="text-xl font-bold text-slate-800 sm:text-2xl">
+              <h1 className="text-lg font-bold text-slate-800 sm:text-xl">
                 Shipment Details
               </h1>
 
-              <span className="rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 font-mono text-xs font-medium text-slate-600">
+              <span className="rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-600">
                 #{shipment.trackingNumber}
               </span>
 
             </div>
 
-
-            <p className="mt-1 text-xs text-slate-500 sm:text-sm">
-              Shipment information, live route and tracking progress
+            <p className="mt-0.5 text-xs text-slate-500">
+              Shipment information and delivery tracking
             </p>
 
           </div>
 
 
           <span
-            className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${getStatusStyle(
+            className={`w-fit rounded-full px-3 py-1 text-[11px] font-semibold ${getStatusStyle(
               shipment.status
             )}`}
           >
@@ -658,25 +1030,22 @@ const AdminShipmentDetails = () => {
       </section>
 
 
-      {/* =====================================================
-          SHIPMENT DETAILS — ONE COMPACT FULL-WIDTH CARD
-      ===================================================== */}
+      {/* ===================================================
+          FULL SHIPMENT DETAILS
+      =================================================== */}
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
-        {/* Header */}
+        <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/50 px-4 py-2.5">
 
-        <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/50 px-4 py-3">
-
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50">
 
             <Package
-              size={17}
+              size={15}
               className="text-emerald-600"
             />
 
           </div>
-
 
           <div>
 
@@ -684,8 +1053,8 @@ const AdminShipmentDetails = () => {
               Shipment Information
             </h2>
 
-            <p className="text-[11px] text-slate-400">
-              Sender, receiver, package and route details
+            <p className="text-[10px] text-slate-400">
+              Sender, receiver, package and complete addresses
             </p>
 
           </div>
@@ -693,13 +1062,9 @@ const AdminShipmentDetails = () => {
         </div>
 
 
-        {/* Main Information */}
-
         <div className="p-4">
 
-          {/* =================================================
-              SENDER / RECEIVER / PACKAGE
-          ================================================= */}
+          {/* SENDER / RECEIVER / PACKAGE */}
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 
@@ -707,29 +1072,27 @@ const AdminShipmentDetails = () => {
 
             <div className="min-w-0">
 
-              <div className="mb-2 flex items-center gap-1.5">
+              <div className="mb-1.5 flex items-center gap-1.5">
 
                 <User
-                  size={15}
+                  size={14}
                   className="text-emerald-600"
                 />
 
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                   Sender
-                </p>
+                </span>
 
               </div>
-
 
               <p className="text-sm font-semibold text-slate-800">
                 {shipment.senderName || "-"}
               </p>
 
-
               <div className="mt-1 flex items-start gap-1.5">
 
                 <Mail
-                  size={13}
+                  size={12}
                   className="mt-0.5 shrink-0 text-slate-400"
                 />
 
@@ -746,29 +1109,27 @@ const AdminShipmentDetails = () => {
 
             <div className="min-w-0 md:border-l md:border-slate-100 md:pl-4">
 
-              <div className="mb-2 flex items-center gap-1.5">
+              <div className="mb-1.5 flex items-center gap-1.5">
 
                 <User
-                  size={15}
+                  size={14}
                   className="text-emerald-600"
                 />
 
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                   Receiver
-                </p>
+                </span>
 
               </div>
-
 
               <p className="text-sm font-semibold text-slate-800">
                 {shipment.receiverName || "-"}
               </p>
 
-
               <div className="mt-1 flex items-center gap-1.5">
 
                 <Phone
-                  size={13}
+                  size={12}
                   className="text-slate-400"
                 />
 
@@ -785,49 +1146,43 @@ const AdminShipmentDetails = () => {
 
             <div className="min-w-0 md:border-l md:border-slate-100 md:pl-4">
 
-              <div className="mb-2 flex items-center gap-1.5">
+              <div className="mb-1.5 flex items-center gap-1.5">
 
                 <Package
-                  size={15}
+                  size={14}
                   className="text-emerald-600"
                 />
 
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                   Package
-                </p>
+                </span>
 
               </div>
-
 
               <p className="text-sm font-semibold text-slate-800">
                 {shipment.packageDescription || "-"}
               </p>
-
 
               <div className="mt-1 flex flex-wrap items-center gap-3">
 
                 <div className="flex items-center gap-1">
 
                   <Weight
-                    size={13}
+                    size={12}
                     className="text-slate-400"
                   />
 
                   <span className="text-xs text-slate-500">
-
                     {shipment.weight
                       ? `${shipment.weight} kg`
                       : "-"}
-
                   </span>
 
                 </div>
 
-
                 <span className="text-xs text-slate-300">
                   |
                 </span>
-
 
                 <span className="text-xs font-medium text-emerald-600">
                   {shipment.trackingNumber || "-"}
@@ -840,14 +1195,10 @@ const AdminShipmentDetails = () => {
           </div>
 
 
-          {/* DIVIDER */}
-
           <div className="my-4 border-t border-slate-100" />
 
 
-          {/* =================================================
-              PICKUP + DELIVERY
-          ================================================= */}
+          {/* ADDRESSES */}
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 
@@ -855,24 +1206,22 @@ const AdminShipmentDetails = () => {
 
             <div className="min-w-0">
 
-              <div className="mb-2 flex items-center gap-1.5">
+              <div className="mb-1.5 flex items-center gap-1.5">
 
                 <MapPin
-                  size={15}
+                  size={14}
                   className="text-emerald-600"
                 />
 
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                  Pickup Location
-                </p>
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                  Pickup Address
+                </span>
 
               </div>
-
 
               <p className="text-sm font-medium leading-relaxed text-slate-700">
                 {shipment.pickupAddress || "-"}
               </p>
-
 
               <p className="mt-0.5 text-xs text-slate-500">
 
@@ -890,24 +1239,22 @@ const AdminShipmentDetails = () => {
 
             <div className="min-w-0 md:border-l md:border-slate-100 md:pl-4">
 
-              <div className="mb-2 flex items-center gap-1.5">
+              <div className="mb-1.5 flex items-center gap-1.5">
 
                 <Truck
-                  size={15}
+                  size={14}
                   className="text-orange-500"
                 />
 
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                  Delivery Location
-                </p>
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                  Delivery Address
+                </span>
 
               </div>
-
 
               <p className="text-sm font-medium leading-relaxed text-slate-700">
                 {shipment.deliveryAddress || "-"}
               </p>
-
 
               <p className="mt-0.5 text-xs text-slate-500">
 
@@ -923,22 +1270,22 @@ const AdminShipmentDetails = () => {
           </div>
 
 
-          {/* CREATED / UPDATED */}
+          {/* CREATED */}
 
-          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 border-t border-slate-100 pt-3">
+          <div className="mt-4 border-t border-slate-100 pt-3">
 
             <div className="flex items-center gap-1.5">
 
               <Calendar
-                size={13}
+                size={12}
                 className="text-slate-400"
               />
 
-              <span className="text-[11px] text-slate-400">
+              <span className="text-[10px] text-slate-400">
                 Created:
               </span>
 
-              <span className="text-[11px] font-medium text-slate-600">
+              <span className="text-[10px] font-medium text-slate-600">
                 {formatDate(
                   shipment.createdAt
                 )}
@@ -953,27 +1300,87 @@ const AdminShipmentDetails = () => {
       </section>
 
 
-      {/* =====================================================
-          MAIN TRACKING STRUCTURE
-          LEFT 2/3  = MAP + LOWER INFORMATION
-          RIGHT 1/3 = PROGRESSION LOG
-      ===================================================== */}
+      {/* ===================================================
+          DELIVERED SHIPMENT
+          ONLY: POD DOWNLOAD
+          NO MAP / ETA / FORECAST / DELAY / LIVE TRACKING
+      =================================================== */}
 
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
+      {isDelivered ? (
+
+        <section className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+            <div className="flex items-start gap-3">
+
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100">
+
+                <CheckCircle2
+                  size={18}
+                  className="text-emerald-600"
+                />
+
+              </div>
+
+              <div>
+
+                <h2 className="text-sm font-semibold text-emerald-800">
+                  Shipment Delivered
+                </h2>
+
+                <p className="mt-0.5 text-xs text-emerald-700">
+                  Delivery is complete. Live tracking and prediction data are no longer active.
+                </p>
+
+              </div>
+
+            </div>
 
 
-        {/* ===================================================
-            LEFT 2/3
-        =================================================== */}
+            {/* DOWNLOAD POD */}
 
-        <div className="space-y-5 lg:col-span-2">
+            <button
+              type="button"
+              onClick={
+                handleDownloadPod
+              }
+              disabled={
+                podDownloading
+              }
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            >
 
+              <FileDown size={15} />
+
+              {podDownloading
+                ? "Downloading..."
+                : "Download POD PDF"}
+
+            </button>
+
+          </div>
+
+        </section>
+
+      ) : (
+
+        /* =================================================
+           ACTIVE SHIPMENT
+           MAP + ETA + FORECAST + DELAY
+        ================================================= */
+
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
 
           {/* =================================================
-              LIVE ROUTE MAP
+              LEFT 2/3
           ================================================= */}
 
-          {!isDelivered ? (
+          <div className="space-y-4 lg:col-span-2">
+
+            {/* =================================================
+                LIVE DELIVERY MAP
+            ================================================= */}
 
             <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
@@ -986,21 +1393,20 @@ const AdminShipmentDetails = () => {
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
 
                     <Navigation
-                      size={17}
+                      size={16}
                       className="text-emerald-600"
                     />
 
                   </div>
 
-
                   <div>
 
                     <h2 className="text-sm font-semibold text-slate-800">
-                      Live Route Map
+                      Live Delivery Map
                     </h2>
 
-                    <p className="text-[11px] text-slate-400">
-                      Pickup to delivery route with current location
+                    <p className="text-[10px] text-slate-400">
+                      Current shipment route
                     </p>
 
                   </div>
@@ -1008,7 +1414,7 @@ const AdminShipmentDetails = () => {
                 </div>
 
 
-                <div className="flex items-center gap-1.5 text-[11px]">
+                <div className="flex items-center gap-1.5 text-[10px]">
 
                   <span
                     className={`h-2 w-2 rounded-full ${
@@ -1031,14 +1437,11 @@ const AdminShipmentDetails = () => {
               </div>
 
 
-              {/* =================================================
-                  DISTANCE / TRAVEL TIME / ETA
-              ================================================= */}
+              {/* MAP METRICS */}
 
               {shipmentLocation && (
 
                 <div className="grid grid-cols-1 divide-y divide-slate-100 border-b border-slate-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-
 
                   {/* DISTANCE */}
 
@@ -1046,27 +1449,29 @@ const AdminShipmentDetails = () => {
 
                     <div className="rounded-lg bg-slate-100 p-2 text-slate-600">
 
-                      <Route size={16} />
+                      <Route size={15} />
 
                     </div>
 
-
                     <div>
 
-                      <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                      <span className="block text-[10px] uppercase tracking-wide text-slate-400">
                         Distance
                       </span>
 
-                      <span className="text-sm font-bold text-slate-900">
+                      <span className="text-sm font-bold text-slate-800">
 
                         {routeLoading
-                          ? "Loading..."
-                          : route?.distanceMeters
-                          ? `${(
-                              route.distanceMeters /
-                              1000
-                            ).toFixed(1)} km`
-                          : "-"}
+                          ? "Calculating..."
+                          : route?.distanceMeters != null
+                          ? formatDistance(
+                              route.distanceMeters
+                            )
+                          : etaInfo?.distanceKm != null
+                          ? `${Number(
+                              etaInfo.distanceKm
+                            ).toFixed(2)} km`
+                          : "N/A"}
 
                       </span>
 
@@ -1075,32 +1480,36 @@ const AdminShipmentDetails = () => {
                   </div>
 
 
-                  {/* TRAVEL TIME */}
+                  {/* TRANSIT TIME */}
 
                   <div className="flex items-center gap-3 px-4 py-3">
 
                     <div className="rounded-lg bg-slate-100 p-2 text-slate-600">
 
-                      <Clock size={16} />
+                      <Clock size={15} />
 
                     </div>
 
-
                     <div>
 
-                      <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                        Travel Time
+                      <span className="block text-[10px] uppercase tracking-wide text-slate-400">
+                        Est. Transit Time
                       </span>
 
-                      <span className="text-sm font-bold text-slate-900">
+                      <span className="text-sm font-bold text-slate-800">
 
                         {routeLoading
-                          ? "Loading..."
+                          ? "Calculating..."
                           : route?.duration
                           ? formatRouteDuration(
                               route.duration
                             )
-                          : "-"}
+                          : etaInfo?.durationSeconds != null
+                          ? formatTravelTime(
+                              etaInfo.durationSeconds
+                            )
+                          : etaInfo?.travelTime ||
+                            "N/A"}
 
                       </span>
 
@@ -1109,28 +1518,27 @@ const AdminShipmentDetails = () => {
                   </div>
 
 
-                  {/* ETA / ROUTE STATUS */}
+                  {/* ETA */}
 
                   <div className="flex items-center gap-3 bg-emerald-50/40 px-4 py-3">
 
                     <div className="rounded-lg bg-emerald-100 p-2 text-emerald-700">
 
-                      <TrendingUp size={16} />
+                      <TrendingUp size={15} />
 
                     </div>
 
+                    <div className="min-w-0">
 
-                    <div>
-
-                      <span className="block text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
-                        Route Status
+                      <span className="block text-[10px] uppercase tracking-wide text-emerald-700">
+                        Estimated Arrival
                       </span>
 
-                      <span className="text-sm font-bold text-emerald-700">
+                      <span className="block truncate text-sm font-bold text-emerald-700">
 
-                        {encodedPolyline
-                          ? "Route Available"
-                          : "Route Pending"}
+                        {etaLoading
+                          ? "Calculating..."
+                          : estimatedArrival}
 
                       </span>
 
@@ -1143,9 +1551,7 @@ const AdminShipmentDetails = () => {
               )}
 
 
-              {/* =================================================
-                  GOOGLE MAP
-              ================================================= */}
+              {/* GOOGLE MAP */}
 
               <div className="bg-slate-50 p-3">
 
@@ -1158,7 +1564,7 @@ const AdminShipmentDetails = () => {
                       <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
 
                       <p className="text-xs text-slate-500">
-                        Loading shipment map...
+                        Loading delivery map...
                       </p>
 
                     </div>
@@ -1196,17 +1602,16 @@ const AdminShipmentDetails = () => {
                     <div className="text-center">
 
                       <MapPin
-                        size={32}
+                        size={30}
                         className="mx-auto mb-2 text-slate-300"
                       />
 
-                      <p className="text-xs font-medium text-slate-600">
-                        No live location data available
+                      <p className="text-xs font-semibold text-slate-600">
+                        Current Location Unavailable
                       </p>
 
-                      <p className="mt-1 text-[11px] text-slate-400">
-                        Location information has not been received
-                        for this shipment.
+                      <p className="mx-auto mt-1 max-w-xs text-[10px] leading-relaxed text-slate-400">
+                        No active location data is available for this shipment.
                       </p>
 
                     </div>
@@ -1219,428 +1624,453 @@ const AdminShipmentDetails = () => {
 
             </section>
 
-          ) : (
 
-            /* =================================================
-               DELIVERED SHIPMENT — NO MAP
-            ================================================= */
+            {/* =================================================
+                FORECAST + DELAY
+            ================================================= */}
 
-            <section className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 
-              <div className="flex items-start gap-3">
+              {/* DELIVERY FORECAST */}
 
-                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100">
+              <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
-                  <Package
-                    size={17}
-                    className="text-emerald-600"
-                  />
+                <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/50 px-4 py-3">
+
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
+
+                    <CheckCircle2
+                      size={16}
+                      className="text-emerald-600"
+                    />
+
+                  </div>
+
+                  <div>
+
+                    <h2 className="text-sm font-semibold text-slate-800">
+                      Delivery Forecast
+                    </h2>
+
+                    <p className="text-[10px] text-slate-400">
+                      Predicted delivery information
+                    </p>
+
+                  </div>
 
                 </div>
 
 
-                <div>
+                <div className="p-4">
 
-                  <h2 className="text-sm font-semibold text-emerald-800">
-                    Shipment Delivered
-                  </h2>
+                  {forecastLoading ? (
 
-                  <p className="mt-1 text-xs leading-relaxed text-emerald-700">
-                    This shipment has been delivered. Live tracking,
-                    route updates and location updates are no longer active.
-                  </p>
+                    <div className="py-6 text-center">
+
+                      <div className="mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-3 border-slate-200 border-t-emerald-600" />
+
+                      <p className="text-[11px] text-slate-400">
+                        Loading forecast...
+                      </p>
+
+                    </div>
+
+                  ) : deliveryForecast ? (
+
+                    <div className="space-y-2.5">
+
+                      <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2.5">
+
+                        <span className="text-[11px] text-slate-500">
+                          Status
+                        </span>
+
+                        <span className="text-[11px] font-semibold text-slate-700">
+                          {deliveryForecast.currentStatus ||
+                            deliveryForecast.status ||
+                            "N/A"}
+                        </span>
+
+                      </div>
+
+
+                      <div className="flex items-center justify-between gap-3 rounded-lg bg-emerald-50 px-3 py-2.5">
+
+                        <span className="shrink-0 text-[11px] text-emerald-700">
+                          Forecast
+                        </span>
+
+                        <span className="text-right text-[11px] font-semibold text-emerald-700">
+
+                          {formatForecastDate(
+                            deliveryForecast.forecastedDelivery
+                          )}
+
+                        </span>
+
+                      </div>
+
+
+                      <div className="grid grid-cols-2 gap-2">
+
+                        <div className="rounded-lg border border-slate-100 p-2.5 text-center">
+
+                          <span className="block text-[10px] text-slate-400">
+                            Est. Distance
+                          </span>
+
+                          <span className="text-xs font-bold text-slate-700">
+
+                            {deliveryForecast.distanceMeters != null
+                              ? formatDistance(
+                                  deliveryForecast.distanceMeters
+                                )
+                              : "N/A"}
+
+                          </span>
+
+                        </div>
+
+
+                        <div className="rounded-lg border border-slate-100 p-2.5 text-center">
+
+                          <span className="block text-[10px] text-slate-400">
+                            Est. Time
+                          </span>
+
+                          <span className="text-xs font-bold text-slate-700">
+
+                            {deliveryForecast.travelTimeMinutes != null
+                              ? formatTravelTime(
+                                  deliveryForecast.travelTimeMinutes * 60
+                                )
+                              : "N/A"}
+
+                          </span>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                  ) : (
+
+                    <p className="py-6 text-center text-[11px] text-slate-400">
+                      Delivery forecast unavailable.
+                    </p>
+
+                  )}
 
                 </div>
 
-              </div>
+              </section>
 
-            </section>
 
-          )}
+              {/* DELAY ASSESSMENT */}
+
+              <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+
+                <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-4 py-3">
+
+                  <div className="flex items-center gap-2">
+
+                    <div
+                      className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                        isDelayed
+                          ? "bg-amber-50"
+                          : "bg-emerald-50"
+                      }`}
+                    >
+
+                      <AlertTriangle
+                        size={16}
+                        className={
+                          isDelayed
+                            ? "text-amber-600"
+                            : "text-emerald-600"
+                        }
+                      />
+
+                    </div>
+
+                    <div>
+
+                      <h2 className="text-sm font-semibold text-slate-800">
+                        Delay Assessment
+                      </h2>
+
+                      <p className="text-[10px] text-slate-400">
+                        Current delivery risk
+                      </p>
+
+                    </div>
+
+                  </div>
+
+
+                  {delayPrediction && (
+
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                        isDelayed
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-emerald-100 text-emerald-700"
+                      }`}
+                    >
+                      {isDelayed
+                        ? "DELAYED"
+                        : isOnTime
+                        ? "ON TIME"
+                        : "CHECKED"}
+                    </span>
+
+                  )}
+
+                </div>
+
+
+                <div className="p-4">
+
+                  {delayLoading ? (
+
+                    <div className="py-6 text-center">
+
+                      <div className="mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-3 border-slate-200 border-t-emerald-600" />
+
+                      <p className="text-[11px] text-slate-400">
+                        Checking delay...
+                      </p>
+
+                    </div>
+
+                  ) : delayPrediction ? (
+
+                    <div className="space-y-2.5">
+
+                      <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2.5">
+
+                        <span className="text-[11px] text-slate-500">
+                          Prediction
+                        </span>
+
+                        <span className="text-[11px] font-semibold text-slate-700">
+                          {delayPrediction.prediction ||
+                            "N/A"}
+                        </span>
+
+                      </div>
+
+
+                      <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2.5">
+
+                        <span className="text-[11px] text-slate-500">
+                          Estimated Delay
+                        </span>
+
+                        <span
+                          className={`text-[11px] font-semibold ${
+                            isDelayed
+                              ? "text-amber-600"
+                              : "text-emerald-600"
+                          }`}
+                        >
+
+                          {delayPrediction.delayMinutes !=
+                          null
+                            ? `${delayPrediction.delayMinutes} min`
+                            : "0 min"}
+
+                        </span>
+
+                      </div>
+
+
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 p-3">
+
+                        <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                          Analysis
+                        </span>
+
+                        <p className="mt-1 text-[11px] leading-relaxed text-slate-600">
+
+                          {delayPrediction.message ||
+                            "No operational warning available."}
+
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                  ) : (
+
+                    <p className="py-6 text-center text-[11px] text-slate-400">
+                      Delay prediction unavailable.
+                    </p>
+
+                  )}
+
+                </div>
+
+              </section>
+
+            </div>
+
+          </div>
 
 
           {/* =================================================
-              DELIVERY FORECAST + DELAY ASSESSMENT
-
-              IMPORTANT:
-              This Admin page does not currently call the
-              forecast or delay-prediction APIs.
-
-              Therefore no fake prediction values are shown.
+              RIGHT — PROGRESSION LOG
           ================================================= */}
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <aside className="lg:col-span-1">
 
+            <div className="sticky top-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
-            {/* DELIVERY FORECAST */}
+              <div className="border-b border-slate-100 bg-slate-50/50 px-4 py-3">
 
-            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <h2 className="text-sm font-semibold text-slate-800">
+                  Progression Log
+                </h2>
 
-              <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/50 px-4 py-3">
-
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
-
-                  <TrendingUp
-                    size={16}
-                    className="text-emerald-600"
-                  />
-
-                </div>
-
-
-                <div>
-
-                  <h2 className="text-sm font-semibold text-slate-800">
-                    Delivery Forecast
-                  </h2>
-
-                  <p className="text-[11px] text-slate-400">
-                    Route-based delivery information
-                  </p>
-
-                </div>
+                <p className="text-[10px] text-slate-400">
+                  Current shipment stage
+                </p>
 
               </div>
 
 
               <div className="p-4">
 
-                <div className="grid grid-cols-2 gap-3">
+                {isCancelled ? (
 
+                  <div className="flex items-center gap-3 rounded-lg border border-red-100 bg-red-50 px-3 py-3">
 
-                  <div className="rounded-lg bg-slate-50 px-3 py-2.5">
+                    <div className="rounded-lg bg-red-100 p-1.5 text-red-600">
 
-                    <p className="text-[10px] uppercase tracking-wide text-slate-400">
-                      Route Distance
-                    </p>
+                      <X
+                        size={15}
+                        className="stroke-[3]"
+                      />
 
-                    <p className="mt-1 text-sm font-bold text-slate-800">
+                    </div>
 
-                      {!isDelivered && routeLoading
-                        ? "Loading..."
-                        : route?.distanceMeters
-                        ? `${(
-                            route.distanceMeters /
-                            1000
-                          ).toFixed(1)} km`
-                        : "-"}
+                    <div>
 
-                    </p>
+                      <p className="text-xs font-semibold text-red-700">
+                        Shipment Cancelled
+                      </p>
 
-                  </div>
+                      <p className="mt-0.5 text-[10px] text-red-500">
+                        This shipment has been cancelled.
+                      </p>
 
-
-                  <div className="rounded-lg bg-slate-50 px-3 py-2.5">
-
-                    <p className="text-[10px] uppercase tracking-wide text-slate-400">
-                      Route Time
-                    </p>
-
-                    <p className="mt-1 text-sm font-bold text-slate-800">
-
-                      {!isDelivered && routeLoading
-                        ? "Loading..."
-                        : route?.duration
-                        ? formatRouteDuration(
-                            route.duration
-                          )
-                        : "-"}
-
-                    </p>
+                    </div>
 
                   </div>
 
-                </div>
+                ) : (
+
+                  <div className="relative">
+
+                    {/* TIMELINE LINE */}
+
+                    <div className="absolute bottom-5 left-[11px] top-5 w-px bg-slate-200" />
 
 
-                <p className="mt-3 text-[11px] leading-relaxed text-slate-400">
+                    <div className="space-y-4">
 
-                  This page currently provides route information only.
-                  Delivery forecasting is not requested by this component.
+                      {steps.map(
+                        (
+                          step,
+                          index
+                        ) => {
 
-                </p>
+                          const completed =
+                            index <=
+                            currentIndex;
+
+                          const current =
+                            index ===
+                            currentIndex;
+
+
+                          return (
+
+                            <div
+                              key={step}
+                              className="relative flex items-center gap-3"
+                            >
+
+                              <div
+                                className={`relative z-10 flex h-[23px] w-[23px] shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                                  completed
+                                    ? "bg-emerald-600 text-white ring-4 ring-emerald-50"
+                                    : "bg-slate-100 text-slate-400 ring-4 ring-white"
+                                }`}
+                              >
+                                {index + 1}
+                              </div>
+
+
+                              <div
+                                className={`flex flex-1 items-center justify-between rounded-lg px-2.5 py-2 ${
+                                  current
+                                    ? "bg-emerald-50"
+                                    : ""
+                                }`}
+                              >
+
+                                <span
+                                  className={`text-xs ${
+                                    current
+                                      ? "font-semibold text-emerald-700"
+                                      : completed
+                                      ? "font-medium text-slate-700"
+                                      : "font-medium text-slate-400"
+                                  }`}
+                                >
+                                  {formatStatus(
+                                    step
+                                  )}
+                                </span>
+
+
+                                {current && (
+
+                                  <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700">
+                                    CURRENT
+                                  </span>
+
+                                )}
+
+                              </div>
+
+                            </div>
+
+                          );
+                        }
+                      )}
+
+                    </div>
+
+                  </div>
+
+                )}
 
               </div>
 
-            </section>
+            </div>
 
-
-            {/* DELAY ASSESSMENT */}
-
-            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-
-              <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/50 px-4 py-3">
-
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
-
-                  <ShieldAlert
-                    size={16}
-                    className="text-slate-600"
-                  />
-
-                </div>
-
-
-                <div>
-
-                  <h2 className="text-sm font-semibold text-slate-800">
-                    Delay Assessment
-                  </h2>
-
-                  <p className="text-[11px] text-slate-400">
-                    Prediction status
-                  </p>
-
-                </div>
-
-              </div>
-
-
-              <div className="flex min-h-[132px] items-center justify-center p-4 text-center">
-
-                <div>
-
-                  <ShieldAlert
-                    size={27}
-                    className="mx-auto text-slate-300"
-                  />
-
-                  <p className="mt-2 text-xs font-semibold text-slate-600">
-                    Delay prediction unavailable
-                  </p>
-
-                  <p className="mt-1 text-[10px] leading-relaxed text-slate-400">
-                    This Admin Shipment Details page does not currently
-                    request delay prediction data.
-                  </p>
-
-                </div>
-
-              </div>
-
-            </section>
-
-          </div>
+          </aside>
 
         </div>
 
-
-        {/* ===================================================
-            RIGHT 1/3 — PROGRESSION LOG
-
-            Spans beside both map and lower cards.
-        =================================================== */}
-
-        <aside className="lg:col-span-1">
-
-          <div className="sticky top-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-
-
-            {/* HEADER */}
-
-            <div className="border-b border-slate-100 bg-slate-50/50 px-4 py-3">
-
-              <h2 className="text-sm font-semibold text-slate-800">
-                Progression Log
-              </h2>
-
-              <p className="text-[11px] text-slate-400">
-                Current shipment stage
-              </p>
-
-            </div>
-
-
-            {/* TIMELINE */}
-
-            <div className="p-4">
-
-              {isCancelled ? (
-
-                <div className="flex items-center gap-3 rounded-lg border border-red-100 bg-red-50 px-3 py-3">
-
-                  <div className="rounded-lg bg-red-100 p-1.5 text-red-600">
-
-                    <X
-                      size={15}
-                      className="stroke-[3]"
-                    />
-
-                  </div>
-
-
-                  <div>
-
-                    <p className="text-xs font-semibold text-red-700">
-                      Shipment Cancelled
-                    </p>
-
-                    <p className="mt-1 text-[11px] text-red-500">
-                      This shipment has been cancelled.
-                    </p>
-
-                  </div>
-
-                </div>
-
-              ) : (
-
-                <div className="relative">
-
-                  {/* VERTICAL LINE */}
-
-                  <div className="absolute bottom-5 left-[11px] top-5 w-px bg-slate-200" />
-
-
-                  <div className="space-y-4">
-
-                    {steps.map(
-                      (step, index) => {
-
-                        const completed =
-                          index <=
-                          currentIndex;
-
-                        const current =
-                          index ===
-                          currentIndex;
-
-
-                        return (
-
-                          <div
-                            key={step}
-                            className="relative flex items-center gap-3"
-                          >
-
-                            {/* CIRCLE */}
-
-                            <div
-                              className={`relative z-10 flex h-[23px] w-[23px] shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
-                                completed
-                                  ? "bg-emerald-600 text-white ring-4 ring-emerald-50"
-                                  : "bg-slate-100 text-slate-400 ring-4 ring-white"
-                              }`}
-                            >
-                              {index + 1}
-                            </div>
-
-
-                            {/* TEXT */}
-
-                            <div
-                              className={`flex flex-1 items-center justify-between rounded-lg px-2.5 py-2 ${
-                                current
-                                  ? "bg-emerald-50"
-                                  : ""
-                              }`}
-                            >
-
-                              <span
-                                className={`text-xs ${
-                                  current
-                                    ? "font-semibold text-emerald-700"
-                                    : completed
-                                    ? "font-medium text-slate-700"
-                                    : "font-medium text-slate-400"
-                                }`}
-                              >
-                                {formatStatus(
-                                  step
-                                )}
-                              </span>
-
-
-                              {current && (
-
-                                <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700">
-                                  CURRENT
-                                </span>
-
-                              )}
-
-                            </div>
-
-                          </div>
-
-                        );
-                      }
-                    )}
-
-                  </div>
-
-                </div>
-
-              )}
-
-            </div>
-
-          </div>
-
-        </aside>
-
-      </div>
+      )}
 
     </div>
   );
-};
-
-
-// =========================================================
-// ROUTE DURATION FORMATTER
-// =========================================================
-
-const formatRouteDuration = (
-  duration
-) => {
-
-  if (!duration) {
-    return "-";
-  }
-
-  /*
-   * Google Routes API duration can arrive as:
-   * "1234s"
-   */
-
-  if (
-    typeof duration === "string" &&
-    duration.endsWith("s")
-  ) {
-
-    const totalSeconds =
-      parseInt(
-        duration.replace("s", ""),
-        10
-      );
-
-
-    if (
-      !Number.isNaN(
-        totalSeconds
-      )
-    ) {
-
-      const hours =
-        Math.floor(
-          totalSeconds / 3600
-        );
-
-      const minutes =
-        Math.floor(
-          (totalSeconds % 3600) / 60
-        );
-
-
-      if (hours > 0) {
-        return `${hours}h ${minutes}m`;
-      }
-
-      return `${minutes} min`;
-    }
-  }
-
-  return duration;
 };
 
 
