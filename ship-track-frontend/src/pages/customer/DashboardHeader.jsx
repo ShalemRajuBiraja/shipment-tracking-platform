@@ -1,26 +1,25 @@
-import NotificationBell from "../../components/ui/notifications/NotificationBell";
+
 import { UserRound } from "lucide-react";
+import CustomerNotificationBell from "./CustomerNotificationBell";
 
 const DashboardHeader = () => {
   return (
-    <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+    <header className="cd-pagehead">
+      <h1>Welcome, Customer!</h1>
 
-      <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
-        Welcome, Customer!
-      </h1>
+      <div className="cd-header__right">
+        <CustomerNotificationBell />
 
-      <div className="flex items-center gap-3">
-        <NotificationBell />
+        <div className="cd-profile">
+          <span className="cd-profile__avatar">
+            <UserRound size={19} />
+          </span>
 
-        <div className="w-10 h-10 rounded-full border-2 border-emerald-200 flex items-center justify-center">
-          <UserRound className="text-emerald-600" size={21} />
+          <span className="cd-profile__name">
+            Customer
+          </span>
         </div>
-
-        <span className="font-semibold text-sm text-slate-700 whitespace-nowrap">
-          Customer
-        </span>
       </div>
-
     </header>
   );
 };

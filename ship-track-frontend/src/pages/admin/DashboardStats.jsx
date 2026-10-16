@@ -70,7 +70,7 @@ const DashboardStats = () => {
         onClick={() =>
           navigate("/admin/shipments")
         }
-        className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 cursor-pointer hover:border-emerald-400 hover:shadow-md transition"
+        className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 cursor-pointer hover:border-blue-400 hover:shadow-md transition"
       >
 
         <div className="flex items-center justify-between">
@@ -92,11 +92,11 @@ const DashboardStats = () => {
           </div>
 
 
-          <div className="w-11 h-11 bg-emerald-50 rounded-lg flex items-center justify-center">
+          <div className="w-11 h-11 bg-blue-50 rounded-lg flex items-center justify-center">
 
             <Package
               size={22}
-              className="text-emerald-600"
+              className="text-blue-600"
             />
 
           </div>
@@ -112,7 +112,7 @@ const DashboardStats = () => {
         onClick={() =>
           navigate("/admin/users")
         }
-        className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 cursor-pointer hover:border-emerald-400 hover:shadow-md transition"
+        className="bg-white border border-slate-200 rounded-xl shadow-sm p-5 cursor-pointer hover:border-blue-400 hover:shadow-md transition"
       >
 
         <div className="flex items-center justify-between">
@@ -134,11 +134,11 @@ const DashboardStats = () => {
           </div>
 
 
-          <div className="w-11 h-11 bg-emerald-50 rounded-lg flex items-center justify-center">
+          <div className="w-11 h-11 bg-blue-50 rounded-lg flex items-center justify-center">
 
             <Users
               size={22}
-              className="text-emerald-600"
+              className="text-blue-600"
             />
 
           </div>

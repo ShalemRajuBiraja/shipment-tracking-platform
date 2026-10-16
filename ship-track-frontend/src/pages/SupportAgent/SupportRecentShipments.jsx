@@ -77,7 +77,7 @@ const SupportRecentShipments = ({
 
         <Clock
           size={20}
-          className="text-emerald-600"
+          className="text-blue-600"
         />
 
       </div>
@@ -90,7 +90,7 @@ const SupportRecentShipments = ({
 
           <div
             key={item.trackingNumber}
-            className="rounded-lg border border-slate-200 p-3 transition hover:border-emerald-300 hover:bg-emerald-50/30 md:p-4"
+            className="rounded-lg border border-slate-200 p-3 transition hover:border-blue-300 hover:bg-blue-50/30 md:p-4"
           >
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -104,7 +104,7 @@ const SupportRecentShipments = ({
 
                   <Package
                     size={17}
-                    className="shrink-0 text-emerald-600"
+                    className="shrink-0 text-blue-600"
                   />
 
                   <span className="text-sm font-bold text-slate-800">
@@ -151,7 +151,7 @@ const SupportRecentShipments = ({
               <div className="flex items-center gap-3">
 
                 {/* Status */}
-                <div className="flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1.5 text-emerald-700">
+                <div className="flex items-center gap-1.5 rounded-md bg-blue-50 px-2.5 py-1.5 text-blue-700">
 
                   <CircleCheck size={14} />
 
@@ -167,7 +167,7 @@ const SupportRecentShipments = ({
                   onClick={() =>
                     onSelectShipment(item.trackingNumber)
                   }
-                  className="flex items-center gap-1 text-sm font-semibold text-emerald-600 transition hover:text-emerald-700"
+                  className="flex items-center gap-1 text-sm font-semibold text-blue-600 transition hover:text-blue-700"
                 >
 
                   View

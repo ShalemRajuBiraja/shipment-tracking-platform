@@ -100,10 +100,10 @@ const handleCopyEmail = async () => {
   return (
     <>
       {/* ================= MOBILE HEADER ================= */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-emerald-950 flex items-center justify-between px-4 z-50 shadow-md">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-blue-950 flex items-center justify-between px-4 z-50 shadow-md">
 
         <div className="flex items-center gap-2">
-          <Truck size={26} className="text-emerald-400" />
+          <Truck size={26} className="text-blue-400" />
 
           <span className="text-white font-bold text-lg">
             QuickShip
@@ -112,7 +112,7 @@ const handleCopyEmail = async () => {
 
         <button
           onClick={() => setIsOpen(true)}
-          className="text-white p-2 hover:bg-emerald-900 rounded-lg transition"
+          className="text-white p-2 hover:bg-blue-900 rounded-lg transition"
         >
           <Menu size={24} />
         </button>
@@ -131,7 +131,7 @@ const handleCopyEmail = async () => {
 
       {/* ================= SIDEBAR ================= */}
       <aside
-        className={`fixed left-0 top-0 h-screen w-64 bg-emerald-950 text-white flex flex-col z-50 transition-transform duration-300 ${
+        className={`fixed left-0 top-0 h-screen w-64 bg-blue-950 text-white flex flex-col z-50 transition-transform duration-300 ${
           isOpen
             ? "translate-x-0"
             : "-translate-x-full lg:translate-x-0"
@@ -145,7 +145,7 @@ const handleCopyEmail = async () => {
 
             <Truck
               size={30}
-              className="text-emerald-400"
+              className="text-blue-400"
             />
 
             <div>
@@ -153,7 +153,7 @@ const handleCopyEmail = async () => {
                 QuickShip
               </h1>
 
-              <p className="text-xs text-emerald-200 mt-0.5">
+              <p className="text-xs text-blue-200 mt-0.5">
                 Admin Dashboard
               </p>
             </div>
@@ -164,7 +164,7 @@ const handleCopyEmail = async () => {
           {/* Mobile Close Button */}
           <button
             onClick={() => setIsOpen(false)}
-            className="lg:hidden p-2 hover:bg-emerald-900 rounded-lg"
+            className="lg:hidden p-2 hover:bg-blue-900 rounded-lg"
           >
             <X size={22} />
           </button>
@@ -186,8 +186,8 @@ const handleCopyEmail = async () => {
                 className={({ isActive }) =>
                   `w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
                     isActive
-                      ? "bg-emerald-600 shadow-md"
-                      : "hover:bg-emerald-900"
+                      ? "bg-blue-600 shadow-md"
+                      : "hover:bg-blue-900"
                   }`
                 }
               >
@@ -208,18 +208,18 @@ const handleCopyEmail = async () => {
         <div className="mt-auto px-4 pb-5">
 
           {/* Divider */}
-          <div className="border-t border-emerald-800 mb-5" />
+          <div className="border-t border-blue-800 mb-5" />
 
 
           {/* Need Help Section */}
          <button
             type="button"
             onClick={handleSupportClick}
-            className="w-full bg-emerald-900/70 border border-emerald-800 rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-emerald-900 transition mb-4 text-left"
+            className="w-full bg-blue-900/70 border border-blue-800 rounded-xl px-4 py-3 flex items-center gap-3 cursor-pointer hover:bg-blue-900 transition mb-4 text-left"
           >
             <Headphones
               size={22}
-              className="text-emerald-300"
+              className="text-blue-300"
             />
 
             <div>
@@ -227,7 +227,7 @@ const handleCopyEmail = async () => {
                 Need Help?
               </h3>
 
-              <p className="text-xs text-emerald-100 mt-0.5">
+              <p className="text-xs text-blue-100 mt-0.5">
                 Contact Development Team
               </p>
             </div>
@@ -280,11 +280,11 @@ const handleCopyEmail = async () => {
 
       {/* Icon */}
 
-      <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-4">
+      <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
 
         <Headphones
           size={24}
-          className="text-emerald-600"
+          className="text-blue-600"
         />
 
       </div>
@@ -319,7 +319,7 @@ const handleCopyEmail = async () => {
 
         <button
           onClick={handleCopyEmail}
-          className="flex-shrink-0 p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition"
+          className="flex-shrink-0 p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition"
           title="Copy email"
         >
 
@@ -351,7 +351,7 @@ const handleCopyEmail = async () => {
 
       <button
         onClick={() => setIsSupportModalOpen(false)}
-        className="w-full mt-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition"
+        className="w-full mt-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition"
       >
 
         Close

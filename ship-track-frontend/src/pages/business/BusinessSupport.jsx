@@ -66,10 +66,10 @@ const BusinessSupport = () => {
 
         <div className="flex items-center gap-2.5">
 
-          <div className="p-2 bg-emerald-50 rounded-lg">
+          <div className="p-2 bg-blue-50 rounded-lg">
             <Headphones
               size={20}
-              className="text-emerald-600"
+              className="text-blue-600"
             />
           </div>
 
@@ -122,7 +122,7 @@ const BusinessSupport = () => {
               value={formData.name}
               onChange={handleChange}
               placeholder="Enter your name"
-              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
               required
             />
 
@@ -141,7 +141,7 @@ const BusinessSupport = () => {
               value={formData.phoneNumber}
               onChange={handleChange}
               placeholder="Enter your phone number"
-              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
               required
             />
 
@@ -160,7 +160,7 @@ const BusinessSupport = () => {
               value={formData.issue}
               onChange={handleChange}
               placeholder="Enter issue"
-              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
               required
             />
 
@@ -179,7 +179,7 @@ const BusinessSupport = () => {
               value={formData.description}
               onChange={handleChange}
               placeholder="Explain your issue..."
-              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none resize-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+              className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none resize-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
               required
             />
 
@@ -188,7 +188,7 @@ const BusinessSupport = () => {
           {/* Submit */}
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-md text-sm font-medium transition"
+            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium transition"
           >
             <Send size={16} />
             Send Support Request

@@ -159,7 +159,7 @@ const ForgotPassword = () => {
 
           {/* Logo + Header */}
           <div className="mb-7 text-center">
-            <div className="mx-auto flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-emerald-600 shadow-lg shadow-emerald-600/20">
+            <div className="mx-auto flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-blue-600 shadow-lg shadow-blue-600/20">
               <img
                 src={logo}
                 alt="ShipTrack Pro"
@@ -190,7 +190,7 @@ const ForgotPassword = () => {
                 key={stepNumber}
                 className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors ${
                   step >= stepNumber
-                    ? "bg-emerald-600 text-white"
+                    ? "bg-blue-600 text-white"
                     : "bg-slate-200 text-slate-500"
                 }`}
               >
@@ -257,7 +257,7 @@ const ForgotPassword = () => {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="w-full text-sm font-medium text-emerald-600 transition-colors hover:text-emerald-700"
+                className="w-full text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
               >
                 Change Email
               </button>
@@ -311,7 +311,7 @@ const ForgotPassword = () => {
             <button
               type="button"
               onClick={() => navigate("/home")}
-              className="text-sm font-medium text-slate-600 transition-colors hover:text-emerald-600"
+              className="text-sm font-medium text-slate-600 transition-colors hover:text-blue-600"
             >
               ← Back to Login
             </button>

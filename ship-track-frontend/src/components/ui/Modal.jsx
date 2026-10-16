@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -8,6 +9,7 @@ const Modal = ({
   children,
   size = "md",
   showCloseButton = true,
+  flush = false,
 }) => {
   const sizeStyles = {
     sm: "max-w-sm",
@@ -40,7 +42,7 @@ const Modal = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex min-h-screen items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onClose?.();
@@ -51,10 +53,14 @@ const Modal = ({
       aria-labelledby={title ? "modal-title" : undefined}
     >
       <div
-        className={`w-full max-w-[calc(100vw-2rem)] ${sizeStyles[size]} rounded-xl bg-white shadow-2xl`}
+        className={`relative my-auto w-full max-w-[calc(100vw-2rem)] ${sizeStyles[size]} ${
+          flush
+            ? "overflow-hidden rounded-2xl bg-transparent shadow-none"
+            : "rounded-xl bg-white shadow-2xl"
+        }`}
         onMouseDown={(event) => event.stopPropagation()}
       >
-        {(title || showCloseButton) && (
+        {!flush && (title || showCloseButton) && (
           <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
             {title ? (
               <h2
@@ -72,7 +78,7 @@ const Modal = ({
                 type="button"
                 onClick={onClose}
                 aria-label="Close modal"
-                className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <svg
                   className="h-5 w-5"
@@ -91,7 +97,31 @@ const Modal = ({
           </div>
         )}
 
-        <div className="p-6">{children}</div>
+        <div className={flush ? "" : "p-6"}>
+          {children}
+        </div>
+
+        {flush && showCloseButton && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close modal"
+            className="absolute right-3 top-3 z-20 rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <svg
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </button>
+        )}
       </div>
     </div>,
     document.body
@@ -99,3 +129,4 @@ const Modal = ({
 };
 
 export default Modal;
+

@@ -75,11 +75,11 @@
 //                 </div>
 
 
-//                 <div className="p-3 bg-emerald-50 rounded-lg">
+//                 <div className="p-3 bg-blue-50 rounded-lg">
 
 //                   <Icon
 //                     size={23}
-//                     className="text-emerald-600"
+//                     className="text-blue-600"
 //                   />
 
 //                 </div>

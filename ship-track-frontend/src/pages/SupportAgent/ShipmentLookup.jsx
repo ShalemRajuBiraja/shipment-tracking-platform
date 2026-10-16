@@ -498,7 +498,7 @@ const ShipmentLookup = () => {
                 )
               }
               placeholder="Enter tracking number"
-              className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
 
           </div>
@@ -506,7 +506,7 @@ const ShipmentLookup = () => {
           <button
             type="submit"
             disabled={loading}
-            className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Search
           </button>
@@ -561,7 +561,7 @@ const ShipmentLookup = () => {
                 <span
                   className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
                     shipment.status === "DELIVERED"
-                      ? "bg-emerald-100 text-emerald-700"
+                      ? "bg-blue-100 text-blue-700"
                       : "bg-blue-100 text-blue-700"
                   }`}
                 >
@@ -635,7 +635,7 @@ const ShipmentLookup = () => {
 
                 <div className="flex items-center gap-2">
 
-                  <MapPin className="h-4 w-4 text-emerald-600" />
+                  <MapPin className="h-4 w-4 text-blue-600" />
 
                   <h2 className="text-sm font-semibold text-slate-800">
                     Pickup Address
@@ -661,7 +661,7 @@ const ShipmentLookup = () => {
 
                 <div className="flex items-center gap-2">
 
-                  <MapPin className="h-4 w-4 text-emerald-600" />
+                  <MapPin className="h-4 w-4 text-blue-600" />
 
                   <h2 className="text-sm font-semibold text-slate-800">
                     Delivery Address
@@ -690,7 +690,7 @@ const ShipmentLookup = () => {
             {shipment.status ===
               "DELIVERED" && (
 
-              <section className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+              <section className="rounded-lg border border-blue-200 bg-blue-50 p-4">
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 
@@ -699,18 +699,18 @@ const ShipmentLookup = () => {
                     <div className="mt-0.5">
 
                       <CheckCircle2
-                        className="h-5 w-5 text-emerald-600"
+                        className="h-5 w-5 text-blue-600"
                       />
 
                     </div>
 
                     <div>
 
-                      <h2 className="text-sm font-semibold text-emerald-800">
+                      <h2 className="text-sm font-semibold text-blue-800">
                         Proof of Delivery
                       </h2>
 
-                      <p className="mt-1 text-xs leading-5 text-emerald-700">
+                      <p className="mt-1 text-xs leading-5 text-blue-700">
                         Delivery has been completed and the Proof of Delivery PDF is available.
                       </p>
 
@@ -727,7 +727,7 @@ const ShipmentLookup = () => {
                     disabled={
                       podDownloading
                     }
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   >
 
                     <Download className="h-4 w-4" />
@@ -876,7 +876,7 @@ const ShipmentLookup = () => {
 
                   <div className="flex items-center gap-2">
 
-                    <MapPin className="h-4 w-4 text-emerald-600" />
+                    <MapPin className="h-4 w-4 text-blue-600" />
 
                     <h2 className="text-sm font-semibold text-slate-800">
                       Current Location
@@ -981,13 +981,13 @@ const ShipmentLookup = () => {
             {shipment.status ===
               "DELIVERED" && (
 
-              <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+              <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
 
                 <CheckCircle2
-                  className="h-5 w-5 shrink-0 text-emerald-600"
+                  className="h-5 w-5 shrink-0 text-blue-600"
                 />
 
-                <p className="text-sm text-emerald-700">
+                <p className="text-sm text-blue-700">
                   This shipment has been delivered. Live tracking and location updates are no longer active.
                 </p>
 

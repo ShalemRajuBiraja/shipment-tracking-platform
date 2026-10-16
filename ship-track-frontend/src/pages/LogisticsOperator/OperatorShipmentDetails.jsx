@@ -9,11 +9,11 @@ import {
   MapPin,
   Clock,
   TrendingUp,
-  AlertTriangle,
   CheckCircle2,
   Navigation,
   ShieldAlert,
   Download,
+  Check,
 } from "lucide-react";
 import * as operatorService from "../../services/operatorService";
 import { updateShipmentLocation } from "../../services/shipmentService";
@@ -22,6 +22,8 @@ import {
   getCurrentLocationToDeliveryRoute,
 } from "../../services/LocationService";
 import {
+  confirmDeliveryApi,
+  saveDeliveryImageApi,
   openDeliveryConfirmation,
   downloadPodApi,
 } from "../../services/deliveryConfirmationService";
@@ -32,10 +34,9 @@ const {
   getShipmentLocation,
   getShipmentRoute,
   getShipmentEta,
-  getShipmentDelayPrediction,
+  getShipmentDeliveryForecast,
   getShipmentRouteHistory,
   getRoadFollowingRouteHistory,
-  getShipmentDeliveryForecast,
 } = operatorService;
 
 const formatDuration = (duration) => {
@@ -81,11 +82,15 @@ const OperatorShipmentDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [shipment, setShipment] = useState(null);
+  const [locationHistory, setLocationHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyRoute, setHistoryRoute] = useState(null);
+  const [historyRouteLoading, setHistoryRouteLoading] = useState(true);
+  const [shipmentLocation, setShipmentLocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [updating, setUpdating] = useState(false);
   const [locationUpdating, setLocationUpdating] = useState(false);
-  const [shipmentLocation, setShipmentLocation] = useState(null);
   const [locationLoading, setLocationLoading] = useState(true);
   const [route, setRoute] = useState(null);
   const [routeLoading, setRouteLoading] = useState(true);
@@ -93,16 +98,18 @@ const OperatorShipmentDetails = () => {
   const [currentRoutePolyline, setCurrentRoutePolyline] = useState(null);
   const [eta, setEta] = useState(null);
   const [etaLoading, setEtaLoading] = useState(true);
-  const [delayPrediction, setDelayPrediction] = useState(null);
-  const [delayLoading, setDelayLoading] = useState(true);
-  const [locationHistory, setLocationHistory] = useState([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyRoute, setHistoryRoute] = useState(null);
-  const [historyRouteLoading, setHistoryRouteLoading] = useState(false);
   const [deliveryForecast, setDeliveryForecast] = useState(null);
+  const [forecastLoading, setForecastLoading] = useState(true);
   const [liveLocation, setLiveLocation] = useState(null);
   const [locationInput, setLocationInput] = useState("");
   const [downloadingPod, setDownloadingPod] = useState(false);
+  const [selectedDeliveryImage, setSelectedDeliveryImage] = useState(null);
+  const [deliveryImagePreview, setDeliveryImagePreview] = useState("");
+  const [deliveryImageSaved, setDeliveryImageSaved] = useState(false);
+  const [savingDeliveryImage, setSavingDeliveryImage] = useState(false);
+  const [confirmingDelivery, setConfirmingDelivery] = useState(false);
+  const galleryInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
   const shipmentRef = useRef(shipment);
 
   useEffect(() => {
@@ -165,9 +172,11 @@ const OperatorShipmentDetails = () => {
           setLocationLoading(false);
           setRouteLoading(false);
           setEtaLoading(false);
-          setDelayPrediction(null);
-          setDeliveryForecast(null);
-          setDelayLoading(false);
+          setDeliveryForecast({
+            forecast: "DELIVERED",
+            message: "Shipment has already been delivered.",
+          });
+          setForecastLoading(false);
           return;
         }
 
@@ -175,7 +184,7 @@ const OperatorShipmentDetails = () => {
           shipmentData.trackingNumber,
           shipmentData
         );
-        fetchDelayPrediction(shipmentData.trackingNumber);
+        fetchDeliveryForecast(shipmentData.trackingNumber);
       }
     } catch (error) {
       console.error("Error fetching shipment details:", error);
@@ -432,38 +441,24 @@ const OperatorShipmentDetails = () => {
     }
   };
 
-  const fetchDelayPrediction = async (
-    trackingNumber
-  ) => {
-    try {
-      setDelayLoading(true);
-      const response =
-        await getShipmentDelayPrediction(
-          trackingNumber
-        );
-      const forecastResponse =
-        await getShipmentDeliveryForecast(
-          trackingNumber
-        );
-      setDeliveryForecast(
-        forecastResponse.data
-      );
+  const fetchDeliveryForecast = async (trackingNumber) => {
+    if (!trackingNumber) {
+      setDeliveryForecast(null);
+      setForecastLoading(false);
+      return;
+    }
 
-      if (response.data) {
-        setDelayPrediction(
-          response.data
-        );
-      } else {
-        setDelayPrediction(null);
-      }
+    try {
+      setForecastLoading(true);
+      const response = await getShipmentDeliveryForecast(trackingNumber);
+      // Supports either a direct DTO response or a wrapped { data: ... } response.
+      const forecastData = response.data?.data ?? response.data;
+      setDeliveryForecast(forecastData || null);
     } catch (error) {
-      console.error(
-        "Error fetching delay prediction:",
-        error
-      );
-      setDelayPrediction(null);
+      console.error("Error fetching delivery forecast:", error);
+      setDeliveryForecast(null);
     } finally {
-      setDelayLoading(false);
+      setForecastLoading(false);
     }
   };
 
@@ -498,9 +493,9 @@ const OperatorShipmentDetails = () => {
     try {
       setUpdating(true);
       const response = await updateOperatorShipmentStatus(
-          id,
-          selectedStatus
-        );
+        id,
+        selectedStatus
+      );
 
       if ( response.data.success === true ) {
         toast.success("Shipment status updated");
@@ -519,9 +514,11 @@ const OperatorShipmentDetails = () => {
           setLocationLoading(false);
           setRouteLoading(false);
           setEtaLoading(false);
-          setDelayPrediction(null);
-          setDeliveryForecast(null);
-          setDelayLoading(false);
+          setDeliveryForecast({
+            forecast: "DELIVERED",
+            message: "Shipment has already been delivered.",
+          });
+          setForecastLoading(false);
           return;
         }
 
@@ -529,6 +526,7 @@ const OperatorShipmentDetails = () => {
           updatedShipment.trackingNumber,
           updatedShipment
         );
+        fetchDeliveryForecast(updatedShipment.trackingNumber);
       }
     } catch (error) {
       console.error(
@@ -540,31 +538,142 @@ const OperatorShipmentDetails = () => {
     }
   };
 
-  const handleOpenDeliveryConfirmation =
-    async () => {
-      try {
-        const apiResponse =  await openDeliveryConfirmation( shipment.trackingNumber
-          );
+  const handleDeliveryImageSelect = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-        if (
-          apiResponse.data.success === true
-        ) {
-          toast.success(
-            "Delivery Confirmation Request sent to Customer."
-          );
-        } else {
-          toast.error( apiResponse.data.message ||  "Unable to open delivery confirmation." );
-        }
-      } catch (error) {
-         console.error( "Error opening delivery confirmation:",  error );
-          const errorMessage =
-                             error.response?.data?.message ||
-                             error.response?.data?.error ||
-                            "Unable to open delivery confirmation.";
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file.");
+      event.target.value = "";
+      return;
+    }
 
-         toast.error(errorMessage);  
-       }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image size must be 10 MB or less.");
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSelectedDeliveryImage(file);
+      setDeliveryImagePreview(String(reader.result || ""));
+      setDeliveryImageSaved(false);
     };
+    reader.onerror = () => toast.error("Unable to preview this image.");
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveDeliveryImage = async () => {
+    if (!deliveryImagePreview || !shipment?.trackingNumber) {
+      toast.error("Please select or capture a delivery image first.");
+      return false;
+    }
+
+    try {
+      setSavingDeliveryImage(true);
+      const response = await saveDeliveryImageApi(
+        shipment.trackingNumber,
+        deliveryImagePreview
+      );
+
+      if (response?.data?.success === false) {
+        throw new Error(response.data.message || "Unable to save delivery image.");
+      }
+
+      setDeliveryImageSaved(true);
+      toast.success(response?.data?.message || "Delivery image saved successfully.");
+      return true;
+    } catch (error) {
+      console.error("Error saving delivery image:", error);
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to save delivery image."
+      );
+      return false;
+    } finally {
+      setSavingDeliveryImage(false);
+    }
+  };
+
+  const handleConfirmDelivery = async () => {
+    if (shipment?.status !== "OUT_FOR_DELIVERY") {
+      toast.error("Delivery can only be confirmed when the shipment is out for delivery.");
+      return;
+    }
+
+    if (!deliveryImageSaved) {
+      toast.error("Please save the delivery image before confirming delivery.");
+      return;
+    }
+
+    try {
+      setConfirmingDelivery(true);
+      const response = await confirmDeliveryApi(shipment.trackingNumber);
+
+      if (response?.data?.success !== true) {
+        throw new Error(response?.data?.message || "Unable to confirm delivery.");
+      }
+
+      setShipment(response.data.data);
+      setSelectedStatus("");
+      setShipmentLocation(null);
+      setLiveLocation(null);
+      setRoute(null);
+      setEncodedPolyline(null);
+      setCurrentRoutePolyline(null);
+      setEta(null);
+      setLocationLoading(false);
+      setRouteLoading(false);
+      setEtaLoading(false);
+      setDeliveryForecast({
+        forecast: "DELIVERED",
+        message: "Shipment has been delivered.",
+      });
+      setForecastLoading(false);
+
+      toast.success("Delivery confirmed successfully.");
+      // The backend must generate the POD when this operator confirmation succeeds.
+      // The existing downloadPodApi is retained for downloading that generated PDF.
+    } catch (error) {
+      console.error("Error confirming delivery:", error);
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to confirm delivery."
+      );
+    } finally {
+      setConfirmingDelivery(false);
+    }
+  };
+
+  // Preserve the original workflow: request/open the customer's delivery confirmation.
+  const handleOpenDeliveryConfirmation = async () => {
+    if (!shipment?.trackingNumber) {
+      toast.error("Tracking number is unavailable.");
+      return;
+    }
+
+    try {
+      const apiResponse = await openDeliveryConfirmation(shipment.trackingNumber);
+
+      if (apiResponse?.data?.success === true) {
+        toast.success("Delivery Confirmation Request sent to Customer.");
+      } else {
+        toast.error(
+          apiResponse?.data?.message || "Unable to open delivery confirmation."
+        );
+      }
+    } catch (error) {
+      console.error("Error opening delivery confirmation:", error);
+      toast.error(
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Unable to open delivery confirmation."
+      );
+    }
+  };
 
   const handleDownloadPod = async () => {
     if (!shipment?.trackingNumber) {
@@ -640,9 +749,9 @@ const OperatorShipmentDetails = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center p-8">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
-        <p className="mt-4 text-sm font-medium text-slate-600">
+      <div className="op-center">
+        <div className="op-bigspin" />
+        <p>
           Loading shipment details...
         </p>
       </div>
@@ -651,22 +760,25 @@ const OperatorShipmentDetails = () => {
 
   if (!shipment) {
     return (
-      <div className="mx-auto max-w-lg rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-          <ShieldAlert className="h-6 w-6 text-slate-500" />
-        </div>
-        <h2 className="mt-4 text-lg font-bold text-slate-800">
+      <div className="op-notfound">
+        <span className="op-notfound__icon">
+          <ShieldAlert size={28} />
+        </span>
+
+        <h2>
           Shipment Not Found
         </h2>
-        <p className="mt-2 text-sm text-slate-500">
+
+        <p>
           We could not locate this shipment.
         </p>
+
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="mt-5 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+          className="op-btn op-btn--auto"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft size={17} />
           Back to Shipments
         </button>
       </div>
@@ -676,252 +788,409 @@ const OperatorShipmentDetails = () => {
   const nextStatus = getNextStatus();
   const isCompleted = shipment.status === "DELIVERED";
   const isCancelled = shipment.status === "CANCELLED";
-  const estimatedArrival =
-    eta?.estimatedArrival || deliveryForecast?.forecastedDeliveryTime;
-  const isDelayed =
-    delayPrediction?.prediction === "DELAYED" ||
-    delayPrediction?.delayMinutes > 0;
-  const isOnTime = delayPrediction?.prediction === "ON_TIME";
+  const estimatedArrival = eta?.estimatedArrival;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-4 pb-8">
+    <div className="op-trackpage">
+
       {/* Header */}
-      <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-3">
+      <div className="op-trackhead op-trackhead--row">
+        <div className="op-trackhead__left">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700"
+            className="op-backbtn"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft size={16} />
             Back
           </button>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-bold text-slate-900">Shipment Details</h1>
-              <span className="rounded-md bg-slate-100 px-2 py-1 font-mono text-xs font-semibold text-slate-600">
+
+          <div>
+            <div className="op-trackhead__title">
+              <h1>Shipment Details</h1>
+
+              <span className="op-mono op-tag">
                 #{shipment.trackingNumber}
               </span>
             </div>
-            <p className="mt-0.5 text-xs text-slate-500">Operator shipment management</p>
+
+            <p>Operator shipment management</p>
           </div>
         </div>
-        <span className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold uppercase ${getStatusStyle(shipment.status)}`}>
+
+        <span className={`op-chip ${getStatusStyle(shipment.status)}`}>
           {formatStatus(shipment.status)}
         </span>
       </div>
 
       {/* Shipment summary */}
-      <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-100 px-4 py-3">
-          <h2 className="text-sm font-bold text-slate-900">Shipment Information</h2>
+      <section className="op-card op-card--embed">
+        <div className="op-card__head">
+          <h2>Shipment Information</h2>
         </div>
-        <div className="grid grid-cols-1 divide-y divide-slate-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
-          <div className="p-4">
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-slate-500">
-              <User className="h-4 w-4 text-emerald-600" /> Sender
+
+        <div className="op-info-grid op-info-grid--4">
+
+          <div className="op-info">
+            <div className="op-info__head">
+              <User size={17} />
+              <h3>Sender</h3>
             </div>
-            <p className="text-sm font-semibold text-slate-800">{shipment.senderName || "N/A"}</p>
+
+            <p className="op-info__value">{shipment.senderName || "N/A"}</p>
           </div>
-          <div className="p-4">
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-slate-500">
-              <User className="h-4 w-4 text-blue-600" /> Receiver
+
+          <div className="op-info">
+            <div className="op-info__head">
+              <User size={17} />
+              <h3>Receiver</h3>
             </div>
-            <p className="text-sm font-semibold text-slate-800">{shipment.receiverName || "N/A"}</p>
-            <p className="mt-1 flex items-center gap-1 text-xs text-slate-500"><Phone className="h-3.5 w-3.5" />{shipment.receiverPhone || "N/A"}</p>
-          </div>
-          <div className="p-4">
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-slate-500">
-              <MapPin className="h-4 w-4 text-purple-600" /> Pickup
+
+            <p className="op-info__value">{shipment.receiverName || "N/A"}</p>
+
+            <div className="op-info__meta">
+              <Phone size={14} />
+              <span>{shipment.receiverPhone || "N/A"}</span>
             </div>
-            <p className="text-sm font-semibold text-slate-800">{shipment.pickupAddress || "N/A"}</p>
-            <p className="mt-1 text-xs text-slate-500">{[shipment.pickupCity, shipment.pickupState].filter(Boolean).join(", ") || "N/A"}</p>
-            <p className="mt-0.5 font-mono text-[11px] text-slate-400">PIN: {shipment.pickupPincode || "N/A"}</p>
           </div>
-          <div className="p-4">
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-slate-500">
-              <MapPin className="h-4 w-4 text-orange-600" /> Delivery
+
+          <div className="op-info">
+            <div className="op-info__head op-info__head--purple">
+              <MapPin size={17} />
+              <h3>Pickup</h3>
             </div>
-            <p className="text-sm font-semibold text-slate-800">{shipment.deliveryAddress || "N/A"}</p>
-            <p className="mt-1 text-xs text-slate-500">{[shipment.deliveryCity, shipment.deliveryState].filter(Boolean).join(", ") || "N/A"}</p>
-            <p className="mt-0.5 font-mono text-[11px] text-slate-400">PIN: {shipment.deliveryPincode || "N/A"}</p>
+
+            <p className="op-info__value">{shipment.pickupAddress || "N/A"}</p>
+
+            <p className="op-info__text">
+              {[shipment.pickupCity, shipment.pickupState].filter(Boolean).join(", ") || "N/A"}
+            </p>
+
+            <p className="op-info__pin">PIN: {shipment.pickupPincode || "N/A"}</p>
           </div>
+
+          <div className="op-info">
+            <div className="op-info__head op-info__head--orange">
+              <MapPin size={17} />
+              <h3>Delivery</h3>
+            </div>
+
+            <p className="op-info__value">{shipment.deliveryAddress || "N/A"}</p>
+
+            <p className="op-info__text">
+              {[shipment.deliveryCity, shipment.deliveryState].filter(Boolean).join(", ") || "N/A"}
+            </p>
+
+            <p className="op-info__pin">PIN: {shipment.deliveryPincode || "N/A"}</p>
+          </div>
+
         </div>
       </section>
 
       {/* Controls */}
-      <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="grid grid-cols-1 divide-y divide-slate-100 lg:grid-cols-[1fr_auto] lg:divide-x lg:divide-y-0">
+      <section className="op-card op-card--embed op-ctrl">
 
-          {/* Update Shipment Location */}
-          {!isCompleted && !isCancelled && (
-            <div className="p-4">
-              <p className="mb-2 text-xs font-semibold text-slate-500">
-                Update Shipment Location
-              </p>
+        {/* Update Shipment Location */}
+        {!isCompleted && !isCancelled && (
+          <div className="op-ctrl__panel">
+            <p className="op-ctrl__label">
+              Update Shipment Location
+            </p>
 
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <input
-                  type="text"
-                  value={locationInput}
-                  onChange={(e) => setLocationInput(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && handleLocationUpdate()
-                  }
-                  placeholder="Enter current location"
-                  className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                />
+            <div className="op-inputrow">
+              <input
+                type="text"
+                value={locationInput}
+                onChange={(e) => setLocationInput(e.target.value)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && handleLocationUpdate()
+                }
+                placeholder="Enter current location"
+                className="op-input"
+              />
 
+              <button
+                type="button"
+                onClick={handleLocationUpdate}
+                disabled={locationUpdating}
+                className={`op-btn op-btn--auto op-btn--sm ${
+                  locationInput.trim() ? "" : "op-btn--ghost"
+                }`}
+              >
+                <MapPin size={16} />
+
+                {locationUpdating
+                  ? "Updating..."
+                  : "Update Location"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Delivery Image — handled by the logistics operator */}
+        {shipment.status === "OUT_FOR_DELIVERY" && !isCompleted && !isCancelled && (
+          <div className="op-ctrl__panel">
+            <p className="op-ctrl__label">Delivery Image</p>
+            <p className="op-ctrl__hint">
+              Select a delivery photo or take a picture. An image is required before confirming delivery.
+            </p>
+
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleDeliveryImageSelect}
+              hidden
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleDeliveryImageSelect}
+              hidden
+            />
+
+            <div className="op-inputrow">
+              <button
+                type="button"
+                className="op-btn op-btn--outline op-btn--sm"
+                onClick={() => galleryInputRef.current?.click()}
+                disabled={savingDeliveryImage || confirmingDelivery}
+              >
+                Select Image
+              </button>
+              <button
+                type="button"
+                className="op-btn op-btn--outline op-btn--sm"
+                onClick={() => cameraInputRef.current?.click()}
+                disabled={savingDeliveryImage || confirmingDelivery}
+              >
+                Take / Add Image
+              </button>
+              {deliveryImagePreview && !deliveryImageSaved && (
                 <button
                   type="button"
-                  onClick={handleLocationUpdate}
-                  disabled={locationUpdating}
-                  className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition disabled:opacity-60 ${
-                    locationInput.trim()
-                      ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                      : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                  }`}
+                  className="op-btn op-btn--auto op-btn--sm"
+                  onClick={handleSaveDeliveryImage}
+                  disabled={savingDeliveryImage || confirmingDelivery}
                 >
-                  <MapPin
-                    className={`h-4 w-4 ${
-                      locationInput.trim()
-                        ? "text-white"
-                        : "text-emerald-600"
-                    }`}
-                  />
-
-                  {locationUpdating
-                    ? "Updating..."
-                    : "Update Location"}
+                  {savingDeliveryImage ? "Saving Image..." : "Save Delivery Image"}
                 </button>
-              </div>
+              )}
             </div>
-          )}
 
-          {/* Shipment Actions */}
-          {!isCompleted && !isCancelled && (
-            <div className="p-4 lg:min-w-[360px]">
-
-              <p className="mb-2 text-xs font-semibold text-slate-500">
-                Shipment Actions
-              </p>
-
-              {/* Update Shipment Status */}
-              {nextStatus ? (
-                <div className="flex flex-col gap-2 sm:flex-row">
-
-                  <select
-                    value={selectedStatus}
-                    onChange={(e) =>
-                      setSelectedStatus(e.target.value)
-                    }
-                    className="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-                  >
-                    <option value="">
-                      Select next status
-                    </option>
-
-                    <option value={nextStatus}>
-                      {formatStatus(nextStatus)}
-                    </option>
-                  </select>
-
+            {deliveryImagePreview && (
+              <div className="op-delivery-image-preview">
+                <img
+                  src={deliveryImagePreview}
+                  alt="Selected delivery evidence"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    maxWidth: "360px",
+                    maxHeight: "260px",
+                    objectFit: "contain",
+                    marginTop: "14px",
+                    borderRadius: "12px",
+                    border: "1px solid #dbeafe",
+                    background: "#f8fafc",
+                  }}
+                />
+                <p className="op-ctrl__hint">
+                  {deliveryImageSaved
+                    ? "✓ Delivery image saved."
+                    : selectedDeliveryImage?.name || "Image selected — save it before confirming."}
+                </p>
+                {deliveryImageSaved && (
                   <button
                     type="button"
-                    onClick={handleStatusUpdate}
-                    disabled={!selectedStatus || updating}
-                    className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="op-btn op-btn--outline op-btn--sm"
+                    onClick={() => {
+                      setSelectedDeliveryImage(null);
+                      setDeliveryImagePreview("");
+                      setDeliveryImageSaved(false);
+                      if (galleryInputRef.current) galleryInputRef.current.value = "";
+                      if (cameraInputRef.current) cameraInputRef.current.value = "";
+                    }}
+                    disabled={confirmingDelivery}
                   >
-                    {updating
-                      ? "Updating..."
-                      : "Update Status"}
+                    Replace Image
                   </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
-                </div>
-              ) : (
-                <p className="py-2 text-xs font-medium text-slate-500">
-                  This shipment status is locked.
-                </p>
-              )}
+        {/* Shipment Actions */}
+        {!isCompleted && !isCancelled && (
+          <div className="op-ctrl__panel op-ctrl__panel--actions">
+            <p className="op-ctrl__label">
+              Shipment Actions
+            </p>
 
-              {/* Open Delivery Confirmation */}
-              {shipment.status === "OUT_FOR_DELIVERY" && (
+            {/* Original delivery-confirmation request button is retained. */}
+            {shipment.status === "OUT_FOR_DELIVERY" && (
+              <button
+                type="button"
+                onClick={handleOpenDeliveryConfirmation}
+                className="op-btn op-btn--outline op-ctrl__confirm"
+              >
+                <CheckCircle2 size={17} />
+                Open Delivery Confirmation
+              </button>
+            )}
+
+            {/* Final status requires delivery evidence and explicit confirmation */}
+            {shipment.status === "OUT_FOR_DELIVERY" ? (
+              <button
+                type="button"
+                onClick={handleConfirmDelivery}
+                disabled={!deliveryImageSaved || confirmingDelivery || savingDeliveryImage}
+                className="op-btn op-btn--auto op-ctrl__confirm"
+              >
+                <CheckCircle2 size={17} />
+                {confirmingDelivery ? "Confirming Delivery..." : "Confirm Delivery"}
+              </button>
+            ) : nextStatus ? (
+              <div className="op-inputrow">
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="op-input"
+                >
+                  <option value="">Select next status</option>
+                  <option value={nextStatus}>{formatStatus(nextStatus)}</option>
+                </select>
+
                 <button
                   type="button"
-                  onClick={handleOpenDeliveryConfirmation}
-                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-600 bg-white px-4 py-2.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50"
+                  onClick={handleStatusUpdate}
+                  disabled={!selectedStatus || updating}
+                  className="op-btn op-btn--auto op-btn--sm"
                 >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Open Delivery Confirmation
+                  {updating ? "Updating..." : "Update Status"}
                 </button>
-              )}
-
-            </div>
-          )}
-
-        </div>
+              </div>
+            ) : (
+              <p className="op-ctrl__locked">This shipment status is locked.</p>
+            )}
+          </div>
+        )}
       </section>
 
       {isCompleted ? (
-        <section className="rounded-xl border border-emerald-200 bg-white shadow-sm">
-          <div className="flex flex-col items-center justify-center px-5 py-8 text-center">
-            <CheckCircle2 className="h-10 w-10 text-emerald-600" />
-            <h2 className="mt-3 text-lg font-bold text-slate-900">Shipment Delivered</h2>
-            <p className="mt-1 max-w-md text-xs text-slate-500">Live tracking is no longer required. Download the Proof of Delivery document when needed.</p>
-            <button
-              type="button"
-              onClick={handleDownloadPod}
-              disabled={downloadingPod}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
-            >
-              <Download className="h-4 w-4" />
-              {downloadingPod ? "Downloading..." : "Download POD"}
-            </button>
-          </div>
+
+        <section className="op-delivered op-delivered--center">
+          <span className="op-delivered__icon">
+            <CheckCircle2 size={26} />
+          </span>
+
+          <h2>Shipment Delivered</h2>
+
+          <p>
+            Live tracking is no longer required. Download the generated Proof of Delivery document when needed.
+          </p>
+
+          <button
+            type="button"
+            onClick={handleDownloadPod}
+            disabled={downloadingPod}
+            className="op-btn op-btn--auto"
+          >
+            <Download size={17} />
+            {downloadingPod ? "Downloading..." : "Download POD"}
+          </button>
         </section>
+
       ) : !isCancelled && (
-        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+
+        <div className="op-trackgrid">
+
           {/* Tracking */}
-          <div className="min-w-0 space-y-4">
-            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <Navigation className="h-4 w-4 text-emerald-600" />
+          <div className="op-trackgrid__main">
+
+            <section className="op-card op-card--embed op-card--clip">
+
+              <div className="op-card__head op-card__head--tint">
+                <div className="op-card__headrow">
+                  <span className="op-card__badge">
+                    <Navigation size={18} />
+                  </span>
+
                   <div>
-                    <h2 className="text-sm font-bold text-slate-900">Live Route Map</h2>
-                    <p className="text-[11px] text-slate-500">Pickup to delivery tracking</p>
+                    <h2>Live Route Map</h2>
+                    <p>Pickup to delivery tracking</p>
                   </div>
                 </div>
+
                 {shipmentLocation && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Signal Active
+                  <span className="op-live">
+                    <span className="op-live__dot" />
+                    Signal Active
                   </span>
                 )}
               </div>
 
               {shipmentLocation && !locationLoading && (
-                <div className="grid grid-cols-3 divide-x divide-slate-100 border-b border-slate-100">
-                  <div className="px-3 py-3">
-                    <span className="block text-[10px] uppercase tracking-wide text-slate-400">Distance</span>
-                    <span className="text-sm font-bold text-slate-800">{routeLoading ? "Calculating..." : route?.distanceMeters != null ? formatDistance(route.distanceMeters) : eta?.distanceKm != null ? `${Number(eta.distanceKm).toFixed(2)} km` : "N/A"}</span>
+                <div className="op-metrics">
+
+                  <div className="op-metric">
+                    <span className="op-metric__icon">
+                      <MapPin size={20} />
+                    </span>
+
+                    <div>
+                      <span className="op-metric__label">Distance</span>
+
+                      <strong>
+                        {routeLoading ? "Calculating..." : route?.distanceMeters != null ? formatDistance(route.distanceMeters) : eta?.distanceKm != null ? `${Number(eta.distanceKm).toFixed(2)} km` : "N/A"}
+                      </strong>
+                    </div>
                   </div>
-                  <div className="px-3 py-3">
-                    <span className="block text-[10px] uppercase tracking-wide text-slate-400">Transit Time</span>
-                    <span className="text-sm font-bold text-slate-800">{routeLoading ? "Calculating..." : route?.duration ? formatDuration(route.duration) : eta?.durationSeconds ? formatTravelTime(eta.durationSeconds) : eta?.travelTime || "N/A"}</span>
+
+                  <div className="op-metric">
+                    <span className="op-metric__icon">
+                      <Clock size={20} />
+                    </span>
+
+                    <div>
+                      <span className="op-metric__label">Transit Time</span>
+
+                      <strong>
+                        {routeLoading ? "Calculating..." : route?.duration ? formatDuration(route.duration) : eta?.durationSeconds ? formatTravelTime(eta.durationSeconds) : eta?.travelTime || "N/A"}
+                      </strong>
+                    </div>
                   </div>
-                  <div className="bg-emerald-50/40 px-3 py-3">
-                    <span className="block text-[10px] uppercase tracking-wide text-emerald-700">Estimated Arrival</span>
-                    <span className="text-sm font-bold text-emerald-700">{etaLoading ? "Calculating..." : estimatedArrival || "N/A"}</span>
+
+                  <div className="op-metric op-metric--accent">
+                    <span className="op-metric__icon">
+                      <TrendingUp size={20} />
+                    </span>
+
+                    <div>
+                      <span className="op-metric__label">Estimated Arrival</span>
+
+                      <strong>
+                        {etaLoading ? "Calculating..." : estimatedArrival || "N/A"}
+                      </strong>
+                    </div>
                   </div>
+
                 </div>
               )}
 
-              <div className="p-3">
+              <div className="op-mapbox">
                 {locationLoading ? (
-                  <div className="flex h-[360px] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50">
-                    <div className="text-center"><div className="mx-auto h-7 w-7 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" /><p className="mt-2 text-xs text-slate-500">Loading map...</p></div>
+
+                  <div className="op-map-state">
+                    <div className="op-bigspin" />
+                    <p>Loading map...</p>
                   </div>
+
                 ) : shipmentLocation ? (
-                  <div className="overflow-hidden rounded-lg border border-slate-200">
+
+                  <div className="op-map-frame">
                     <GoogleShipmentMap
                       pickupLatitude={shipmentLocation.pickupLatitude}
                       pickupLongitude={shipmentLocation.pickupLongitude}
@@ -933,83 +1202,158 @@ const OperatorShipmentDetails = () => {
                       currentRoutePolyline={currentRoutePolyline}
                     />
                   </div>
+
                 ) : (
-                  <div className="flex h-[360px] flex-col items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-center">
-                    <MapPin className="h-7 w-7 text-slate-300" />
-                    <p className="mt-2 text-sm font-semibold text-slate-700">Current Location Unavailable</p>
-                    <p className="mt-1 max-w-xs text-xs text-slate-500">No active GPS location is available for this shipment yet.</p>
+
+                  <div className="op-map-state op-map-state--solid">
+                    <MapPin size={32} />
+
+                    <strong>Current Location Unavailable</strong>
+
+                    <p>No active GPS location is available for this shipment yet.</p>
                   </div>
+
                 )}
               </div>
             </section>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5">
-                  <CheckCircle2 className="h-4 w-4 text-blue-600" />
-                  <h2 className="text-sm font-bold text-slate-900">Delivery Forecast</h2>
-                </div>
-                {deliveryForecast ? (
-                  <div className="mt-3 space-y-2">
-                    <div className="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><span className="text-xs text-slate-500">Status</span><span className="text-xs font-bold text-slate-800">{deliveryForecast.currentStatus || deliveryForecast.status || "N/A"}</span></div>
-                    <div className="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><span className="text-xs text-slate-500">Forecast</span><span className="text-right text-xs font-bold text-emerald-600">{deliveryForecast.forecastedDelivery ? new Date(deliveryForecast.forecastedDelivery).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "N/A"}</span></div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="rounded-lg border border-slate-100 p-2 text-center"><span className="block text-[10px] text-slate-400">Distance</span><span className="text-xs font-bold text-slate-700">{deliveryForecast.distanceMeters != null ? formatDistance(deliveryForecast.distanceMeters) : "N/A"}</span></div>
-                      <div className="rounded-lg border border-slate-100 p-2 text-center"><span className="block text-[10px] text-slate-400">Time</span><span className="text-xs font-bold text-slate-700">{deliveryForecast.travelTimeMinutes != null ? formatTravelTime(deliveryForecast.travelTimeMinutes * 60) : "N/A"}</span></div>
-                    </div>
-                  </div>
-                ) : <p className="mt-5 text-center text-xs text-slate-400">Delivery forecast unavailable.</p>}
-              </section>
+            <section className="op-card op-card--embed">
 
-              <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                  <div className="flex items-center gap-2"><AlertTriangle className={`h-4 w-4 ${isDelayed ? "text-amber-600" : "text-emerald-600"}`} /><h2 className="text-sm font-bold text-slate-900">Delay Assessment</h2></div>
-                  {delayPrediction && <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isDelayed ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>{isDelayed ? "Risk Flagged" : "On Schedule"}</span>}
+              <div className="op-card__head">
+                <div className="op-card__headrow">
+                  <span className="op-card__badge">
+                    <TrendingUp size={18} />
+                  </span>
+
+                  <h2>Delivery Forecast</h2>
                 </div>
-                {delayPrediction ? (
-                  <div className="mt-3 space-y-2">
-                    <div className="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><span className="text-xs text-slate-500">Prediction</span><span className="text-xs font-bold text-slate-800">{delayPrediction.prediction || "N/A"}</span></div>
-                    <div className="flex justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2"><span className="text-xs text-slate-500">Variance</span><span className={`text-xs font-bold ${isDelayed ? "text-amber-600" : "text-slate-800"}`}>{delayPrediction.delayMinutes != null ? `+${delayPrediction.delayMinutes} mins` : "0 mins"}</span></div>
-                    <div className="rounded-lg bg-slate-50 px-3 py-2"><span className="block text-[10px] font-semibold uppercase text-slate-400">Analysis</span><p className="mt-1 text-xs leading-relaxed text-slate-600">{delayPrediction.message || "No operational warnings logged."}</p></div>
-                  </div>
-                ) : <p className="mt-5 text-center text-xs text-slate-400">Delay prediction unavailable.</p>}
-              </section>
-            </div>
+
+                <span className="op-chip op-chip--blue">
+                  {forecastLoading
+                    ? "Calculating"
+                    : deliveryForecast?.forecast === "DELIVERED"
+                    ? "Delivered"
+                    : deliveryForecast?.forecast === "EXPECTED"
+                    ? "Expected"
+                    : "Forecast"}
+                </span>
+              </div>
+
+              <div className="op-delay__body">
+
+                <div className="op-note">
+                  {forecastLoading ? (
+                    <div className="op-inline">
+                      <div className="op-minispin" />
+
+                      <p>
+                        Calculating delivery forecast...
+                      </p>
+                    </div>
+                  ) : deliveryForecast?.message ? (
+                    <p className="op-note__strong">
+                      {deliveryForecast.message}
+                    </p>
+                  ) : (
+                    <p>
+                      Delivery forecast is currently unavailable.
+                    </p>
+                  )}
+
+                  {deliveryForecast?.forecastedDeliveryTime && (
+                    <p className="op-note__foot">
+                      Estimated arrival:{" "}
+                      <span>
+                        {new Date(
+                          Number(deliveryForecast.forecastedDeliveryTime)
+                        ).toLocaleString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </p>
+                  )}
+                </div>
+
+              </div>
+            </section>
+
           </div>
 
           {/* Progress */}
-          <aside className="min-w-0 rounded-xl border border-slate-200 bg-white shadow-sm lg:sticky lg:top-4">
-            <div className="border-b border-slate-100 px-4 py-3">
-              <h2 className="text-sm font-bold text-slate-900">Tracking Progress</h2>
-              <p className="text-[11px] text-slate-500">Shipment status flow</p>
+          <aside className="op-card op-card--embed op-card--clip op-sticky">
+
+            <div className="op-card__head op-card__head--tint">
+              <div>
+                <h2>Tracking Progress</h2>
+                <p>Shipment status flow</p>
+              </div>
             </div>
-            <div className="p-4">
-              <div className="relative pl-6">
-                <div className="absolute bottom-2 left-[8px] top-2 w-px bg-slate-200" />
+
+            <div className="op-sidepad">
+
+              <div className="op-tp__steps">
                 {shipmentStatusFlow.map((status, index) => {
                   const currentIndex = shipmentStatusFlow.indexOf(shipment.status);
                   const isCompletedStep = !isCancelled && index <= currentIndex;
                   const isCurrentStep = !isCancelled && index === currentIndex;
+                  const isLastStep = index === shipmentStatusFlow.length - 1;
+
                   return (
-                    <div key={status} className="relative mb-5 last:mb-0">
-                      <div className={`absolute -left-[23px] top-0.5 h-4 w-4 rounded-full border-2 ${isCurrentStep ? "border-emerald-600 bg-emerald-600 ring-4 ring-emerald-100" : isCompletedStep ? "border-emerald-600 bg-emerald-600" : "border-slate-300 bg-white"}`} />
-                      <p className={`text-xs font-semibold ${isCurrentStep ? "text-emerald-700" : isCompletedStep ? "text-slate-800" : "text-slate-400"}`}>{formatStatus(status)}</p>
-                      {isCurrentStep && <span className="mt-1 inline-block rounded bg-emerald-50 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600">Current Stage</span>}
+                    <div
+                      key={status}
+                      className={`op-tp__step ${isCompletedStep ? "is-done" : ""} ${isCurrentStep ? "is-current" : ""}`}
+                    >
+                      {!isLastStep && (
+                        <div
+                          className={`op-tp__line ${
+                            !isCancelled && index < currentIndex ? "is-done" : ""
+                          }`}
+                        />
+                      )}
+
+                      <div className="op-tp__node">
+                        {isCompletedStep ? (
+                          <Check size={15} strokeWidth={3} />
+                        ) : (
+                          <span className="op-tp__dot" />
+                        )}
+                      </div>
+
+                      <div className="op-tp__body op-tp__body--tight">
+                        <div className="op-tp__title">
+                          <h3>{formatStatus(status)}</h3>
+
+                          {isCurrentStep && (
+                            <span className="op-tp__active">Current Stage</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="mt-5 border-t border-slate-100 pt-3">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Delivery Expectation</span>
-                <p className={`mt-1 text-xs font-bold ${isDelayed ? "text-red-600" : isOnTime ? "text-emerald-600" : "text-slate-700"}`}>
-                  {delayLoading ? "Calculating..." : isDelayed ? "Shipment may arrive late" : isOnTime ? "Shipment is on schedule" : deliveryForecast?.forecast === "DELIVERED" ? "Shipment has been delivered" : "Prediction unavailable"}
+
+              <div className="op-expect">
+                <span>Delivery Expectation</span>
+
+                <p className={deliveryForecast?.forecast === "EXPECTED" ? "is-good" : ""}>
+                  {forecastLoading
+                    ? "Calculating delivery forecast..."
+                    : deliveryForecast?.message || "Delivery forecast unavailable."}
                 </p>
-                {isDelayed && delayPrediction?.delayMinutes != null && <p className="mt-2 rounded-md bg-red-50 px-2 py-1.5 text-[11px] text-red-600">Estimated delay: <strong>{delayPrediction.delayMinutes} min</strong></p>}
               </div>
+
             </div>
           </aside>
+
         </div>
+
       )}
+
     </div>
   );
 };
@@ -1017,19 +1361,25 @@ const OperatorShipmentDetails = () => {
 const getStatusStyle = (status) => {
   switch (status) {
     case "DELIVERED":
-      return "bg-green-100 text-green-700 border border-green-200";
+      return "op-chip--green";
+
     case "IN_TRANSIT":
-      return "bg-blue-100 text-blue-700 border border-blue-200";
+      return "op-chip--blue";
+
     case "CREATED":
-      return "bg-amber-100 text-amber-700 border border-amber-200";
+      return "op-chip--amber";
+
     case "PICKED_UP":
-      return "bg-purple-100 text-purple-700 border border-purple-200";
+      return "op-chip--purple";
+
     case "OUT_FOR_DELIVERY":
-      return "bg-orange-100 text-orange-700 border border-orange-200";
+      return "op-chip--orange";
+
     case "CANCELLED":
-      return "bg-red-100 text-red-700 border border-red-200";
+      return "op-chip--red";
+
     default:
-      return "bg-slate-100 text-slate-700 border border-slate-200";
+      return "op-chip--slate";
   }
 };
 

@@ -14,6 +14,7 @@ import CustomerDashboard from "./pages/Customer/CustomerDashboard";
 import CustomerLayout from "./pages/Customer/CustomerLayout";
 import ShipmentHistory from "./pages/Customer/ShipmentHistory";
 import CustomerSettings from "./pages/Customer/Settings";
+import CreateCustomerShipment from "./pages/Customer/CreateCustomerShipment";
 
 // Admin Pages
 import AdminDashboard from "./pages/Admin/AdminDashboard";
@@ -72,6 +73,7 @@ function App() {
         <Route path="/customer" element={ <ProtectedRoute allowedRole="CUSTOMER"> <CustomerLayout /> </ProtectedRoute> } >
         <Route path="dashboard" element={<CustomerDashboard />} />
         <Route path="shipment-history" element={<ShipmentHistory />} />
+        <Route path="create-shipment" element={<CreateCustomerShipment />} />
         <Route path="settings"element={<CustomerSettings />}/>
         <Route path="support" element={<CustomerSupport />}/>
         <Route path="shipment/:trackingNumber" element={<ShipmentTracking />} />

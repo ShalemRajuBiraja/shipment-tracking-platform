@@ -12,7 +12,6 @@ import {
   Navigation,
   Clock,
   TrendingUp,
-  ShieldAlert,
   X,
   Download,
 } from "lucide-react";
@@ -298,7 +297,7 @@ const BusinessShipmentDetails = () => {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center p-8">
 
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
 
         <p className="mt-4 text-sm font-medium text-slate-600">
           Loading business shipment details...
@@ -336,7 +335,7 @@ const BusinessShipmentDetails = () => {
           onClick={() =>
             navigate("/business/shipments")
           }
-          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Shipments
@@ -365,7 +364,7 @@ const BusinessShipmentDetails = () => {
           onClick={() =>
             navigate("/business/shipments")
           }
-          className="mb-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+          className="mb-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Shipments
@@ -416,7 +415,7 @@ const BusinessShipmentDetails = () => {
 
         <div className="flex items-center gap-2.5 border-b border-slate-100 bg-slate-50/50 px-5 py-3">
 
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
             <Package className="h-4 w-4" />
           </div>
 
@@ -466,7 +465,7 @@ const BusinessShipmentDetails = () => {
 
             <div className="flex items-center gap-1.5">
 
-              <User className="h-3.5 w-3.5 text-emerald-600" />
+              <User className="h-3.5 w-3.5 text-blue-600" />
 
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Receiver
@@ -627,7 +626,7 @@ const BusinessShipmentDetails = () => {
 
               <div className="flex items-center gap-2.5 border-b border-slate-100 bg-slate-50/50 px-5 py-3.5">
 
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                   <Package className="h-4 w-4" />
                 </div>
 
@@ -648,8 +647,8 @@ const BusinessShipmentDetails = () => {
 
               <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
 
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
-                  <Package className="h-8 w-8 text-emerald-600" />
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
+                  <Package className="h-8 w-8 text-blue-600" />
                 </div>
 
                 <h3 className="mt-4 text-lg font-bold text-slate-800">
@@ -665,7 +664,7 @@ const BusinessShipmentDetails = () => {
                   type="button"
                   onClick={handleDownloadPod}
                   disabled={downloadingPod}
-                  className="mt-6 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Download className="h-4 w-4" />
 
@@ -691,7 +690,7 @@ const BusinessShipmentDetails = () => {
 
                   <div className="flex items-center gap-2.5">
 
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                       <Navigation className="h-4 w-4" />
                     </div>
 
@@ -711,13 +710,13 @@ const BusinessShipmentDetails = () => {
 
                   {location && (
 
-                    <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
+                    <div className="flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold text-blue-700">
 
                       <span className="relative flex h-2 w-2">
 
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
 
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
 
                       </span>
 
@@ -786,19 +785,19 @@ const BusinessShipmentDetails = () => {
                     </div>
 
 
-                    <div className="flex items-center gap-3 bg-emerald-50/40 px-4 py-3">
+                    <div className="flex items-center gap-3 bg-blue-50/40 px-4 py-3">
 
-                      <div className="rounded-lg bg-emerald-100 p-2 text-emerald-700">
+                      <div className="rounded-lg bg-blue-100 p-2 text-blue-700">
                         <TrendingUp className="h-4 w-4" />
                       </div>
 
                       <div>
 
-                        <span className="block text-[10px] font-semibold uppercase tracking-wider text-emerald-700">
+                        <span className="block text-[10px] font-semibold uppercase tracking-wider text-blue-700">
                           Estimated Arrival
                         </span>
 
-                        <span className="text-sm font-bold text-emerald-700">
+                        <span className="text-sm font-bold text-blue-700">
                           {etaLoading
                             ? "Loading..."
                             : eta
@@ -823,7 +822,7 @@ const BusinessShipmentDetails = () => {
 
                     <div className="flex h-[360px] w-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white">
 
-                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
+                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
 
                       <p className="mt-3 text-xs font-medium text-slate-500">
                         Loading Google Map view...
@@ -869,128 +868,74 @@ const BusinessShipmentDetails = () => {
 
 
               {/* =================================================
-                  FORECAST + DELAY
+                  DELIVERY FORECAST
               ================================================== */}
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-5">
+                <section className="rounded-2xl border border-blue-200 bg-gradient-to-br from-white via-white to-sky-50 shadow-sm">
 
-                {/* DELIVERY FORECAST */}
+                  <div className="flex items-center gap-2.5 border-b border-blue-100 px-4 py-3">
 
-                <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-                  <div className="flex items-center gap-2.5 border-b border-slate-100 bg-slate-50/50 px-4 py-3">
-
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                       <TrendingUp className="h-4 w-4" />
                     </div>
 
-                    <div>
-
+                    <div className="min-w-0">
                       <h2 className="text-sm font-bold text-slate-900">
                         Delivery Forecast
                       </h2>
-
                       <p className="text-[10px] text-slate-500">
-                        Current ETA information
+                        Estimated delivery information
                       </p>
-
                     </div>
 
+                    <span className="ml-auto shrink-0 rounded-full bg-blue-100 px-2 py-1 text-[10px] font-bold text-blue-700">
+                      {etaLoading ? "Calculating" : eta?.estimatedArrival ? "Estimated" : "Forecast"}
+                    </span>
                   </div>
-
 
                   <div className="p-4">
-
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                      Estimated Arrival
-                    </span>
-
-                    <p className="mt-1 text-lg font-bold text-emerald-700">
-                      {etaLoading
-                        ? "Loading..."
-                        : eta?.estimatedArrival || "-"}
-                    </p>
-
-                    <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
-
-                      <div>
-
-                        <span className="block text-[10px] text-slate-400">
-                          Distance
-                        </span>
-
-                        <span className="text-xs font-semibold text-slate-700">
-                          {eta
-                            ? `${eta.distanceKm} km`
-                            : "-"}
-                        </span>
-
+                    {isDelivered ? (
+                      <div className="rounded-xl border border-blue-100 bg-white/90 p-4 text-center">
+                        <Package className="mx-auto h-7 w-7 text-blue-600" />
+                        <p className="mt-2 text-xs font-semibold text-slate-800">
+                          Shipment has been delivered.
+                        </p>
                       </div>
-
-                      <div>
-
-                        <span className="block text-[10px] text-slate-400">
-                          Travel Time
-                        </span>
-
-                        <span className="text-xs font-semibold text-slate-700">
-                          {eta?.travelTime || "-"}
-                        </span>
-
+                    ) : etaLoading ? (
+                      <div className="flex min-h-[90px] items-center justify-center gap-2 rounded-xl border border-blue-100 bg-white/90 p-4">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-100 border-t-blue-600" />
+                        <p className="text-xs font-medium text-slate-500">
+                          Calculating delivery forecast...
+                        </p>
                       </div>
-
-                    </div>
-
+                    ) : eta?.estimatedArrival ? (
+                      <div className="rounded-xl border border-blue-100 bg-white/90 p-4">
+                        <p className="text-xs leading-relaxed text-slate-600">
+                          Estimated arrival based on the available route and ETA information.
+                        </p>
+                        <p className="mt-3 border-t border-slate-100 pt-3 text-sm font-bold text-blue-700">
+                          {eta.estimatedArrival}
+                        </p>
+                        {eta.travelTime && (
+                          <p className="mt-1 text-xs text-slate-500">
+                            Expected travel time: {eta.travelTime}
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-blue-100 bg-white/90 p-4 text-center">
+                        <Clock className="mx-auto h-6 w-6 text-slate-300" />
+                        <p className="mt-2 text-xs font-semibold text-slate-600">
+                          Delivery forecast unavailable
+                        </p>
+                        <p className="mt-1 text-[10px] leading-relaxed text-slate-400">
+                          Estimated delivery information is not currently available.
+                        </p>
+                      </div>
+                    )}
                   </div>
-
                 </section>
-
-
-                {/* DELAY ASSESSMENT */}
-
-                <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-                  <div className="flex items-center gap-2.5 border-b border-slate-100 bg-slate-50/50 px-4 py-3">
-
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-                      <ShieldAlert className="h-4 w-4" />
-                    </div>
-
-                    <div>
-
-                      <h2 className="text-sm font-bold text-slate-900">
-                        Delay Assessment
-                      </h2>
-
-                      <p className="text-[10px] text-slate-500">
-                        Prediction status
-                      </p>
-
-                    </div>
-
-                  </div>
-
-
-                  <div className="flex min-h-[132px] items-center justify-center p-4 text-center">
-
-                    <div>
-
-                      <ShieldAlert className="mx-auto h-7 w-7 text-slate-300" />
-
-                      <p className="mt-2 text-xs font-semibold text-slate-600">
-                        Delay prediction unavailable
-                      </p>
-
-                      <p className="mt-1 text-[10px] leading-relaxed text-slate-400">
-                        Delay prediction data is not currently available.
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                </section>
-
               </div>
             </>
           )}
@@ -1069,9 +1014,9 @@ const BusinessShipmentDetails = () => {
                         <div
                           className={`absolute -left-[25px] top-0.5 h-5 w-5 rounded-full border-2 ${
                             isCurrent
-                              ? "border-emerald-600 bg-emerald-600 ring-4 ring-emerald-100"
+                              ? "border-blue-600 bg-blue-600 ring-4 ring-blue-100"
                               : isCompleted
-                              ? "border-emerald-600 bg-emerald-600"
+                              ? "border-blue-600 bg-blue-600"
                               : "border-slate-300 bg-white"
                           }`}
                         />
@@ -1079,7 +1024,7 @@ const BusinessShipmentDetails = () => {
                         <p
                           className={`text-sm font-semibold ${
                             isCurrent
-                              ? "text-emerald-700"
+                              ? "text-blue-700"
                               : isCompleted
                               ? "text-slate-800"
                               : "text-slate-400"
@@ -1090,7 +1035,7 @@ const BusinessShipmentDetails = () => {
 
                         {isCurrent && (
 
-                          <span className="mt-1 inline-block rounded border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+                          <span className="mt-1 inline-block rounded border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-600">
                             Active Checkpoint
                           </span>
 

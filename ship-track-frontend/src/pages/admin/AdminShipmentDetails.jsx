@@ -14,7 +14,6 @@ import {
   Clock,
   TrendingUp,
   ShieldAlert,
-  AlertTriangle,
   CheckCircle2,
   FileDown,
 } from "lucide-react";
@@ -29,7 +28,6 @@ import {
   getShipmentLocation,
   getShipmentRoute,
   getShipmentEta,
-  getShipmentDelayPrediction,
   getShipmentDeliveryForecast,
 } from "../../services/operatorService";
 
@@ -63,8 +61,6 @@ const AdminShipmentDetails = () => {
   const [deliveryForecast, setDeliveryForecast] = useState(null);
   const [forecastLoading, setForecastLoading] = useState(false);
 
-  const [delayPrediction, setDelayPrediction] = useState(null);
-  const [delayLoading, setDelayLoading] = useState(false);
 
   const [podDownloading, setPodDownloading] = useState(false);
 
@@ -236,17 +232,15 @@ const AdminShipmentDetails = () => {
 
     setEtaInfo(null);
     setDeliveryForecast(null);
-    setDelayPrediction(null);
 
     setLocationLoading(false);
     setRouteLoading(false);
     setEtaLoading(false);
     setForecastLoading(false);
-    setDelayLoading(false);
   };
 
   // =======================================================
-  // FETCH LOCATION + ROUTE + ETA + FORECAST + DELAY
+  // FETCH LOCATION + ROUTE + ETA + FORECAST
   // =======================================================
 
   const fetchShipmentTrackingData = async (trackingNumber, shipmentData) => {
@@ -263,14 +257,12 @@ const AdminShipmentDetails = () => {
       setRouteLoading(true);
       setEtaLoading(true);
       setForecastLoading(true);
-      setDelayLoading(true);
 
       setRoute(null);
       setEncodedPolyline(null);
       setEtaInfo(null);
       setDeliveryForecast(null);
-      setDelayPrediction(null);
-
+  
       // 1. GET SHIPMENT LOCATION
 
       const locationResponse = await getShipmentLocation(trackingNumber);
@@ -401,15 +393,12 @@ const AdminShipmentDetails = () => {
         if (delayResponse.data) {
           setDelayPrediction(delayResponse.data);
         } else {
-          setDelayPrediction(null);
-        }
+              }
       } catch (delayError) {
         console.error("Error fetching delay prediction:", delayError);
 
-        setDelayPrediction(null);
-      } finally {
-        setDelayLoading(false);
-      }
+          } finally {
+          }
     } catch (error) {
       console.error("Error fetching shipment tracking data:", error);
 
@@ -418,14 +407,12 @@ const AdminShipmentDetails = () => {
       setEncodedPolyline(null);
       setEtaInfo(null);
       setDeliveryForecast(null);
-      setDelayPrediction(null);
-    } finally {
+      } finally {
       setLocationLoading(false);
       setRouteLoading(false);
       setEtaLoading(false);
       setForecastLoading(false);
-      setDelayLoading(false);
-    }
+      }
   };
 
   // =======================================================
@@ -504,7 +491,7 @@ const AdminShipmentDetails = () => {
         return "bg-yellow-100 text-yellow-700";
 
       case "DELIVERED":
-        return "bg-emerald-100 text-emerald-700";
+        return "bg-blue-100 text-blue-700";
 
       case "CANCELLED":
         return "bg-red-100 text-red-700";
@@ -553,7 +540,7 @@ const AdminShipmentDetails = () => {
     return (
       <div className="flex min-h-[50vh] items-center justify-center px-4">
         <div className="text-center">
-          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
+          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
 
           <p className="text-sm text-slate-500">Loading shipment details...</p>
         </div>
@@ -581,7 +568,7 @@ const AdminShipmentDetails = () => {
 
           <button
             onClick={() => navigate("/admin/shipments")}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
           >
             <ArrowLeft size={16} />
             Back to Shipments
@@ -608,12 +595,6 @@ const AdminShipmentDetails = () => {
   ];
 
   const currentIndex = shipmentStatusFlow.indexOf(shipment.status);
-
-  const isDelayed =
-    delayPrediction?.prediction === "DELAYED" ||
-    Number(delayPrediction?.delayMinutes) > 0;
-
-  const isOnTime = delayPrediction?.prediction === "ON_TIME";
 
   const estimatedArrival =
     etaInfo?.estimatedArrival || deliveryForecast?.forecastedDelivery || "N/A";
@@ -643,7 +624,7 @@ const AdminShipmentDetails = () => {
 
           {/* COMPLETED PROGRESS FILL */}
           <div
-            className="absolute left-[10%] top-2.5 h-0.5 -translate-y-1/2 rounded-full bg-emerald-600 transition-all"
+            className="absolute left-[10%] top-2.5 h-0.5 -translate-y-1/2 rounded-full bg-blue-600 transition-all"
             style={{
               width: `${
                 currentIndex > 0
@@ -666,9 +647,9 @@ const AdminShipmentDetails = () => {
                   <span
                     className={`z-10 flex h-5 w-5 items-center justify-center rounded-full border-2 ${
                       isCurrentStep
-                        ? "border-emerald-600 bg-emerald-600 ring-4 ring-emerald-100"
+                        ? "border-blue-600 bg-blue-600 ring-4 ring-blue-100"
                         : isCompletedStep
-                        ? "border-emerald-600 bg-emerald-600"
+                        ? "border-blue-600 bg-blue-600"
                         : "border-slate-300 bg-white"
                     }`}
                   >
@@ -680,7 +661,7 @@ const AdminShipmentDetails = () => {
                   <p
                     className={`mt-1.5 px-0.5 text-[10px] font-semibold leading-tight sm:text-xs ${
                       isCurrentStep
-                        ? "text-emerald-700"
+                        ? "text-blue-700"
                         : isCompletedStep
                         ? "text-slate-800"
                         : "text-slate-400"
@@ -711,7 +692,7 @@ const AdminShipmentDetails = () => {
         <div className="flex min-w-0 items-center gap-3">
           <button
             onClick={() => navigate("/admin/shipments")}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-emerald-700"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-blue-700"
           >
             <ArrowLeft size={14} />
             Back
@@ -762,7 +743,7 @@ const AdminShipmentDetails = () => {
 
           <div className="min-w-0 px-4 py-3">
             <div className="mb-1 flex items-center gap-1.5">
-              <User size={13} className="text-emerald-600" />
+              <User size={13} className="text-blue-600" />
 
               <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                 Sender
@@ -786,7 +767,7 @@ const AdminShipmentDetails = () => {
 
           <div className="min-w-0 px-4 py-3">
             <div className="mb-1 flex items-center gap-1.5">
-              <User size={13} className="text-emerald-600" />
+              <User size={13} className="text-blue-600" />
 
               <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                 Receiver
@@ -810,7 +791,7 @@ const AdminShipmentDetails = () => {
 
           <div className="min-w-0 px-4 py-3">
             <div className="mb-1 flex items-center gap-1.5">
-              <Package size={13} className="text-emerald-600" />
+              <Package size={13} className="text-blue-600" />
 
               <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                 Package
@@ -830,7 +811,7 @@ const AdminShipmentDetails = () => {
                 </span>
               </div>
 
-              <span className="text-xs font-medium text-emerald-600">
+              <span className="text-xs font-medium text-blue-600">
                 {shipment.trackingNumber || "-"}
               </span>
             </div>
@@ -844,7 +825,7 @@ const AdminShipmentDetails = () => {
 
           <div className="min-w-0 px-4 py-3">
             <div className="mb-1 flex items-center gap-1.5">
-              <MapPin size={13} className="text-emerald-600" />
+              <MapPin size={13} className="text-blue-600" />
 
               <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                 Pickup Address
@@ -891,19 +872,19 @@ const AdminShipmentDetails = () => {
       =================================================== */}
 
       {isDelivered ? (
-        <section className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+        <section className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
           <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100">
-                <CheckCircle2 size={18} className="text-emerald-600" />
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100">
+                <CheckCircle2 size={18} className="text-blue-600" />
               </div>
 
               <div>
-                <h2 className="text-sm font-semibold text-emerald-800">
+                <h2 className="text-sm font-semibold text-blue-800">
                   Shipment Delivered
                 </h2>
 
-                <p className="text-xs text-emerald-700">
+                <p className="text-xs text-blue-700">
                   Delivery is complete. Live tracking and prediction data are
                   no longer active.
                 </p>
@@ -914,7 +895,7 @@ const AdminShipmentDetails = () => {
               type="button"
               onClick={handleDownloadPod}
               disabled={podDownloading}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               <FileDown size={15} />
 
@@ -924,7 +905,7 @@ const AdminShipmentDetails = () => {
         </section>
       ) : (
         /* =================================================
-           ACTIVE SHIPMENT: MAP (2/3) + FORECAST & DELAY (1/3)
+           ACTIVE SHIPMENT: MAP (2/3) + DELIVERY FORECAST (1/3)
         ================================================= */
 
         <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-3">
@@ -937,8 +918,8 @@ const AdminShipmentDetails = () => {
 
             <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/50 px-4 py-2.5">
               <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50">
-                  <Navigation size={15} className="text-emerald-600" />
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50">
+                  <Navigation size={15} className="text-blue-600" />
                 </div>
 
                 <div>
@@ -955,7 +936,7 @@ const AdminShipmentDetails = () => {
               <div className="flex items-center gap-1.5 text-[10px]">
                 <span
                   className={`h-2 w-2 rounded-full ${
-                    shipmentLocation ? "bg-emerald-500" : "bg-slate-300"
+                    shipmentLocation ? "bg-blue-500" : "bg-slate-300"
                   }`}
                 />
 
@@ -1021,17 +1002,17 @@ const AdminShipmentDetails = () => {
 
                 {/* ETA */}
 
-                <div className="flex items-center gap-2.5 bg-emerald-50/40 px-4 py-2.5">
-                  <div className="rounded-lg bg-emerald-100 p-1.5 text-emerald-700">
+                <div className="flex items-center gap-2.5 bg-blue-50/40 px-4 py-2.5">
+                  <div className="rounded-lg bg-blue-100 p-1.5 text-blue-700">
                     <TrendingUp size={14} />
                   </div>
 
                   <div className="min-w-0">
-                    <span className="block text-[10px] uppercase tracking-wide text-emerald-700">
+                    <span className="block text-[10px] uppercase tracking-wide text-blue-700">
                       Estimated Arrival
                     </span>
 
-                    <span className="block truncate text-sm font-bold text-emerald-700">
+                    <span className="block truncate text-sm font-bold text-blue-700">
                       {etaLoading ? "Calculating..." : estimatedArrival}
                     </span>
                   </div>
@@ -1045,7 +1026,7 @@ const AdminShipmentDetails = () => {
               {locationLoading ? (
                 <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50">
                   <div className="text-center">
-                    <div className="mx-auto mb-2 h-7 w-7 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
+                    <div className="mx-auto mb-2 h-7 w-7 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
 
                     <p className="text-xs text-slate-500">
                       Loading delivery map...
@@ -1081,57 +1062,69 @@ const AdminShipmentDetails = () => {
           </section>
 
           {/* =================================================
-              RIGHT COLUMN: FORECAST + DELAY
+              RIGHT COLUMN: DELIVERY FORECAST
           ================================================= */}
 
           <div className="space-y-3">
-            {/* DELIVERY FORECAST */}
-
             <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-              <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/50 px-4 py-2.5">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50">
-                  <CheckCircle2 size={15} className="text-emerald-600" />
+              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-4 py-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50">
+                    <TrendingUp size={15} className="text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-semibold text-slate-800">
+                      Delivery Forecast
+                    </h2>
+                    <p className="text-[10px] text-slate-400">
+                      Estimated arrival information
+                    </p>
+                  </div>
                 </div>
-
-                <div>
-                  <h2 className="text-sm font-semibold text-slate-800">
-                    Delivery Forecast
-                  </h2>
-
-                  <p className="text-[10px] text-slate-400">
-                    Predicted delivery information
-                  </p>
-                </div>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                    forecastLoading
+                      ? "bg-slate-100 text-slate-600"
+                      : deliveryForecast?.forecastedDelivery
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-amber-100 text-amber-700"
+                  }`}
+                >
+                  {forecastLoading
+                    ? "CALCULATING"
+                    : deliveryForecast?.forecastedDelivery
+                    ? "ESTIMATED"
+                    : "UNAVAILABLE"}
+                </span>
               </div>
 
               <div className="p-3">
                 {forecastLoading ? (
                   <div className="py-3 text-center">
-                    <div className="mx-auto mb-1.5 h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-600" />
-
+                    <div className="mx-auto mb-1.5 h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
                     <p className="text-[11px] text-slate-400">
-                      Loading forecast...
+                      Calculating delivery forecast...
                     </p>
                   </div>
                 ) : deliveryForecast ? (
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                      <span className="text-[11px] text-slate-500">Status</span>
-
-                      <span className="text-[11px] font-semibold text-slate-700">
-                        {deliveryForecast.currentStatus ||
-                          deliveryForecast.status ||
-                          "N/A"}
+                    <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2.5">
+                      <span className="block text-[10px] font-semibold uppercase tracking-wide text-blue-600">
+                        Forecasted Delivery
+                      </span>
+                      <span className="mt-1 block text-sm font-bold text-blue-800">
+                        {formatForecastDate(deliveryForecast.forecastedDelivery)}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between gap-3 rounded-lg bg-emerald-50 px-3 py-2">
-                      <span className="shrink-0 text-[11px] text-emerald-700">
-                        Forecast
-                      </span>
-
-                      <span className="text-right text-[11px] font-semibold text-emerald-700">
-                        {formatForecastDate(deliveryForecast.forecastedDelivery)}
+                    <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                      <span className="text-[11px] text-slate-500">Shipment Status</span>
+                      <span className="text-right text-[11px] font-semibold text-slate-700">
+                        {formatStatus(
+                          deliveryForecast.currentStatus ||
+                            deliveryForecast.status ||
+                            shipment.status
+                        )}
                       </span>
                     </div>
 
@@ -1140,23 +1133,20 @@ const AdminShipmentDetails = () => {
                         <span className="block text-[10px] text-slate-400">
                           Est. Distance
                         </span>
-
                         <span className="text-xs font-bold text-slate-700">
                           {deliveryForecast.distanceMeters != null
                             ? formatDistance(deliveryForecast.distanceMeters)
                             : "N/A"}
                         </span>
                       </div>
-
                       <div className="rounded-lg border border-slate-100 px-2 py-2 text-center">
                         <span className="block text-[10px] text-slate-400">
-                          Est. Time
+                          Est. Travel Time
                         </span>
-
                         <span className="text-xs font-bold text-slate-700">
                           {deliveryForecast.travelTimeMinutes != null
                             ? formatTravelTime(
-                                deliveryForecast.travelTimeMinutes * 60
+                                Number(deliveryForecast.travelTimeMinutes) * 60
                               )
                             : "N/A"}
                         </span>
@@ -1165,105 +1155,7 @@ const AdminShipmentDetails = () => {
                   </div>
                 ) : (
                   <p className="py-3 text-center text-[11px] text-slate-400">
-                    Delivery forecast unavailable.
-                  </p>
-                )}
-              </div>
-            </section>
-
-            {/* DELAY ASSESSMENT */}
-
-            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-4 py-2.5">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`flex h-7 w-7 items-center justify-center rounded-lg ${
-                      isDelayed ? "bg-amber-50" : "bg-emerald-50"
-                    }`}
-                  >
-                    <AlertTriangle
-                      size={15}
-                      className={
-                        isDelayed ? "text-amber-600" : "text-emerald-600"
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <h2 className="text-sm font-semibold text-slate-800">
-                      Delay Assessment
-                    </h2>
-
-                    <p className="text-[10px] text-slate-400">
-                      Current delivery risk
-                    </p>
-                  </div>
-                </div>
-
-                {delayPrediction && (
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                      isDelayed
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-emerald-100 text-emerald-700"
-                    }`}
-                  >
-                    {isDelayed ? "DELAYED" : isOnTime ? "ON TIME" : "CHECKED"}
-                  </span>
-                )}
-              </div>
-
-              <div className="p-3">
-                {delayLoading ? (
-                  <div className="py-3 text-center">
-                    <div className="mx-auto mb-1.5 h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-emerald-600" />
-
-                    <p className="text-[11px] text-slate-400">
-                      Checking delay...
-                    </p>
-                  </div>
-                ) : delayPrediction ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                      <span className="text-[11px] text-slate-500">
-                        Prediction
-                      </span>
-
-                      <span className="text-[11px] font-semibold text-slate-700">
-                        {delayPrediction.prediction || "N/A"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                      <span className="text-[11px] text-slate-500">
-                        Estimated Delay
-                      </span>
-
-                      <span
-                        className={`text-[11px] font-semibold ${
-                          isDelayed ? "text-amber-600" : "text-emerald-600"
-                        }`}
-                      >
-                        {delayPrediction.delayMinutes != null
-                          ? `${delayPrediction.delayMinutes} min`
-                          : "0 min"}
-                      </span>
-                    </div>
-
-                    <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2">
-                      <span className="block text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                        Analysis
-                      </span>
-
-                      <p className="mt-0.5 text-[11px] leading-relaxed text-slate-600">
-                        {delayPrediction.message ||
-                          "No operational warning available."}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="py-3 text-center text-[11px] text-slate-400">
-                    Delay prediction unavailable.
+                    Delivery forecast is currently unavailable.
                   </p>
                 )}
               </div>

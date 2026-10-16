@@ -60,13 +60,11 @@ public class DeliveryConfirmationController {
     // ================= CONFIRM DELIVERY =================
 
     @PostMapping("/confirm/{trackingNumber}")
-    public ResponseEntity<ApiResponse<DeliveryConfirmationResponseDto>>
-            confirmDelivery(
+    public ResponseEntity<ApiResponse<DeliveryConfirmationResponseDto>>  confirmDelivery(
                     @PathVariable String trackingNumber) {
 
-        DeliveryConfirmationResponseDto confirmation =
-                deliveryConfirmationService
-                        .confirmDelivery(trackingNumber);
+        DeliveryConfirmationResponseDto confirmation =  deliveryConfirmationService
+        												.confirmDelivery(trackingNumber);
 
         ApiResponse<DeliveryConfirmationResponseDto> response =
                 new ApiResponse<>(

@@ -1,4 +1,3 @@
-
 import {
   Clock,
   Package,
@@ -32,75 +31,28 @@ const RecentShipments = ({ recentShipments }) => {
     switch (status) {
 
       case "CREATED":
-        return {
-          container:
-            "bg-blue-50 text-blue-700",
-          icon:
-            "text-blue-600",
-        };
-
+        return { container: "cd-chip--blue" };
 
       case "PICKED_UP":
-        return {
-          container:
-            "bg-purple-50 text-purple-700",
-          icon:
-            "text-purple-600",
-        };
-
+        return { container: "cd-chip--purple" };
 
       case "IN_TRANSIT":
-        return {
-          container:
-            "bg-amber-50 text-amber-700",
-          icon:
-            "text-amber-600",
-        };
-
+        return { container: "cd-chip--amber" };
 
       case "OUT_FOR_DELIVERY":
-        return {
-          container:
-            "bg-orange-50 text-orange-700",
-          icon:
-            "text-orange-600",
-        };
-
+        return { container: "cd-chip--orange" };
 
       case "DELIVERED":
-        return {
-          container:
-            "bg-emerald-50 text-emerald-700",
-          icon:
-            "text-emerald-600",
-        };
-
+        return { container: "cd-chip--green" };
 
       case "DELAYED":
-        return {
-          container:
-            "bg-orange-50 text-orange-700",
-          icon:
-            "text-orange-600",
-        };
-
+        return { container: "cd-chip--orange" };
 
       case "CANCELLED":
-        return {
-          container:
-            "bg-red-50 text-red-700",
-          icon:
-            "text-red-600",
-        };
-
+        return { container: "cd-chip--red" };
 
       default:
-        return {
-          container:
-            "bg-slate-50 text-slate-600",
-          icon:
-            "text-slate-500",
-        };
+        return { container: "cd-chip--slate" };
 
     }
 
@@ -148,134 +100,93 @@ const RecentShipments = ({ recentShipments }) => {
 
   return (
 
-    <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 md:p-5 mb-4">
-
+    <section className="cd-card">
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="cd-card__head">
 
         <div>
 
-          <h2 className="text-lg font-bold text-slate-800">
-            Recent Shipments
-          </h2>
+          <h2>Recent Shipments</h2>
 
-          <p className="text-xs text-slate-500 mt-1">
-            Your recently tracked shipments
-          </p>
+          <p>Your recently tracked shipments</p>
 
         </div>
 
-
-        <Clock
-          size={20}
-          className="text-emerald-600"
-        />
+        <span className="cd-card__badge">
+          <Clock size={18} />
+        </span>
 
       </div>
 
 
       {/* Shipment List */}
-      <div className="space-y-3">
+      <div className="cd-list">
 
         {recentShipments.map((item) => {
 
           const statusStyle =
             getStatusStyle(item.currentStatus);
 
-
           return (
 
             <div
               key={item.trackingNumber}
-              className="border border-slate-200 rounded-lg p-3 md:p-4 hover:border-emerald-300 hover:bg-emerald-50/30 transition"
+              className="cd-ship"
             >
 
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              {/* Left Side */}
+              <div className="cd-ship__main">
 
+                <span className="cd-ship__icon">
+                  <Package size={20} />
+                </span>
 
-                {/* Left Side */}
-                <div className="min-w-0">
+                <div className="cd-ship__info">
 
-                  <div className="flex items-center gap-2">
-
-                    <Package
-                      size={17}
-                      className="text-emerald-600 shrink-0"
-                    />
-
-                    <span className="font-bold text-sm text-slate-800">
-                      {item.trackingNumber}
-                    </span>
-
-                  </div>
-
+                  <span className="cd-ship__id">
+                    {item.trackingNumber}
+                  </span>
 
                   {/* Sender → Receiver */}
-                  <p className="text-xs text-slate-500 mt-2">
-
+                  <p className="cd-ship__route">
                     {item.senderName || "-"}
-                    {" → "}
+                    <ArrowRight size={13} />
                     {item.receiverName || "-"}
-
                   </p>
 
-
                   {/* Time */}
-                  <div className="flex items-center gap-1.5 mt-2">
-
-                    <Clock
-                      size={13}
-                      className="text-slate-400"
-                    />
-
-                    <span className="text-xs text-slate-400">
-                      Tracked {getTrackedTime(item.trackedAt)}
-                    </span>
-
-                  </div>
+                  <p className="cd-ship__time">
+                    <Clock size={13} />
+                    Tracked {getTrackedTime(item.trackedAt)}
+                  </p>
 
                 </div>
 
-
-                {/* Right Side */}
-                <div className="flex items-center gap-3">
+              </div>
 
 
-                  {/* Status */}
-                  <div
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md ${statusStyle.container}`}
-                  >
+              {/* Right Side */}
+              <div className="cd-ship__side">
 
-                    <CircleCheck
-                      size={14}
-                      className={statusStyle.icon}
-                    />
+                {/* Status */}
+                <span className={`cd-chip ${statusStyle.container}`}>
+                  <CircleCheck size={14} />
+                  {formatStatus(item.currentStatus)}
+                </span>
 
-                    <span className="text-xs font-semibold">
-                      {formatStatus(item.currentStatus)}
-                    </span>
-
-                  </div>
-
-
-                  {/* View Button */}
-                  <button
-                    onClick={() =>
-                      navigate(
-                        `/customer/shipment/${item.trackingNumber}`
-                      )
-                    }
-                    className="flex items-center gap-1 text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition"
-                  >
-
-                    View Details
-
-                    <ArrowRight size={16} />
-
-                  </button>
-
-                </div>
+                {/* View Button */}
+                <button
+                  onClick={() =>
+                    navigate(
+                      `/customer/shipment/${item.trackingNumber}`
+                    )
+                  }
+                  className="cd-link"
+                >
+                  View Details
+                  <ArrowRight size={16} />
+                </button>
 
               </div>
 

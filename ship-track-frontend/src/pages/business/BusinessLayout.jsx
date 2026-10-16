@@ -35,12 +35,12 @@ const BusinessLayout = () => {
             {/* Right - Profile */}
             <div className="flex shrink-0 items-center gap-2.5">
 
-              <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-emerald-300">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-blue-300">
 
                 <UserRound
                   size={22}
                   strokeWidth={1.8}
-                  className="text-emerald-600"
+                  className="text-blue-600"
                 />
 
               </div>

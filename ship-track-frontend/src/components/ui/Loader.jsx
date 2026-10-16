@@ -10,7 +10,7 @@ const Loader = ({
   };
 
   const loaderClasses = [
-    "animate-spin rounded-full border-slate-200 border-t-emerald-600",
+    "animate-spin rounded-full border-slate-200 border-t-blue-600",
     sizeStyles[size],
     className,
   ]

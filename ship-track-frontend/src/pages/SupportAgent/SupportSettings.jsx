@@ -104,10 +104,10 @@ const SupportSettings = () => {
 
           <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-200">
 
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
               <Lock
                 size={20}
-                className="text-emerald-600"
+                className="text-blue-600"
               />
             </div>
 
@@ -141,7 +141,7 @@ const SupportSettings = () => {
                 placeholder="Enter current password"
                 value={passwordData.currentPassword}
                 onChange={handlePasswordChange}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               />
             </div>
 
@@ -158,7 +158,7 @@ const SupportSettings = () => {
                 placeholder="Enter new password"
                 value={passwordData.newPassword}
                 onChange={handlePasswordChange}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               />
             </div>
 
@@ -175,14 +175,14 @@ const SupportSettings = () => {
                 placeholder="Confirm new password"
                 value={passwordData.confirmPassword}
                 onChange={handlePasswordChange}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               />
             </div>
 
 
             <button
               type="submit"
-              className="w-full flex justify-center items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition"
+              className="w-full flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition"
             >
               <Lock size={17} />
               Update Password
@@ -198,10 +198,10 @@ const SupportSettings = () => {
 
           <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-200">
 
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
               <MessageSquare
                 size={20}
-                className="text-emerald-600"
+                className="text-blue-600"
               />
             </div>
 
@@ -235,7 +235,7 @@ const SupportSettings = () => {
                 placeholder="Enter message subject"
                 value={adminMessage.subject}
                 onChange={handleAdminMessageChange}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               />
             </div>
 
@@ -252,14 +252,14 @@ const SupportSettings = () => {
                 placeholder="Describe your issue or request..."
                 value={adminMessage.message}
                 onChange={handleAdminMessageChange}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none resize-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               />
             </div>
 
 
             <button
               type="submit"
-              className="w-full flex justify-center items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition"
+              className="w-full flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition"
             >
               <Send size={17} />
               Send Message

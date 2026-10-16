@@ -154,35 +154,24 @@ const ShipmentDetails = ({ shipment }) => {
 
   return (
 
-    <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 md:p-5">
+    <section className="cd-card cd-card--embed">
 
 
       {/* =====================================================
           HEADER
       ====================================================== */}
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5 pb-4 border-b border-slate-200">
+      <div className="cd-detail__head">
 
 
         <div>
-          <h2 className="text-lg font-bold text-slate-800">
-            Shipment Details
-          </h2>
+          <h2>Shipment Details</h2>
 
-          <div className="flex items-center gap-1.5 mt-1">
-            <Hash
-              size={15}
-              className="text-emerald-600"
-            />
+          <div className="cd-detail__track">
+            <Hash size={15} />
 
-            <span className="text-sm font-semibold text-emerald-600 break-all">
-
-              {shipment.trackingNumber}
-
-            </span>
-
+            <span>{shipment.trackingNumber}</span>
           </div>
-
         </div>
 
 
@@ -190,28 +179,21 @@ const ShipmentDetails = ({ shipment }) => {
             STATUS + POD
         ================================================== */}
 
-        <div className="flex flex-col items-start sm:items-end gap-2">
+        <div className="cd-detail__side">
 
 
           {/* CURRENT STATUS */}
 
-          <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-md w-fit">
+          <span className="cd-chip cd-chip--blue">
 
-            <CircleCheck
-              size={15}
-            />
+            <CircleCheck size={15} />
 
+            {formatStatus(
+              shipment.currentStatus ||
+                shipment.status
+            )}
 
-            <span className="text-xs font-semibold">
-
-              {formatStatus(
-                shipment.currentStatus ||
-                  shipment.status
-              )}
-
-            </span>
-
-          </div>
+          </span>
 
 
           {/* DOWNLOAD POD */}
@@ -226,13 +208,10 @@ const ShipmentDetails = ({ shipment }) => {
               disabled={
                 downloadingPod
               }
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="cd-btn cd-btn--auto cd-btn--sm"
             >
 
-              <Download
-                size={15}
-              />
-
+              <Download size={15} />
 
               {downloadingPod
                 ? "Downloading..."
@@ -251,155 +230,77 @@ const ShipmentDetails = ({ shipment }) => {
           SHIPMENT DETAILS GRID
       ====================================================== */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border border-slate-200 rounded-lg overflow-hidden">
+      <div className="cd-info-grid">
 
 
-        {/* =================================================
-            SENDER
-        ================================================== */}
+        {/* SENDER */}
 
-        <div className="p-4 border-b border-slate-200 lg:border-r">
+        <div className="cd-info">
 
-          <div className="flex items-center gap-2 mb-3">
-
-            <UserRound
-              size={17}
-              className="text-emerald-600"
-            />
-
-
-            <h3 className="text-sm font-bold text-slate-700">
-              Sender
-            </h3>
-
+          <div className="cd-info__head">
+            <UserRound size={17} />
+            <h3>Sender</h3>
           </div>
 
-
-          <p className="font-semibold text-sm text-slate-800">
-
+          <p className="cd-info__value">
             {shipment.senderName || "-"}
-
           </p>
 
         </div>
 
 
-        {/* =================================================
-            RECEIVER
-        ================================================== */}
+        {/* RECEIVER */}
 
-        <div className="p-4 border-b border-slate-200 lg:border-r">
+        <div className="cd-info">
 
-          <div className="flex items-center gap-2 mb-3">
-
-            <UserRound
-              size={17}
-              className="text-emerald-600"
-            />
-
-
-            <h3 className="text-sm font-bold text-slate-700">
-              Receiver
-            </h3>
-
+          <div className="cd-info__head">
+            <UserRound size={17} />
+            <h3>Receiver</h3>
           </div>
 
-
-          <p className="font-semibold text-sm text-slate-800">
-
+          <p className="cd-info__value">
             {shipment.receiverName || "-"}
-
           </p>
 
-
-          <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-500">
-
-            <Phone
-              size={14}
-              className="text-emerald-600 shrink-0"
-            />
-
-
-            <span className="break-all">
-
-              {shipment.receiverPhone || "-"}
-
-            </span>
-
+          <div className="cd-info__meta">
+            <Phone size={14} />
+            <span>{shipment.receiverPhone || "-"}</span>
           </div>
 
         </div>
 
 
-        {/* =================================================
-            PACKAGE
-        ================================================== */}
+        {/* PACKAGE */}
 
-        <div className="p-4 border-b border-slate-200">
+        <div className="cd-info">
 
-          <div className="flex items-center gap-2 mb-3">
-
-            <Package
-              size={17}
-              className="text-emerald-600"
-            />
-
-
-            <h3 className="text-sm font-bold text-slate-700">
-              Package
-            </h3>
-
+          <div className="cd-info__head">
+            <Package size={17} />
+            <h3>Package</h3>
           </div>
 
-
-          <p className="font-semibold text-sm text-slate-800">
-
+          <p className="cd-info__value">
             {shipment.packageDescription || "-"}
-
           </p>
 
-
-          <div className="flex items-center gap-1.5 mt-2 text-xs text-slate-500">
-
-            <Weight
-              size={14}
-              className="text-emerald-600"
-            />
-
-
-            <span>
-
-              Weight: {shipment.weight || "-"} kg
-
-            </span>
-
+          <div className="cd-info__meta">
+            <Weight size={14} />
+            <span>Weight: {shipment.weight || "-"} kg</span>
           </div>
 
         </div>
 
 
-        {/* =================================================
-            PICKUP ADDRESS
-        ================================================== */}
+        {/* PICKUP ADDRESS */}
 
-        <div className="p-4 border-b border-slate-200 lg:border-r">
+        <div className="cd-info">
 
-          <div className="flex items-center gap-2 mb-3">
-
-            <MapPin
-              size={17}
-              className="text-emerald-600"
-            />
-
-
-            <h3 className="text-sm font-bold text-slate-700">
-              Pickup Address
-            </h3>
-
+          <div className="cd-info__head">
+            <MapPin size={17} />
+            <h3>Pickup Address</h3>
           </div>
 
-
-        <p className="text-sm text-slate-600 leading-5 break-words whitespace-normal">
+          <p className="cd-info__text">
             {[
               shipment.pickupAddress,
               shipment.pickupCity,
@@ -409,31 +310,20 @@ const ShipmentDetails = ({ shipment }) => {
               .filter(Boolean)
               .join(", ") || "-"}
           </p>
-                  </div>
+
+        </div>
 
 
-        {/* =================================================
-            DELIVERY ADDRESS
-        ================================================== */}
+        {/* DELIVERY ADDRESS */}
 
-        <div className="p-4 border-b border-slate-200 lg:border-r">
+        <div className="cd-info">
 
-          <div className="flex items-center gap-2 mb-3">
-
-            <MapPin
-              size={17}
-              className="text-emerald-600"
-            />
-
-
-            <h3 className="text-sm font-bold text-slate-700">
-              Delivery Address
-            </h3>
-
+          <div className="cd-info__head">
+            <MapPin size={17} />
+            <h3>Delivery Address</h3>
           </div>
 
-
-          <p className="text-sm text-slate-600 leading-5 break-words whitespace-normal">
+          <p className="cd-info__text">
             {[
               shipment.deliveryAddress,
               shipment.deliveryCity,
@@ -447,56 +337,36 @@ const ShipmentDetails = ({ shipment }) => {
         </div>
 
 
-       {/* =================================================
-          SHIPMENT DATES
-      ================================================== */}
+        {/* SHIPMENT DATES */}
 
-      <div className="p-4">
+        <div className="cd-info">
 
-        {/* SHIPMENT CREATED */}
+          <div className="cd-info__head">
+            <Calendar size={17} />
+            <h3>Shipment Created</h3>
+          </div>
 
-        <div className="flex items-center gap-2 mb-2">
+          <p className="cd-info__text">
+            {formatDate(shipment.createdAt)}
+          </p>
 
-          <Calendar
-            size={17}
-            className="text-emerald-600"
-          />
 
-          <h3 className="text-sm font-bold text-slate-700">
-            Shipment Created
-          </h3>
+          {/* DELIVERED */}
+
+          {isDelivered && (
+            <>
+              <div className="cd-info__head cd-info__head--gap">
+                <CircleCheck size={17} />
+                <h3>Delivered</h3>
+              </div>
+
+              <p className="cd-info__text">
+                {formatDate(shipment.deliveredAt)}
+              </p>
+            </>
+          )}
 
         </div>
-
-        <p className="text-sm text-slate-600 mb-4">
-          {formatDate(shipment.createdAt)}
-        </p>
-
-
-        {/* DELIVERED */}
-
-        {isDelivered && (
-          <>
-            <div className="flex items-center gap-2 mb-2">
-
-              <CircleCheck
-                size={17}
-                className="text-emerald-600"
-              />
-
-              <h3 className="text-sm font-bold text-slate-700">
-                Delivered
-              </h3>
-
-            </div>
-
-            <p className="text-sm text-slate-600">
-              {formatDate(shipment.deliveredAt)}
-            </p>
-          </>
-        )}
-
-      </div>
 
       </div>
 

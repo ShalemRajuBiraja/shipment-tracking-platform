@@ -142,7 +142,7 @@ const Shipments = () => {
         "bg-orange-50 text-orange-700",
 
       DELIVERED:
-        "bg-emerald-50 text-emerald-700",
+        "bg-blue-50 text-blue-700",
 
       CANCELLED:
         "bg-red-50 text-red-700",
@@ -352,7 +352,7 @@ const Shipments = () => {
             )
           }
 
-          className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition"
+          className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition"
 
         >
 
@@ -448,18 +448,18 @@ const Shipments = () => {
                 Delivered
               </p>
 
-              <h3 className="text-xl font-bold text-emerald-600 mt-1">
+              <h3 className="text-xl font-bold text-blue-600 mt-1">
                 {deliveredShipments}
               </h3>
 
             </div>
 
 
-            <div className="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center">
+            <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
 
               <CheckCircle2
                 size={19}
-                className="text-emerald-600"
+                className="text-blue-600"
               />
 
             </div>
@@ -536,7 +536,7 @@ const Shipments = () => {
                 )
               }
 
-              className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
 
             />
 
@@ -553,7 +553,7 @@ const Shipments = () => {
               )
             }
 
-            className="w-full md:w-52 px-3 py-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+            className="w-full md:w-52 px-3 py-2.5 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
 
           >
 
@@ -660,7 +660,7 @@ const Shipments = () => {
 
                       {/* TRACKING */}
 
-                      <td className="px-5 py-4 text-sm font-semibold text-emerald-600">
+                      <td className="px-5 py-4 text-sm font-semibold text-blue-600">
 
                         {shipment.trackingNumber}
 

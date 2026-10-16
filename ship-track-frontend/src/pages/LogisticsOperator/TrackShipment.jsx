@@ -4,6 +4,7 @@ import {
   Package,
   MapPin,
   Truck,
+  Loader2,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -501,344 +502,126 @@ const TrackShipment = () => {
 
 
   return (
-
-    <div className="space-y-5">
-
+    <div className="op-wide">
 
       {/* =====================================================
-          PAGE HEADER
+          PAGE HEADER + SEARCH
       ===================================================== */}
+      <section className="op-hero">
 
-      <div>
+        <div className="op-hero__text">
 
-        <h1
-          className="
-            text-xl
-            font-bold
-            text-slate-800
-          "
-        >
-          Track Shipment
-        </h1>
+          <p className="op-eyebrow">Shipment tracking</p>
 
+          <h2>
+            Track Shipment
+          </h2>
 
-        <p
-          className="
-            mt-1
-            text-sm
-            text-slate-500
-          "
-        >
-          Enter a shipment tracking number to view its
-          current tracking details.
-        </p>
-
-      </div>
-
-
-      {/* =====================================================
-          SEARCH CARD
-      ===================================================== */}
-
-      <div
-        className="
-          rounded-xl
-          border
-          border-slate-200
-          bg-white
-          p-5
-          shadow-sm
-        "
-      >
-
-        <div
-          className="
-            flex
-            items-center
-            gap-3
-          "
-        >
-
-          <div
-            className="
-              rounded-lg
-              bg-emerald-50
-              p-2
-            "
-          >
-
-            <Search
-              size={22}
-              className="text-emerald-600"
-            />
-
-          </div>
-
-
-          <div>
-
-            <h2
-              className="
-                font-semibold
-                text-slate-800
-              "
-            >
-              Search Shipment
-            </h2>
-
-
-            <p
-              className="
-                mt-1
-                text-xs
-                text-slate-500
-              "
-            >
-              Use the shipment tracking number to find details.
-            </p>
-
-          </div>
+          <p>
+            Enter a shipment tracking number to view its
+            current tracking details.
+          </p>
 
         </div>
-
 
         {/* =================================================
             INPUT
         ================================================= */}
+        <div className="op-search">
 
-        <div
-          className="
-            mt-5
-            flex
-            flex-col
-            gap-3
-            sm:flex-row
-          "
-        >
+          <span className="op-search__icon">
+            <Search size={18} />
+          </span>
 
           <input
             type="text"
-            placeholder="
-              Enter Tracking Number (Example: SHP001)
-            "
+            placeholder="Enter Tracking Number (Example: SHP001)"
             value={shipmentId}
             onChange={(event) => {
-
               setShipmentId(
                 event.target.value
               );
 
               setError("");
-
             }}
             onKeyDown={(event) => {
-
               if (
                 event.key === "Enter"
               ) {
-
                 handleTrack();
-
               }
-
             }}
-            className="
-              flex-1
-              rounded-lg
-              border
-              border-slate-300
-              px-4
-              py-2.5
-              text-sm
-              outline-none
-              transition
-              focus:border-emerald-500
-            "
+            className="op-search__input"
           />
-
 
           <button
             onClick={handleTrack}
             disabled={loading}
-            className="
-              flex
-              items-center
-              justify-center
-              gap-2
-              rounded-lg
-              bg-emerald-600
-              px-5
-              py-2.5
-              text-sm
-              font-medium
-              text-white
-              transition
-              hover:bg-emerald-700
-              disabled:cursor-not-allowed
-              disabled:opacity-60
-            "
+            className="op-search__btn"
           >
-
             {loading ? (
-
               <>
-                <span
-                  className="
-                    h-4
-                    w-4
-                    animate-spin
-                    rounded-full
-                    border-2
-                    border-white
-                    border-t-transparent
-                  "
-                />
-
+                <Loader2 size={17} className="op-spin" />
                 Searching...
-
               </>
-
             ) : (
-
               <>
                 <Search size={18} />
                 Track
               </>
-
             )}
-
           </button>
 
         </div>
 
-
         {/* =================================================
             ERROR
         ================================================= */}
-
         {error && (
-
-          <p
-            className="
-              mt-3
-              text-sm
-              text-red-500
-            "
-          >
+          <p className="op-hero__error">
             {error}
           </p>
-
         )}
 
-      </div>
+      </section>
 
 
       {/* =====================================================
           TRACKING RESULT
       ===================================================== */}
-
       {trackingResult && (
-
-        <div
-          className="
-            rounded-xl
-            border
-            border-slate-200
-            bg-white
-            shadow-sm
-          "
-        >
-
+        <div className="op-card op-card--embed">
 
           {/* =================================================
               RESULT HEADER
           ================================================= */}
+          <div className="op-card__head op-card__head--tint">
 
-          <div
-            className="
-              flex
-              flex-col
-              gap-3
-              border-b
-              border-slate-200
-              p-5
-              sm:flex-row
-              sm:items-center
-              sm:justify-between
-            "
-          >
+            <div className="op-card__headrow">
 
-            <div
-              className="
-                flex
-                items-center
-                gap-3
-              "
-            >
-
-              <div
-                className="
-                  rounded-lg
-                  bg-emerald-50
-                  p-2
-                "
-              >
-
-                <Package
-                  size={22}
-                  className="text-emerald-600"
-                />
-
-              </div>
-
+              <span className="op-card__badge op-card__badge--solid">
+                <Package size={20} />
+              </span>
 
               <div>
-
-                <h2
-                  className="
-                    font-semibold
-                    text-slate-800
-                  "
-                >
+                <h2>
                   Shipment Details
                 </h2>
 
-
-                <p
-                  className="
-                    mt-1
-                    text-xs
-                    text-slate-500
-                  "
-                >
+                <p>
                   Tracking ID:{" "}
-
-                  {trackingResult.id}
-
+                  <span className="op-mono op-strong">
+                    {trackingResult.id}
+                  </span>
                 </p>
-
               </div>
 
             </div>
 
-
-            <span
-              className="
-                w-fit
-                rounded-full
-                bg-blue-100
-                px-3
-                py-1
-                text-xs
-                font-medium
-                text-blue-700
-              "
-            >
-
+            <span className="op-chip op-chip--blue">
               {formatStatus(
                 trackingResult.status
               )}
-
             </span>
 
           </div>
@@ -847,365 +630,95 @@ const TrackShipment = () => {
           {/* =================================================
               TRACKING INFORMATION
           ================================================= */}
+          <div className="op-info-grid op-info-grid--2">
 
-          <div
-            className="
-              grid
-              grid-cols-1
-              gap-4
-              p-5
-              sm:grid-cols-2
-            "
-          >
-
-
-            {/* =================================================
-                ORIGIN
-            ================================================= */}
-
-            <div
-              className="
-                rounded-lg
-                border
-                border-slate-100
-                bg-slate-50
-                p-4
-              "
-            >
-
-              <div
-                className="
-                  flex
-                  items-center
-                  gap-2
-                "
-              >
-
-                <MapPin
-                  size={18}
-                  className="text-emerald-600"
-                />
-
-
-                <p
-                  className="
-                    text-xs
-                    text-slate-500
-                  "
-                >
-                  Origin
-                </p>
-
+            {/* ORIGIN */}
+            <div className="op-info">
+              <div className="op-info__head op-info__head--purple">
+                <MapPin size={18} />
+                <h3>Origin</h3>
               </div>
 
-
-              <p
-                className="
-                  mt-2
-                  text-sm
-                  font-semibold
-                  text-slate-800
-                "
-              >
+              <p className="op-info__value">
                 {trackingResult.origin}
               </p>
-
             </div>
 
-
-            {/* =================================================
-                DESTINATION
-            ================================================= */}
-
-            <div
-              className="
-                rounded-lg
-                border
-                border-slate-100
-                bg-slate-50
-                p-4
-              "
-            >
-
-              <div
-                className="
-                  flex
-                  items-center
-                  gap-2
-                "
-              >
-
-                <MapPin
-                  size={18}
-                  className="text-red-500"
-                />
-
-
-                <p
-                  className="
-                    text-xs
-                    text-slate-500
-                  "
-                >
-                  Destination
-                </p>
-
+            {/* DESTINATION */}
+            <div className="op-info">
+              <div className="op-info__head op-info__head--red">
+                <MapPin size={18} />
+                <h3>Destination</h3>
               </div>
 
-
-              <p
-                className="
-                  mt-2
-                  text-sm
-                  font-semibold
-                  text-slate-800
-                "
-              >
+              <p className="op-info__value">
                 {trackingResult.destination}
               </p>
-
             </div>
 
-
-            {/* =================================================
-                CURRENT LOCATION
-            ================================================= */}
-
-            <div
-              className="
-                rounded-lg
-                border
-                border-slate-100
-                bg-slate-50
-                p-4
-              "
-            >
-
-              <div
-                className="
-                  flex
-                  items-center
-                  gap-2
-                "
-              >
-
-                <Truck
-                  size={18}
-                  className="text-blue-600"
-                />
-
-
-                <p
-                  className="
-                    text-xs
-                    text-slate-500
-                  "
-                >
-                  Current Location
-                </p>
-
+            {/* CURRENT LOCATION */}
+            <div className="op-info">
+              <div className="op-info__head">
+                <Truck size={18} />
+                <h3>Current Location</h3>
               </div>
 
-
-              <p
-                className="
-                  mt-2
-                  text-sm
-                  font-semibold
-                  text-slate-800
-                "
-              >
+              <p className="op-info__value">
                 {trackingResult.currentLocation}
               </p>
-
             </div>
 
-
-            {/* =================================================
-                ESTIMATED DELIVERY
-            ================================================= */}
-
-            <div
-              className="
-                rounded-lg
-                border
-                border-slate-100
-                bg-slate-50
-                p-4
-              "
-            >
-
-              <div
-                className="
-                  flex
-                  items-center
-                  gap-2
-                "
-              >
-
-                <Package
-                  size={18}
-                  className="text-amber-600"
-                />
-
-
-                <p
-                  className="
-                    text-xs
-                    text-slate-500
-                  "
-                >
-                  Estimated Delivery
-                </p>
-
+            {/* ESTIMATED DELIVERY */}
+            <div className="op-info">
+              <div className="op-info__head op-info__head--amber">
+                <Package size={18} />
+                <h3>Estimated Delivery</h3>
               </div>
 
-
-              <p
-                className="
-                  mt-2
-                  text-sm
-                  font-semibold
-                  text-slate-800
-                "
-              >
+              <p className="op-info__value">
                 {trackingResult.estimatedDelivery}
               </p>
-
             </div>
 
-
-            {/* =================================================
-                DISTANCE
-            ================================================= */}
-
-            <div
-              className="
-                rounded-lg
-                border
-                border-slate-100
-                bg-slate-50
-                p-4
-              "
-            >
-
-              <div
-                className="
-                  flex
-                  items-center
-                  gap-2
-                "
-              >
-
-                <MapPin
-                  size={18}
-                  className="text-emerald-600"
-                />
-
-
-                <p
-                  className="
-                    text-xs
-                    text-slate-500
-                  "
-                >
-                  Distance
-                </p>
-
+            {/* DISTANCE */}
+            <div className="op-info">
+              <div className="op-info__head">
+                <MapPin size={18} />
+                <h3>Distance</h3>
               </div>
 
-
-              <p
-                className="
-                  mt-2
-                  text-sm
-                  font-semibold
-                  text-slate-800
-                "
-              >
-
+              <p className="op-info__value">
                 {trackingResult.distance !==
                 null
                   ? formatDistance(
                       trackingResult.distance
                     )
                   : "Not available"}
-
               </p>
-
             </div>
 
-
-            {/* =================================================
-                TRAVEL TIME
-            ================================================= */}
-
-            <div
-              className="
-                rounded-lg
-                border
-                border-slate-100
-                bg-slate-50
-                p-4
-              "
-            >
-
-              <div
-                className="
-                  flex
-                  items-center
-                  gap-2
-                "
-              >
-
-                <Truck
-                  size={18}
-                  className="text-blue-600"
-                />
-
-
-                <p
-                  className="
-                    text-xs
-                    text-slate-500
-                  "
-                >
-                  Travel Time
-                </p>
-
+            {/* TRAVEL TIME */}
+            <div className="op-info">
+              <div className="op-info__head">
+                <Truck size={18} />
+                <h3>Travel Time</h3>
               </div>
 
-
-              <p
-                className="
-                  mt-2
-                  text-sm
-                  font-semibold
-                  text-slate-800
-                "
-              >
-
+              <p className="op-info__value">
                 {trackingResult.travelTime !==
                 null
                   ? formatTravelTime(
                       trackingResult.travelTime
                     )
                   : "Not available"}
-
               </p>
-
             </div>
 
           </div>
-
         </div>
-
       )}
-
     </div>
-
   );
-
 };
 
 export default TrackShipment;

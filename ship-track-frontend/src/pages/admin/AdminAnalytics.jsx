@@ -141,7 +141,7 @@ const AdminAnalytics = () => {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
 
           <p className="mt-3 text-sm text-slate-500">
             Loading analytics...
@@ -196,7 +196,7 @@ const AdminAnalytics = () => {
       value: analytics?.totalShipments ?? 0,
       icon: Package,
       iconStyle:
-        "bg-emerald-50 text-emerald-600",
+        "bg-blue-50 text-blue-600",
     },
     {
       title: "Delivered",
@@ -257,7 +257,7 @@ const AdminAnalytics = () => {
           </p>
         </div>
 
-        <div className="w-fit rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+        <div className="w-fit rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
           Admin Analytics
         </div>
       </div>
@@ -508,7 +508,7 @@ const AdminAnalytics = () => {
             type="button"
             onClick={handleDownloadReport}
             disabled={downloading}
-            className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+            className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {downloading
               ? "Generating..."
@@ -632,7 +632,7 @@ const AdminAnalytics = () => {
             </h3>
 
             <div className="mt-4">
-              <p className="text-3xl font-bold text-emerald-600">
+              <p className="text-3xl font-bold text-blue-600">
                 {analytics?.deliveryRate ?? 0}%
               </p>
 

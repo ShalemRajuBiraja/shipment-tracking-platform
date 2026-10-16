@@ -44,7 +44,7 @@ const RecentShipments = () => {
           </p>
         </div>
 
-        <button className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition">
+        <button className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition">
           View All
         </button>
 
@@ -91,7 +91,7 @@ const RecentShipments = () => {
                 className="border-t border-slate-100 hover:bg-slate-50 transition"
               >
 
-                <td className="px-5 py-4 font-semibold text-emerald-600">
+                <td className="px-5 py-4 font-semibold text-blue-600">
                   {shipment.trackingNumber}
                 </td>
 
@@ -105,7 +105,7 @@ const RecentShipments = () => {
 
                 <td className="px-5 py-4">
 
-                  <span className="inline-flex bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md text-xs font-semibold">
+                  <span className="inline-flex bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-xs font-semibold">
                     {shipment.status}
                   </span>
 
@@ -113,7 +113,7 @@ const RecentShipments = () => {
 
                 <td className="px-5 py-4 text-center">
 
-                  <button className="text-emerald-600 hover:text-emerald-700 transition">
+                  <button className="text-blue-600 hover:text-blue-700 transition">
                     <ArrowUpRight size={18} />
                   </button>
 

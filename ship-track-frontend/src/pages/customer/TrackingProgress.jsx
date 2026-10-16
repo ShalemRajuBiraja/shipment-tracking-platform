@@ -61,24 +61,22 @@ const TrackingProgress = ({ shipment }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="cd-tp">
       {/* HEADER INFO */}
-      <div className="border-b border-slate-100 pb-4">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-          Tracking ID
-        </span>
-        <div className="mt-0.5 flex items-center justify-between">
-          <p className="font-mono text-base font-bold text-emerald-600">
+      <div className="cd-tp__head">
+        <span className="cd-tp__label">Tracking ID</span>
+        <div className="cd-tp__row">
+          <p className="cd-tp__id">
             {shipment?.trackingNumber || "N/A"}
           </p>
-          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-medium text-slate-600">
+          <span className="cd-tp__count">
             {steps.length} Milestones
           </span>
         </div>
       </div>
 
       {/* TIMELINE PROGRESS */}
-      <div className="relative pl-2">
+      <div className="cd-tp__steps">
         {steps.map((step, index) => {
           const isCompleted = !isCancelled && index <= currentIndex;
           const isCurrent = !isCancelled && index === currentIndex;
@@ -87,82 +85,53 @@ const TrackingProgress = ({ shipment }) => {
           const formattedDate = formatDateTime(trackingRecord?.createdAt);
 
           return (
-            <div key={step.status} className="relative flex items-start group">
+            <div
+              key={step.status}
+              className={`cd-tp__step ${isCompleted ? "is-done" : ""} ${isCurrent ? "is-current" : ""}`}
+            >
               {/* CONNECTING LINE */}
               {!isLastStep && (
                 <div
-                  className={`absolute left-[15px] top-[30px] h-[calc(100%-12px)] w-[2px] transition-colors ${
-                    !isCancelled && index < currentIndex
-                      ? "bg-emerald-500"
-                      : "bg-slate-200"
+                  className={`cd-tp__line ${
+                    !isCancelled && index < currentIndex ? "is-done" : ""
                   }`}
                 />
               )}
 
               {/* NODE CIRCLE */}
-              <div className="relative flex h-8 w-8 shrink-0 items-center justify-center">
-                <div
-                  className={`flex h-7 w-7 items-center justify-center rounded-full transition-all ${
-                    isCurrent
-                      ? "bg-emerald-600 ring-4 ring-emerald-100 shadow-sm"
-                      : isCompleted
-                      ? "bg-emerald-600"
-                      : "border-2 border-slate-300 bg-white"
-                  }`}
-                >
-                  {isCompleted ? (
-                    <Check className="h-4 w-4 text-white stroke-[3]" />
-                  ) : isCurrent ? (
-                    <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                  ) : (
-                    <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
-                  )}
-                </div>
+              <div className="cd-tp__node">
+                {isCompleted ? (
+                  <Check size={15} strokeWidth={3} />
+                ) : isCurrent ? (
+                  <span className="cd-tp__pulse" />
+                ) : (
+                  <span className="cd-tp__dot" />
+                )}
               </div>
 
               {/* STEP DETAILS */}
-              <div className="ml-4 pb-7 min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h3
-                    className={`text-sm font-bold ${
-                      isCurrent
-                        ? "text-emerald-700"
-                        : isCompleted
-                        ? "text-slate-800"
-                        : "text-slate-400"
-                    }`}
-                  >
-                    {step.label}
-                  </h3>
+              <div className="cd-tp__body">
+                <div className="cd-tp__title">
+                  <h3>{step.label}</h3>
 
                   {isCurrent && (
-                    <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-200">
-                      Active
-                    </span>
+                    <span className="cd-tp__active">Active</span>
                   )}
                 </div>
 
                 {/* DATE & TIME STAMP */}
-                <div className="mt-1 flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                  <span
-                    className={`text-xs ${
-                      formattedDate
-                        ? "font-medium text-slate-600"
-                        : "text-slate-400 italic"
-                    }`}
-                  >
+                <div className="cd-tp__stamp">
+                  <Clock size={14} />
+                  <span className={formattedDate ? "" : "is-pending"}>
                     {formattedDate || "Pending update"}
                   </span>
                 </div>
 
                 {/* LOCATION LOG */}
                 {trackingRecord?.location && (
-                  <div className="mt-1.5 flex items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-1 w-fit border border-slate-100">
-                    <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
-                    <span className="text-xs font-medium text-slate-600">
-                      {trackingRecord.location}
-                    </span>
+                  <div className="cd-tp__loc">
+                    <MapPin size={13} />
+                    <span>{trackingRecord.location}</span>
                   </div>
                 )}
               </div>
@@ -173,29 +142,25 @@ const TrackingProgress = ({ shipment }) => {
 
       {/* FOOTER STATUS BANNER */}
       {isCancelled ? (
-        <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50/80 p-3.5 text-red-700">
-          <div className="rounded-lg bg-red-100 p-1.5 text-red-600 shrink-0">
-            <X className="h-4 w-4 stroke-[3]" />
-          </div>
+        <div className="cd-banner cd-banner--red">
+          <span className="cd-banner__icon">
+            <X size={16} strokeWidth={3} />
+          </span>
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-red-800">
-              Shipment Cancelled
-            </p>
-            <p className="text-xs text-red-600 mt-0.5">
+            <p className="cd-banner__title">Shipment Cancelled</p>
+            <p className="cd-banner__text">
               This order was terminated before completion.
             </p>
           </div>
         </div>
       ) : (
-        <div className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/60 p-3.5 text-slate-700">
-          <div className="rounded-lg bg-emerald-100 p-1.5 text-emerald-700 shrink-0">
-            <Info className="h-4 w-4" />
-          </div>
-          <div className="min-w-0">
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Current Stage
-            </span>
-            <p className="text-xs font-bold text-slate-800 capitalize truncate">
+        <div className="cd-banner">
+          <span className="cd-banner__icon">
+            <Info size={16} />
+          </span>
+          <div>
+            <span className="cd-banner__label">Current Stage</span>
+            <p className="cd-banner__title cd-banner__title--cap">
               {shipment?.currentStatus?.replaceAll("_", " ")?.toLowerCase()}
             </p>
           </div>

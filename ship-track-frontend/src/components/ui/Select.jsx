@@ -16,7 +16,7 @@ const Select = ({
     "disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500",
     error
       ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-      : "border-slate-300 focus:border-emerald-500 focus:ring-emerald-500/20",
+      : "border-slate-300 focus:border-blue-500 focus:ring-blue-500/20",
     className,
   ]
     .filter(Boolean)

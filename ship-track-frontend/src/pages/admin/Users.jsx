@@ -154,7 +154,7 @@ const Users = () => {
 
       case "LOGISTICS_OPERATOR":
 
-        return "bg-emerald-50 text-emerald-700";
+        return "bg-blue-50 text-blue-700";
 
 
       case "SUPPORT_AGENT":
@@ -315,11 +315,11 @@ const Users = () => {
           <div className="flex items-center gap-2">
 
 
-            <div className="w-8 h-8 rounded-md bg-emerald-50 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center">
 
               <UsersRound
                 size={16}
-                className="text-emerald-600"
+                className="text-blue-600"
               />
 
             </div>
@@ -355,11 +355,11 @@ const Users = () => {
           <div className="flex items-center gap-2">
 
 
-            <div className="w-8 h-8 rounded-md bg-emerald-50 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center">
 
               <Shield
                 size={16}
-                className="text-emerald-600"
+                className="text-blue-600"
               />
 
             </div>
@@ -446,7 +446,7 @@ const Users = () => {
                       event.target.value
                     )
                   }
-                  className="w-full sm:w-56 pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full sm:w-56 pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
 
               </div>
@@ -465,7 +465,7 @@ const Users = () => {
                   )
                 }
 
-                className="px-3 py-2 text-sm border border-slate-300 rounded-lg outline-none bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                className="px-3 py-2 text-sm border border-slate-300 rounded-lg outline-none bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 
               >
 
@@ -558,7 +558,7 @@ const Users = () => {
                       <div className="flex items-center gap-3">
 
 
-                        <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-semibold text-sm">
+                        <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-semibold text-sm">
 
                           {user.name
                             ?.charAt(0)
@@ -627,7 +627,7 @@ const Users = () => {
                             handleViewUser(user)
                           }
 
-                          className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition"
+                          className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition"
 
                         >
 
@@ -739,7 +739,7 @@ const Users = () => {
               <div className="flex items-center gap-3">
 
 
-                <div className="w-11 h-11 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                <div className="w-11 h-11 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
 
                   {viewUser.name
                     ?.charAt(0)
@@ -1095,7 +1095,7 @@ const Users = () => {
                   setViewUser(null)
                 }
 
-                className="px-5 py-2.5 text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition"
+                className="px-5 py-2.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
 
               >
 

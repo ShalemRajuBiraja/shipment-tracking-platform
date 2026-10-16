@@ -68,10 +68,10 @@ const SupportSidebar = () => {
   return (
     <>
       {/* Mobile Header */}
-      <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-emerald-950 px-4 shadow-md lg:hidden">
+      <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-blue-950 px-4 shadow-md lg:hidden">
 
         <div className="flex items-center gap-2">
-          <Headphones size={25} className="text-emerald-400" />
+          <Headphones size={25} className="text-blue-400" />
 
           <span className="text-lg font-bold text-white">
             QuickShip
@@ -80,7 +80,7 @@ const SupportSidebar = () => {
 
         <button
           onClick={() => setIsOpen(true)}
-          className="rounded-lg p-2 text-white hover:bg-emerald-900"
+          className="rounded-lg p-2 text-white hover:bg-blue-900"
         >
           <Menu size={24} />
         </button>
@@ -99,7 +99,7 @@ const SupportSidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-64 flex-col bg-emerald-950 text-white transition-transform duration-300 ${
+        className={`fixed left-0 top-0 z-50 flex h-screen w-64 flex-col bg-blue-950 text-white transition-transform duration-300 ${
           isOpen
             ? "translate-x-0"
             : "-translate-x-full lg:translate-x-0"
@@ -113,7 +113,7 @@ const SupportSidebar = () => {
 
             <Headphones
               size={29}
-              className="text-emerald-400"
+              className="text-blue-400"
             />
 
             <div>
@@ -121,7 +121,7 @@ const SupportSidebar = () => {
                 QuickShip
               </h1>
 
-              <p className="mt-0.5 text-xs text-emerald-200">
+              <p className="mt-0.5 text-xs text-blue-200">
                 Support Agent
               </p>
             </div>
@@ -131,7 +131,7 @@ const SupportSidebar = () => {
 
           <button
             onClick={() => setIsOpen(false)}
-            className="rounded-lg p-2 hover:bg-emerald-900 lg:hidden"
+            className="rounded-lg p-2 hover:bg-blue-900 lg:hidden"
           >
             <X size={22} />
           </button>
@@ -153,8 +153,8 @@ const SupportSidebar = () => {
                 className={({ isActive }) =>
                   `flex w-full items-center gap-3 rounded-lg px-4 py-3 transition ${
                     isActive
-                      ? "bg-emerald-600 shadow-md"
-                      : "hover:bg-emerald-900"
+                      ? "bg-blue-600 shadow-md"
+                      : "hover:bg-blue-900"
                   }`
                 }
               >
@@ -175,7 +175,7 @@ const SupportSidebar = () => {
             <div className="mt-auto px-4 pb-5">
 
             {/* Divider */}
-            <div className="border-t border-emerald-800 mb-5" />
+            <div className="border-t border-blue-800 mb-5" />
 
            
 

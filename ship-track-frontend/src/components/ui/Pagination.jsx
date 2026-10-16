@@ -100,7 +100,7 @@ const Pagination = ({
         onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 1}
         aria-label="Previous page"
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <svg
           className="h-4 w-4"
@@ -131,8 +131,8 @@ const Pagination = ({
             aria-current={currentPage === page ? "page" : undefined}
             className={`flex h-9 min-w-9 items-center justify-center rounded-lg px-2 text-sm font-medium transition-colors ${
               currentPage === page
-                ? "bg-emerald-600 text-white"
-                : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-600"
+                ? "bg-blue-600 text-white"
+                : "text-slate-600 hover:bg-blue-50 hover:text-blue-600"
             }`}
           >
             {page}
@@ -145,7 +145,7 @@ const Pagination = ({
         onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         aria-label="Next page"
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <svg
           className="h-4 w-4"

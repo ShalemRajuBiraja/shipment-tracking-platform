@@ -177,11 +177,11 @@ const SupportRequests = () => {
 
           <div className="flex items-center gap-3">
 
-            <div className="rounded-lg bg-emerald-50 p-2">
+            <div className="rounded-lg bg-blue-50 p-2">
 
               <MessageSquare
                 size={21}
-                className="text-emerald-600"
+                className="text-blue-600"
               />
 
             </div>
@@ -217,7 +217,7 @@ const SupportRequests = () => {
               onChange={(event) =>
                 setSearchTerm(event.target.value)
               }
-              className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none focus:border-emerald-500"
+              className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none focus:border-blue-500"
             />
 
           </div>
@@ -301,7 +301,7 @@ const SupportRequests = () => {
                     className="border-t border-slate-100 hover:bg-slate-50"
                   >
 
-                    <td className="px-5 py-4 text-sm font-medium text-emerald-600">
+                    <td className="px-5 py-4 text-sm font-medium text-blue-600">
                       #{request.id}
                     </td>
 
@@ -333,7 +333,7 @@ const SupportRequests = () => {
                             event.target.value
                           )
                         }
-                        className={`rounded-lg border px-3 py-2 text-xs font-medium outline-none focus:border-emerald-500 ${getStatusStyle(
+                        className={`rounded-lg border px-3 py-2 text-xs font-medium outline-none focus:border-blue-500 ${getStatusStyle(
                           request.status
                         )}`}
                       >
@@ -363,7 +363,7 @@ const SupportRequests = () => {
                         onClick={() =>
                           setSelectedRequest(request)
                         }
-                        className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 px-3 py-2 text-xs font-medium text-emerald-600 hover:bg-emerald-50"
+                        className="inline-flex items-center gap-2 rounded-lg border border-blue-200 px-3 py-2 text-xs font-medium text-blue-600 hover:bg-blue-50"
                       >
 
                         <Eye size={16} />

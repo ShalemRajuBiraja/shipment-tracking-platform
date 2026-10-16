@@ -38,7 +38,7 @@ const Input = ({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          className={`w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 ${
+          className={`w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 ${
             error
               ? "border-red-500"
               : "border-slate-300"
@@ -56,7 +56,7 @@ const Input = ({
             onClick={() =>
               setShowPassword((previous) => !previous)
             }
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-500 transition-colors hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-slate-500 transition-colors hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label={
               showPassword
                 ? "Hide password"

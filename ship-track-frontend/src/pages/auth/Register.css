@@ -1,0 +1,360 @@
+/* Register.css — all classes prefixed "rg" so nothing leaks */
+
+.rg {
+  --rg-ink: #0d1b2e;
+  --rg-indigo: #4338ca;
+  --rg-indigo-soft: #eef0ff;
+  --rg-sky: #38bdf8;
+  --rg-text: #1e293b;
+  --rg-muted: #64748b;
+  --rg-line: #dbe1ea;
+  --rg-danger: #dc2626;
+  --rg-danger-soft: #fef2f2;
+
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  color: var(--rg-text);
+  background-color: var(--rg-ink);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.rg__overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(90% 70% at 100% 0%, rgba(56, 189, 248, 0.28), transparent 60%),
+    linear-gradient(160deg, rgba(67, 56, 202, 0.55), rgba(13, 27, 46, 0.78));
+}
+
+.rg__stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+/* ---------- Card ---------- */
+.rg__card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 470px;
+  height: 92vh;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 30px 70px -20px rgba(5, 10, 30, 0.7);
+  animation: rg-in 0.45s ease-out both; /* the one entrance moment */
+}
+
+@keyframes rg-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- Header ---------- */
+.rg__header {
+  flex-shrink: 0;
+  padding: 26px 32px 22px;
+  text-align: center;
+  background:
+    radial-gradient(120% 120% at 50% -30%, var(--rg-indigo-soft), #fff 70%);
+  border-bottom: 1px solid #eef1f6;
+}
+
+.rg__logo {
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--rg-indigo), #2563eb);
+  border-radius: 13px;
+  box-shadow: 0 10px 20px -8px rgba(67, 56, 202, 0.7);
+}
+
+.rg__logo img { width: 100%; height: 100%; object-fit: cover; }
+
+.rg__title {
+  margin: 14px 0 0;
+  font-size: 1.55rem;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--rg-ink);
+}
+
+.rg__subtitle {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  color: var(--rg-muted);
+}
+
+/* ---------- Scroll area ---------- */
+.rg__scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 32px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.rg__form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.rg__alert {
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  color: var(--rg-danger);
+  background: var(--rg-danger-soft);
+  border-left: 3px solid var(--rg-danger);
+  border-radius: 8px;
+}
+
+/* ---------- Fields ---------- */
+.rg__field { margin: 0; padding: 0; border: 0; min-width: 0; }
+
+.rg__label {
+  display: block;
+  margin-bottom: 6px;
+  padding: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--rg-text);
+}
+
+.rg__control {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1.5px solid var(--rg-line);
+  border-radius: 12px;
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+}
+
+.rg__control:hover { border-color: #b9c3d3; }
+
+.rg__control:focus-within {
+  background: #fff;
+  border-color: var(--rg-indigo);
+  box-shadow: 0 0 0 4px rgba(67, 56, 202, 0.14);
+}
+
+.rg__control.is-error { border-color: var(--rg-danger); background: var(--rg-danger-soft); }
+.rg__control.is-error:focus-within { box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.14); }
+
+.rg__icon {
+  display: grid;
+  place-items: center;
+  padding-left: 14px;
+  color: var(--rg-muted);
+  transition: color 0.18s;
+}
+
+.rg__control:focus-within .rg__icon { color: var(--rg-indigo); }
+.rg__control.is-error .rg__icon { color: var(--rg-danger); }
+
+.rg__control input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 14px 13px 10px;
+  font-size: 0.95rem;
+  color: var(--rg-text);
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.rg__control input::placeholder { color: #94a3b8; }
+
+.rg__toggle {
+  display: grid;
+  place-items: center;
+  margin-right: 6px;
+  width: 36px;
+  height: 36px;
+  color: var(--rg-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.rg__toggle:hover { background: var(--rg-indigo-soft); color: var(--rg-indigo); }
+
+.rg__error {
+  margin: 6px 2px 0;
+  font-size: 0.8rem;
+  color: var(--rg-danger);
+}
+
+/* ---------- Account type tiles ---------- */
+.rg__role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.rg__role {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  cursor: pointer;
+  background: #f8fafc;
+  border: 1.5px solid var(--rg-line);
+  border-radius: 12px;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+}
+
+.rg__role:hover { border-color: #b9c3d3; }
+
+/* Visually hidden radio, still keyboard accessible */
+.rg__role input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.rg__role-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: var(--rg-muted);
+  background: #fff;
+  border: 1px solid var(--rg-line);
+  border-radius: 10px;
+  transition: all 0.18s;
+}
+
+.rg__role-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.rg__role-text strong { font-size: 0.82rem; font-weight: 600; color: var(--rg-text); }
+.rg__role-text small { margin-top: 2px; font-size: 0.72rem; color: var(--rg-muted); }
+
+.rg__role.is-selected {
+  background: var(--rg-indigo-soft);
+  border-color: var(--rg-indigo);
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.12);
+}
+
+.rg__role.is-selected .rg__role-icon {
+  color: #fff;
+  background: var(--rg-indigo);
+  border-color: var(--rg-indigo);
+}
+
+.rg__role.is-error { border-color: var(--rg-danger); }
+
+.rg__role:focus-within {
+  outline: 2px solid var(--rg-indigo);
+  outline-offset: 2px;
+}
+
+/* Role-specific fields reveal when a role is chosen */
+.rg__extra {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 16px;
+  background: #fafbff;
+  border: 1px dashed #c7cdf5;
+  border-radius: 14px;
+  animation: rg-reveal 0.28s ease-out both;
+}
+
+@keyframes rg-reveal {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- Submit ---------- */
+.rg__submit {
+  position: relative;
+  overflow: hidden;
+  margin-top: 4px;
+  padding: 13px 16px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background: linear-gradient(135deg, var(--rg-indigo), #2563eb);
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 10px 22px -10px rgba(67, 56, 202, 0.7);
+  transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
+}
+
+.rg__submit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.28) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.6s ease;
+}
+
+.rg__submit:hover { transform: translateY(-1px); box-shadow: 0 14px 26px -10px rgba(67, 56, 202, 0.8); }
+.rg__submit:hover::after { transform: translateX(120%); }
+.rg__submit:active { transform: translateY(0); filter: brightness(0.96); }
+
+/* ---------- Footer ---------- */
+.rg__footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 32px;
+  font-size: 0.9rem;
+  color: var(--rg-muted);
+  background: #fff;
+  border-top: 1px solid var(--rg-line);
+}
+
+.rg__link {
+  padding: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--rg-indigo);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.rg__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Accessibility & responsive ---------- */
+.rg button:focus-visible {
+  outline: 2px solid var(--rg-indigo);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+@media (max-width: 480px) {
+  .rg__card { height: 96vh; border-radius: 16px; }
+  .rg__header { padding: 20px 20px 16px; }
+  .rg__scroll { padding: 20px; }
+  .rg__footer { padding: 14px 20px; }
+  .rg__role-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rg__card, .rg__extra { animation: none; }
+  .rg__submit, .rg__submit::after, .rg__control, .rg__role { transition: none; }
+}

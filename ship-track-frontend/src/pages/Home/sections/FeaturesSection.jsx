@@ -1,73 +1,74 @@
-import Card from "../../../components/ui/Card";
+import Icon from "./Icon";
 
 const features = [
   {
     title: "Real-Time Tracking",
     description:
       "Monitor shipment progress and stay updated throughout the delivery journey.",
-    icon: "↗",
+    icon: "trend",
   },
   {
     title: "Easy Shipment Management",
     description:
       "Manage shipment information from one centralized and organized platform.",
-    icon: "▣",
+    icon: "grid",
   },
   {
     title: "Delivery Updates",
     description:
       "Keep track of important shipment status changes and delivery progress.",
-    icon: "✓",
+    icon: "check",
   },
   {
     title: "Secure Platform",
     description:
       "Keep your shipment information protected with a secure platform.",
-    icon: "◈",
+    icon: "shield",
   },
 ];
 
 const FeaturesSection = () => {
   return (
-    <section
-      id="features"
-      className="bg-white py-16 sm:py-20 lg:py-24"
-    >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-emerald-600">
-            Features
-          </p>
-
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Everything you need to manage shipments
-          </h2>
-
-          <p className="mt-4 text-base leading-7 text-slate-600">
+    <section id="features" className="hm-section">
+      <div className="hm-container">
+        <div className="hm-head hm-reveal">
+          <p className="hm-eyebrow">Features</p>
+          <h2>Everything you need to manage shipments</h2>
+          <p>
             ShipTrack Pro brings essential shipment management and tracking
             capabilities together in one platform.
           </p>
         </div>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature) => (
-            <Card
+        <div className="hm-bento">
+          {features.map((feature, index) => (
+            <article
               key={feature.title}
-              hover
-              className="h-full"
+              className={`hm-card hm-card--${index + 1} hm-reveal`}
+              style={{ "--d": `${index * 80}ms` }}
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-100 text-lg font-bold text-emerald-600">
-                {feature.icon}
-              </div>
+              <span className="hm-card__icon">
+                <Icon name={feature.icon} />
+              </span>
 
-              <h3 className="mt-5 text-lg font-semibold text-slate-900">
-                {feature.title}
-              </h3>
+              <h3>{feature.title}</h3>
+              <p>{feature.description}</p>
 
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {feature.description}
-              </p>
-            </Card>
+              {/* Decorative visuals on the two wide cards */}
+              {index === 0 && (
+                <div className="hm-viz" aria-hidden="true">
+                  <span className="hm-viz__track">
+                    <span className="hm-viz__fill" />
+                  </span>
+                  <span className="hm-viz__pin" />
+                </div>
+              )}
+              {index === 3 && (
+                <div className="hm-viz hm-viz--dots" aria-hidden="true">
+                  <span /><span /><span /><span /><span /><span />
+                </div>
+              )}
+            </article>
           ))}
         </div>
       </div>

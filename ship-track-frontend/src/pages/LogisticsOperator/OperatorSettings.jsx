@@ -9,6 +9,45 @@ import {
 import { toast } from "react-toastify";
 import { updatePasswordApi } from "../../services/authService";
 
+/* Defined outside the page so inputs never lose focus while typing */
+const PasswordField = ({
+  label,
+  name,
+  value,
+  onChange,
+  placeholder,
+  visible,
+  onToggle,
+}) => (
+  <div className="op-field">
+    <label>{label}</label>
+
+    <div className="op-field__wrap op-field__wrap--lead">
+      <span className="op-field__lead">
+        <Lock size={16} />
+      </span>
+
+      <input
+        type={visible ? "text" : "password"}
+        name={name}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        required
+      />
+
+      <button
+        type="button"
+        onClick={onToggle}
+        className="op-field__eye"
+        aria-label={visible ? "Hide password" : "Show password"}
+      >
+        {visible ? <EyeOff size={17} /> : <Eye size={17} />}
+      </button>
+    </div>
+  </div>
+);
+
 const OperatorSettings = () => {
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -97,216 +136,94 @@ const OperatorSettings = () => {
   };
 
   return (
-    <div className="p-3 max-w-md">
+    <div className="op-narrow">
 
       {/* ================= PAGE HEADER ================= */}
-      <div className="mb-3">
-
-        <h1 className="text-lg font-bold text-slate-800">
+      <div className="op-pagetitle">
+        <h1>
           Settings
         </h1>
 
-        <p className="mt-0.5 text-xs text-slate-500">
+        <p>
           Manage your account security settings.
         </p>
-
       </div>
 
       {/* ================= PASSWORD & SECURITY ================= */}
-      <section className="bg-white border border-slate-200 rounded-lg shadow-sm">
+      <section className="op-card">
 
         {/* Header */}
-        <div className="flex items-center gap-2.5 px-3 py-3 border-b border-slate-100">
-
-          <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
-            <ShieldCheck
-              size={19}
-              className="text-emerald-600"
-            />
-          </div>
+        <div className="op-card__head op-card__head--icon">
+          <span className="op-card__badge op-card__badge--solid">
+            <ShieldCheck size={19} />
+          </span>
 
           <div>
-            <h2 className="text-sm font-semibold text-slate-800">
+            <h2>
               Password & Security
             </h2>
 
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p>
               Keep your account secure.
             </p>
           </div>
-
         </div>
 
         {/* ================= PASSWORD FORM ================= */}
         <form
           onSubmit={handlePasswordSubmit}
-          className="p-3"
+          className="op-form"
         >
 
-          <div className="space-y-3">
+          {/* Current Password */}
+          <PasswordField
+            label="Current Password"
+            name="currentPassword"
+            placeholder="Enter current password"
+            value={passwordData.currentPassword}
+            onChange={handlePasswordChange}
+            visible={showPassword.currentPassword}
+            onToggle={() => toggleShowPassword("currentPassword")}
+          />
 
-            {/* Current Password */}
-            <div>
+          {/* New Password */}
+          <PasswordField
+            label="New Password"
+            name="newPassword"
+            placeholder="Enter new password"
+            value={passwordData.newPassword}
+            onChange={handlePasswordChange}
+            visible={showPassword.newPassword}
+            onToggle={() => toggleShowPassword("newPassword")}
+          />
 
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                Current Password
-              </label>
-
-              <div className="relative">
-
-                <Lock
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-
-                <input
-                  type={
-                    showPassword.currentPassword
-                      ? "text"
-                      : "password"
-                  }
-                  name="currentPassword"
-                  placeholder="Enter current password"
-                  value={passwordData.currentPassword}
-                  onChange={handlePasswordChange}
-                  className="w-full pl-9 pr-10 py-2 text-sm border border-slate-200 rounded-md outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
-                  required
-                />
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    toggleShowPassword("currentPassword")
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600"
-                >
-                  {showPassword.currentPassword ? (
-                    <EyeOff size={16} />
-                  ) : (
-                    <Eye size={16} />
-                  )}
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* New Password */}
-            <div>
-
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                New Password
-              </label>
-
-              <div className="relative">
-
-                <Lock
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-
-                <input
-                  type={
-                    showPassword.newPassword
-                      ? "text"
-                      : "password"
-                  }
-                  name="newPassword"
-                  placeholder="Enter new password"
-                  value={passwordData.newPassword}
-                  onChange={handlePasswordChange}
-                  className="w-full pl-9 pr-10 py-2 text-sm border border-slate-200 rounded-md outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
-                  required
-                />
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    toggleShowPassword("newPassword")
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600"
-                >
-                  {showPassword.newPassword ? (
-                    <EyeOff size={16} />
-                  ) : (
-                    <Eye size={16} />
-                  )}
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                Confirm New Password
-              </label>
-
-              <div className="relative">
-
-                <Lock
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-
-                <input
-                  type={
-                    showPassword.confirmPassword
-                      ? "text"
-                      : "password"
-                  }
-                  name="confirmPassword"
-                  placeholder="Confirm new password"
-                  value={passwordData.confirmPassword}
-                  onChange={handlePasswordChange}
-                  className="w-full pl-9 pr-10 py-2 text-sm border border-slate-200 rounded-md outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
-                  required
-                />
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    toggleShowPassword("confirmPassword")
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600"
-                >
-                  {showPassword.confirmPassword ? (
-                    <EyeOff size={16} />
-                  ) : (
-                    <Eye size={16} />
-                  )}
-                </button>
-
-              </div>
-
-            </div>
-
-          </div>
+          {/* Confirm Password */}
+          <PasswordField
+            label="Confirm New Password"
+            name="confirmPassword"
+            placeholder="Confirm new password"
+            value={passwordData.confirmPassword}
+            onChange={handlePasswordChange}
+            visible={showPassword.confirmPassword}
+            onToggle={() => toggleShowPassword("confirmPassword")}
+          />
 
           {/* Update Password */}
-          <div className="mt-4">
-
-            <button
-              type="submit"
-              className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-md text-sm font-medium transition"
-            >
-              <Lock size={16} />
-              Update Password
-            </button>
-
-          </div>
+          <button
+            type="submit"
+            className="op-btn"
+          >
+            <Lock size={16} />
+            Update Password
+          </button>
 
         </form>
-
       </section>
 
       {/* Footer */}
-      <footer className="text-center text-xs text-slate-500 py-4">
+      <footer className="op-footer">
         © 2026 QuickShip. All rights reserved.
       </footer>
-
     </div>
   );
 };

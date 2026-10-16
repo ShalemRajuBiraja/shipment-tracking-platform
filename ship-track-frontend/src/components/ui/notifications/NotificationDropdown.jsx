@@ -1,12 +1,12 @@
-
 import { useNavigate } from "react-router-dom";
 
 export default function NotificationDropdown({
   notifications,
-  onNotificationRead
+  onNotificationRead,
 }) {
   const navigate = useNavigate();
 
+  // Open delivery confirmation without marking the notification as read
   const handleConfirmClick = (notification) => {
     navigate(
       `/customer/delivery-confirmation/${notification.trackingNumber}?notificationId=${notification.id}`
@@ -28,7 +28,7 @@ export default function NotificationDropdown({
           {notifications.map((notification) => (
             <li
               key={notification.id}
-              className="px-4 py-3 text-sm border-b border-slate-100 last:border-0 bg-emerald-50"
+              className="px-4 py-3 text-sm border-b border-slate-100 last:border-0 bg-blue-50"
             >
               <p className="font-medium text-slate-800">
                 {notification.message}
@@ -48,16 +48,14 @@ export default function NotificationDropdown({
                 <button
                   type="button"
                   onClick={() => handleConfirmClick(notification)}
-                  className="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-2 rounded-md transition"
+                  className="mt-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded-md transition"
                 >
                   Click to Confirm
                 </button>
               )}
 
               <p className="text-xs text-slate-400 mt-2">
-                {new Date(
-                  notification.createdAt
-                ).toLocaleString()}
+                {new Date(notification.createdAt).toLocaleString()}
               </p>
             </li>
           ))}
@@ -66,4 +64,3 @@ export default function NotificationDropdown({
     </div>
   );
 }
-

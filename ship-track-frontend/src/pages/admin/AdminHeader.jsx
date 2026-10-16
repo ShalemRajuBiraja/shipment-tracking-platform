@@ -16,10 +16,10 @@ const AdminHeader = () => {
 
       <div className="flex items-center gap-2 shrink-0">
 
-        <div className="w-9 h-9 rounded-full border-2 border-emerald-200 flex items-center justify-center">
+        <div className="w-9 h-9 rounded-full border-2 border-blue-200 flex items-center justify-center">
           <ShieldCheck
             size={19}
-            className="text-emerald-600"
+            className="text-blue-600"
           />
         </div>
 

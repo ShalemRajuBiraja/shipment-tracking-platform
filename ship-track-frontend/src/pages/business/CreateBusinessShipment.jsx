@@ -116,10 +116,10 @@ const CreateShipment = () => {
       <div className="mb-3">
         <div className="flex items-center gap-2.5">
 
-          <div className="p-2 bg-emerald-50 rounded-lg">
+          <div className="p-2 bg-blue-50 rounded-lg">
             <PackagePlus
               size={20}
-              className="text-emerald-600"
+              className="text-blue-600"
             />
           </div>
 
@@ -147,10 +147,10 @@ const CreateShipment = () => {
 
           <div className="flex items-center gap-2.5 px-3 py-3 border-b border-slate-100">
 
-            <div className="p-2 bg-emerald-50 rounded-lg">
+            <div className="p-2 bg-blue-50 rounded-lg">
               <User
                 size={18}
-                className="text-emerald-600"
+                className="text-blue-600"
               />
             </div>
 
@@ -180,7 +180,7 @@ const CreateShipment = () => {
                 value={formData.receiverName}
                 onChange={handleChange}
                 placeholder="Enter receiver name"
-                className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                 required
               />
             </div>
@@ -197,7 +197,7 @@ const CreateShipment = () => {
                 value={formData.receiverPhone}
                 onChange={handleChange}
                 placeholder="Enter phone number"
-                className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                 required
               />
             </div>
@@ -214,10 +214,10 @@ const CreateShipment = () => {
 
             <div className="flex items-center gap-2.5 px-3 py-3 border-b border-slate-100">
 
-              <div className="p-2 bg-emerald-50 rounded-lg">
+              <div className="p-2 bg-blue-50 rounded-lg">
                 <MapPin
                   size={18}
-                  className="text-emerald-600"
+                  className="text-blue-600"
                 />
               </div>
 
@@ -247,7 +247,7 @@ const CreateShipment = () => {
                   value={formData.pickupAddress}
                   onChange={handleChange}
                   placeholder="Enter complete pickup address"
-                  className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none resize-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none resize-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                   required
                 />
               </div>
@@ -266,7 +266,7 @@ const CreateShipment = () => {
                     value={formData.pickupCity}
                     onChange={handleChange}
                     placeholder="City"
-                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                     required
                   />
                 </div>
@@ -282,7 +282,7 @@ const CreateShipment = () => {
                     value={formData.pickupState}
                     onChange={handleChange}
                     placeholder="State"
-                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                     required
                   />
                 </div>
@@ -298,7 +298,7 @@ const CreateShipment = () => {
                     value={formData.pickupPincode}
                     onChange={handleChange}
                     placeholder="Pincode"
-                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                     required
                   />
                 </div>
@@ -347,7 +347,7 @@ const CreateShipment = () => {
                   value={formData.deliveryAddress}
                   onChange={handleChange}
                   placeholder="Enter complete delivery address"
-                  className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none resize-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none resize-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                   required
                 />
               </div>
@@ -366,7 +366,7 @@ const CreateShipment = () => {
                     value={formData.deliveryCity}
                     onChange={handleChange}
                     placeholder="City"
-                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                     required
                   />
                 </div>
@@ -382,7 +382,7 @@ const CreateShipment = () => {
                     value={formData.deliveryState}
                     onChange={handleChange}
                     placeholder="State"
-                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                     required
                   />
                 </div>
@@ -398,7 +398,7 @@ const CreateShipment = () => {
                     value={formData.deliveryPincode}
                     onChange={handleChange}
                     placeholder="Pincode"
-                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                    className="w-full border border-slate-200 rounded-md px-2.5 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                     required
                   />
                 </div>
@@ -449,7 +449,7 @@ const CreateShipment = () => {
                 value={formData.packageDescription}
                 onChange={handleChange}
                 placeholder="Describe the package contents"
-                className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none resize-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none resize-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
               />
             </div>
 
@@ -467,7 +467,7 @@ const CreateShipment = () => {
                 min="0.1"
                 step="0.1"
                 placeholder="Enter weight in kg"
-                className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                 required
               />
 
@@ -486,7 +486,7 @@ const CreateShipment = () => {
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-5 py-2 rounded-md text-sm font-medium transition"
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-5 py-2 rounded-md text-sm font-medium transition"
           >
 
             {loading ? (

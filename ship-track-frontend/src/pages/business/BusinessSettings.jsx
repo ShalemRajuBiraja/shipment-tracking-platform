@@ -106,10 +106,10 @@ const BusinessSettings = () => {
         {/* Header */}
         <div className="flex items-center gap-2.5 px-3 py-3 border-b border-slate-100">
 
-          <div className="p-2 bg-emerald-50 rounded-lg">
+          <div className="p-2 bg-blue-50 rounded-lg">
             <LockKeyhole
               size={19}
-              className="text-emerald-600"
+              className="text-blue-600"
             />
           </div>
 
@@ -154,7 +154,7 @@ const BusinessSettings = () => {
                   value={passwordData.currentPassword}
                   onChange={handlePasswordChange}
                   placeholder="Enter current password"
-                  className="w-full border border-slate-200 rounded-md px-3 py-2 pr-10 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  className="w-full border border-slate-200 rounded-md px-3 py-2 pr-10 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                   required
                 />
 
@@ -165,7 +165,7 @@ const BusinessSettings = () => {
                       !showCurrentPassword
                     )
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition"
                 >
                   {showCurrentPassword ? (
                     <EyeOff size={16} />
@@ -197,7 +197,7 @@ const BusinessSettings = () => {
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
                   placeholder="Enter new password"
-                  className="w-full border border-slate-200 rounded-md px-3 py-2 pr-10 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  className="w-full border border-slate-200 rounded-md px-3 py-2 pr-10 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                   required
                 />
 
@@ -208,7 +208,7 @@ const BusinessSettings = () => {
                       !showNewPassword
                     )
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition"
                 >
                   {showNewPassword ? (
                     <EyeOff size={16} />
@@ -240,7 +240,7 @@ const BusinessSettings = () => {
                   value={passwordData.confirmPassword}
                   onChange={handlePasswordChange}
                   placeholder="Confirm new password"
-                  className="w-full border border-slate-200 rounded-md px-3 py-2 pr-10 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  className="w-full border border-slate-200 rounded-md px-3 py-2 pr-10 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                   required
                 />
 
@@ -251,7 +251,7 @@ const BusinessSettings = () => {
                       !showConfirmPassword
                     )
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition"
                 >
                   {showConfirmPassword ? (
                     <EyeOff size={16} />
@@ -276,7 +276,7 @@ const BusinessSettings = () => {
 
             <button
               type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-md text-sm font-medium transition"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium transition"
             >
               Update Password
             </button>

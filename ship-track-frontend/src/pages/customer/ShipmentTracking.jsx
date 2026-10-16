@@ -34,7 +34,6 @@ const ShipmentTracking = () => {
 
   const navigate = useNavigate();
 
-
   // STATES
   const [shipment, setShipment] = useState(null);
   const [location, setLocation] = useState(null);
@@ -44,18 +43,20 @@ const [routeInfo, setRouteInfo] = useState(null);
   const [etaInfo, setEtaInfo] =
     useState(null);
 
+  const [delayPrediction, setDelayPrediction] =
+    useState(null);
+
   const [deliveryForecast, setDeliveryForecast] =
     useState(null);
 
-  const [delayPrediction, setDelayPrediction] =
-    useState(null);
+  const [forecastLoading, setForecastLoading] =
+    useState(false);
 
   const [loading, setLoading] =
     useState(true);
 
   const [mapLoading, setMapLoading] =
     useState(false);
-
 
   // =========================================================
   // FORMAT TRAVEL TIME
@@ -79,7 +80,6 @@ const [routeInfo, setRouteInfo] = useState(null);
     const minutes =
       totalMinutes % 60;
 
-
     if (
       hours > 0 &&
       minutes > 0
@@ -87,15 +87,12 @@ const [routeInfo, setRouteInfo] = useState(null);
       return `${hours}h ${minutes}m`;
     }
 
-
     if (hours > 0) {
       return `${hours}h`;
     }
 
-
     return `${minutes}m`;
   };
-
 
   // =========================================================
   // FORMAT DISTANCE
@@ -115,7 +112,6 @@ const [routeInfo, setRouteInfo] = useState(null);
     ).toFixed(2)} km`;
   };
 
-
   // =========================================================
   // GET DELIVERY ADDRESS
   // =========================================================
@@ -132,7 +128,6 @@ const [routeInfo, setRouteInfo] = useState(null);
       ""
     );
   };
-
 
   // =========================================================
   // FETCH SHIPMENT DATA
@@ -153,7 +148,6 @@ const [routeInfo, setRouteInfo] = useState(null);
       return;
     }
 
-
     const fetchShipmentData =
       async () => {
 
@@ -163,7 +157,6 @@ const [routeInfo, setRouteInfo] = useState(null);
 
           setMapLoading(true);
 
-
           // Reset tracking information
 
           setLocation(null);
@@ -172,12 +165,9 @@ const [routeInfo, setRouteInfo] = useState(null);
 
           setEtaInfo(null);
 
-          setDeliveryForecast(null);
-
           setDelayPrediction(null);
 
           setEncodedPolyline(null);
-
 
           // =====================================================
           // 1. GET SHIPMENT DETAILS
@@ -187,7 +177,6 @@ const [routeInfo, setRouteInfo] = useState(null);
             await trackShipmentApi(
               trackingNumber
             );
-
 
           if (
             shipmentResponse.data?.success !==
@@ -204,10 +193,8 @@ const [routeInfo, setRouteInfo] = useState(null);
             return;
           }
 
-
           const shipmentData =
             shipmentResponse.data?.data;
-
 
           if (!shipmentData) {
 
@@ -220,7 +207,6 @@ const [routeInfo, setRouteInfo] = useState(null);
             return;
           }
 
-
           // =====================================================
           // SAVE SHIPMENT DATA
           // =====================================================
@@ -228,7 +214,6 @@ const [routeInfo, setRouteInfo] = useState(null);
           setShipment(
             shipmentData
           );
-
 
           // =====================================================
           // CHECK DELIVERY STATUS
@@ -246,7 +231,6 @@ const [routeInfo, setRouteInfo] = useState(null);
               "DELIVERED" ||
             shipmentData?.status ===
               "DELIVERED";
-
 
           // =====================================================
           // DELIVERED SHIPMENT
@@ -270,15 +254,12 @@ const [routeInfo, setRouteInfo] = useState(null);
 
             setEtaInfo(null);
 
-            setDeliveryForecast(null);
-
             setDelayPrediction(null);
 
             setEncodedPolyline(null);
 
             return;
           }
-
 
           // =====================================================
           // ACTIVE SHIPMENT
@@ -295,10 +276,8 @@ const [routeInfo, setRouteInfo] = useState(null);
                 trackingNumber
               );
 
-
             const locationData =
               locationResponse.data?.data;
-
 
             if (!locationData) {
 
@@ -313,7 +292,6 @@ const [routeInfo, setRouteInfo] = useState(null);
               setLocation(
                 locationData
               );
-
 
               // =================================================
               // CHECK COORDINATES
@@ -330,7 +308,6 @@ const [routeInfo, setRouteInfo] = useState(null);
                   null
               ) {
 
-
                 // ===============================================
                 // 3. GET PLANNED ROUTE
                 // ===============================================
@@ -340,10 +317,8 @@ const [routeInfo, setRouteInfo] = useState(null);
                   const routeOrigin =
                     `${locationData.pickupLatitude},${locationData.pickupLongitude}`;
 
-
                   const routeDestination =
                     `${locationData.deliveryLatitude},${locationData.deliveryLongitude}`;
-
 
                   const routeResponse =
                     await getShipmentRoute(
@@ -351,12 +326,10 @@ const [routeInfo, setRouteInfo] = useState(null);
                       routeDestination
                     );
 
-
                   const route =
                     routeResponse.data
                       ?.data
                       ?.routes?.[0];
-
 
                   // =============================================
                   // SAVE ROUTE INFORMATION
@@ -388,7 +361,6 @@ const [routeInfo, setRouteInfo] = useState(null);
 
                   }
 
-
                   // =============================================
                   // GET BLUE POLYLINE
                   // =============================================
@@ -397,7 +369,6 @@ const [routeInfo, setRouteInfo] = useState(null);
                     route
                       ?.polyline
                       ?.encodedPolyline;
-
 
                   if (polyline) {
 
@@ -417,7 +388,6 @@ const [routeInfo, setRouteInfo] = useState(null);
 
                   }
 
-
                   // =============================================
                   // 4. GET ETA
                   // =============================================
@@ -429,7 +399,6 @@ const [routeInfo, setRouteInfo] = useState(null);
                         shipmentData
                       );
 
-
                     if (
                       deliveryAddress
                     ) {
@@ -440,7 +409,6 @@ const [routeInfo, setRouteInfo] = useState(null);
                           locationData.pickupLongitude,
                           deliveryAddress
                         );
-
 
                       if (
                         etaResponse.data
@@ -485,50 +453,33 @@ const [routeInfo, setRouteInfo] = useState(null);
 
                   }
 
-
                   // =============================================
                   // 5. GET DELIVERY FORECAST
                   // =============================================
 
                   try {
+                    setForecastLoading(true);
 
                     const forecastResponse =
                       await getShipmentDeliveryForecast(
                         trackingNumber
                       );
 
+                    // Supports either a direct DTO or a wrapped { data: ... } response.
+                    const forecastData =
+                      forecastResponse.data?.data ??
+                      forecastResponse.data;
 
-                    if (
-                      forecastResponse.data
-                    ) {
-
-                      setDeliveryForecast(
-                        forecastResponse.data
-                      );
-
-                    } else {
-
-                      setDeliveryForecast(
-                        null
-                      );
-
-                    }
-
-                  } catch (
-                    forecastError
-                  ) {
-
+                    setDeliveryForecast(forecastData || null);
+                  } catch (forecastError) {
                     console.error(
                       "Error fetching delivery forecast:",
                       forecastError
                     );
-
-                    setDeliveryForecast(
-                      null
-                    );
-
+                    setDeliveryForecast(null);
+                  } finally {
+                    setForecastLoading(false);
                   }
-
 
                   // =============================================
                   // 6. GET DELAY PREDICTION
@@ -540,7 +491,6 @@ const [routeInfo, setRouteInfo] = useState(null);
                       await getShipmentDelayPrediction(
                         trackingNumber
                       );
-
 
                     if (
                       delayResponse.data
@@ -669,11 +619,9 @@ const [routeInfo, setRouteInfo] = useState(null);
 
       };
 
-
     fetchShipmentData();
 
   }, [trackingNumber]);
-
 
   // =========================================================
   // LOADING
@@ -685,7 +633,7 @@ const [routeInfo, setRouteInfo] = useState(null);
 
       <div className="flex min-h-[60vh] flex-col items-center justify-center p-8">
 
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
 
         <p className="mt-4 text-sm font-medium text-slate-600">
           Retrieving shipment information...
@@ -695,7 +643,6 @@ const [routeInfo, setRouteInfo] = useState(null);
 
     );
   }
-
 
   // =========================================================
   // SHIPMENT NOT FOUND
@@ -713,11 +660,9 @@ const [routeInfo, setRouteInfo] = useState(null);
 
         </div>
 
-
         <h2 className="text-xl font-bold text-slate-800">
           Shipment Unreachable
         </h2>
-
 
         <p className="mt-2 text-sm text-slate-500">
 
@@ -731,12 +676,11 @@ const [routeInfo, setRouteInfo] = useState(null);
 
         </p>
 
-
         <button
           onClick={() =>
             navigate(-1)
           }
-          className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow"
+          className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow"
         >
 
           <ArrowLeft className="h-4 w-4" />
@@ -750,7 +694,6 @@ const [routeInfo, setRouteInfo] = useState(null);
     );
 
   }
-
 
   // =========================================================
   // NORMALIZE FOR TRACKING PROGRESS
@@ -766,7 +709,6 @@ const [routeInfo, setRouteInfo] = useState(null);
 
   };
 
-
   // =========================================================
   // CHECK DELIVERY STATUS
   // =========================================================
@@ -776,7 +718,6 @@ const [routeInfo, setRouteInfo] = useState(null);
       "DELIVERED" ||
     shipment?.status ===
       "DELIVERED";
-
 
   // =========================================================
   // DELAY STATUS
@@ -788,7 +729,6 @@ const [routeInfo, setRouteInfo] = useState(null);
       ?.toLowerCase()
       .includes("delay");
 
-
   // =========================================================
   // PAGE
   // =========================================================
@@ -796,7 +736,6 @@ const [routeInfo, setRouteInfo] = useState(null);
   return (
 
     <div className="mx-auto max-w-7xl space-y-6 pb-12">
-
 
       {/* =====================================================
           HEADER
@@ -810,7 +749,7 @@ const [routeInfo, setRouteInfo] = useState(null);
             onClick={() =>
               navigate(-1)
             }
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 hover:shadow active:scale-[0.98]"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow active:scale-[0.98]"
           >
 
             <ArrowLeft className="h-4 w-4" />
@@ -821,7 +760,6 @@ const [routeInfo, setRouteInfo] = useState(null);
 
         </div>
 
-
         <div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -830,7 +768,6 @@ const [routeInfo, setRouteInfo] = useState(null);
               Shipment Tracking
             </h1>
 
-
             <span className="rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700">
 
               #{trackingNumber}
@@ -838,7 +775,6 @@ const [routeInfo, setRouteInfo] = useState(null);
             </span>
 
           </div>
-
 
           <p className="mt-1 text-sm text-slate-500">
 
@@ -852,7 +788,6 @@ const [routeInfo, setRouteInfo] = useState(null);
 
       </div>
 
-
       {/* =====================================================
           SHIPMENT DETAILS
       ====================================================== */}
@@ -865,34 +800,31 @@ const [routeInfo, setRouteInfo] = useState(null);
 
       </div>
 
-
       {/* =====================================================
           DELIVERED SHIPMENT
       ====================================================== */}
 
       {isDelivered ? (
 
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
 
               <CheckCircle2
-                className="h-5 w-5 text-emerald-600"
+                className="h-5 w-5 text-blue-600"
               />
 
             </div>
 
-
             <div>
 
-              <h2 className="text-base font-bold text-emerald-800">
+              <h2 className="text-base font-bold text-blue-800">
                 Shipment Delivered
               </h2>
 
-
-              <p className="mt-1 text-sm text-emerald-700">
+              <p className="mt-1 text-sm text-blue-700">
 
                 This shipment has been successfully delivered.
                 Live route tracking is no longer active.
@@ -907,13 +839,11 @@ const [routeInfo, setRouteInfo] = useState(null);
 
       ) : (
 
-
         /* ===================================================
            ACTIVE SHIPMENT TRACKING
         ==================================================== */
 
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
-
 
           {/* =================================================
               MAP & ROUTE TELEMETRY
@@ -921,9 +851,7 @@ const [routeInfo, setRouteInfo] = useState(null);
 
           <div className="space-y-6 lg:col-span-2">
 
-
             <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-
 
               {/* MAP HEADER */}
 
@@ -931,12 +859,11 @@ const [routeInfo, setRouteInfo] = useState(null);
 
                 <div className="flex items-center gap-2.5">
 
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
 
                     <Navigation className="h-4 w-4" />
 
                   </div>
-
 
                   <div>
 
@@ -952,16 +879,15 @@ const [routeInfo, setRouteInfo] = useState(null);
 
                 </div>
 
-
                 {location && (
 
-                  <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-xs font-semibold text-emerald-700">
+                  <div className="flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 px-3 py-1 text-xs font-semibold text-blue-700">
 
                     <span className="relative flex h-2 w-2">
 
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
 
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
 
                     </span>
 
@@ -973,14 +899,12 @@ const [routeInfo, setRouteInfo] = useState(null);
 
               </div>
 
-
               {/* QUICK METRICS */}
 
               {!mapLoading &&
                 location && (
 
                   <div className="grid grid-cols-1 divide-y divide-slate-100 border-b border-slate-100 bg-white sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-
 
                     {/* DISTANCE */}
 
@@ -992,13 +916,11 @@ const [routeInfo, setRouteInfo] = useState(null);
 
                       </div>
 
-
                       <div>
 
                         <span className="block text-xs font-medium uppercase tracking-wider text-slate-500">
                           Distance
                         </span>
-
 
                         <span className="text-base font-bold text-slate-900">
 
@@ -1014,7 +936,6 @@ const [routeInfo, setRouteInfo] = useState(null);
 
                     </div>
 
-
                     {/* TRANSIT TIME */}
 
                     <div className="flex items-center gap-3.5 p-4">
@@ -1025,13 +946,11 @@ const [routeInfo, setRouteInfo] = useState(null);
 
                       </div>
 
-
                       <div>
 
                         <span className="block text-xs font-medium uppercase tracking-wider text-slate-500">
                           Est. Transit Time
                         </span>
-
 
                         <span className="text-base font-bold text-slate-900">
 
@@ -1048,26 +967,23 @@ const [routeInfo, setRouteInfo] = useState(null);
 
                     </div>
 
-
                     {/* ETA */}
 
-                    <div className="flex items-center gap-3.5 bg-emerald-50/30 p-4">
+                    <div className="flex items-center gap-3.5 bg-blue-50/30 p-4">
 
-                      <div className="rounded-xl bg-emerald-100 p-2.5 text-emerald-700">
+                      <div className="rounded-xl bg-blue-100 p-2.5 text-blue-700">
 
                         <TrendingUp className="h-5 w-5" />
 
                       </div>
 
-
                       <div>
 
-                        <span className="block text-xs font-medium uppercase tracking-wider text-emerald-800">
+                        <span className="block text-xs font-medium uppercase tracking-wider text-blue-800">
                           Estimated Arrival
                         </span>
 
-
-                        <span className="text-base font-bold text-emerald-700">
+                        <span className="text-base font-bold text-blue-700">
 
                           {etaInfo?.estimatedArrival ||
                             "Calculating..."}
@@ -1082,7 +998,6 @@ const [routeInfo, setRouteInfo] = useState(null);
 
                 )}
 
-
               {/* MAP CANVAS */}
 
               <div className="bg-slate-50 p-4">
@@ -1091,7 +1006,7 @@ const [routeInfo, setRouteInfo] = useState(null);
 
                   <div className="flex h-[380px] w-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white">
 
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-600" />
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
 
                     <p className="mt-3 text-xs font-medium text-slate-500">
                       Loading Google Map view...
@@ -1151,271 +1066,80 @@ const [routeInfo, setRouteInfo] = useState(null);
 
             </section>
 
-
             {/* =================================================
                 PREDICTIVE INSIGHTS
             ================================================== */}
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-
-
-              {/* DELIVERY FORECAST */}
-
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-
-                <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
-
-                  <div className="rounded-lg bg-blue-50 p-2 text-blue-600">
-
-                    <CheckCircle2 className="h-4 w-4" />
-
-                  </div>
-
-
-                  <h2 className="text-sm font-bold text-slate-900">
-                    Delivery Forecast
-                  </h2>
-
-                </div>
-
-
-                {deliveryForecast ? (
-
-                  <div className="mt-4 space-y-3">
-
-                    <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-
-                      <span className="text-xs font-medium text-slate-500">
-                        Status
-                      </span>
-
-
-                      <span className="text-xs font-bold text-slate-800">
-
-                        {deliveryForecast.currentStatus ||
-                          deliveryForecast.status ||
-                          "N/A"}
-
-                      </span>
-
-                    </div>
-
-
-                    <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-
-                      <span className="text-xs font-medium text-slate-500">
-                        Forecast Target
-                      </span>
-
-
-                      <span className="text-xs font-bold text-emerald-600">
-
-                        {deliveryForecast.forecastedDelivery
-                          ? new Date(
-                              deliveryForecast.forecastedDelivery
-                            ).toLocaleString(
-                              [],
-                              {
-                                dateStyle:
-                                  "short",
-
-                                timeStyle:
-                                  "short",
-                              }
-                            )
-                          : "N/A"}
-
-                      </span>
-
-                    </div>
-
-
-                    <div className="grid grid-cols-2 gap-2">
-
-                      <div className="rounded-xl border border-slate-100 p-2.5 text-center">
-
-                        <span className="block text-[11px] text-slate-400">
-                          Est. Distance
-                        </span>
-
-
-                        <span className="text-xs font-bold text-slate-700">
-
-                          {deliveryForecast.distanceMeters !=
-                          null
-                            ? formatDistance(
-                                deliveryForecast.distanceMeters
-                              )
-                            : "N/A"}
-
-                        </span>
-
-                      </div>
-
-
-                      <div className="rounded-xl border border-slate-100 p-2.5 text-center">
-
-                        <span className="block text-[11px] text-slate-400">
-                          Est. Time
-                        </span>
-
-
-                        <span className="text-xs font-bold text-slate-700">
-
-                          {deliveryForecast.travelTimeMinutes !=
-                          null
-                            ? formatTravelTime(
-                                deliveryForecast.travelTimeMinutes *
-                                  60
-                              )
-                            : "N/A"}
-
-                        </span>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                ) : (
-
-                  <p className="mt-6 text-center text-xs text-slate-400">
-                    Delivery forecast telemetry unavailable.
-                  </p>
-
-                )}
-
-              </section>
-
+            <div className="grid grid-cols-1 gap-6">
 
               {/* DELAY ASSESSMENT */}
 
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-
-                  <div className="flex items-center gap-2.5">
-
-                    <div
-                      className={`rounded-lg p-2 ${
-                        isDelayed
-                          ? "bg-amber-50 text-amber-600"
-                          : "bg-emerald-50 text-emerald-600"
-                      }`}
-                    >
-
-                      <AlertTriangle className="h-4 w-4" />
-
-                    </div>
-
-
-                    <h2 className="text-sm font-bold text-slate-900">
-                      Delay Assessment
-                    </h2>
-
+              {/* DELIVERY FORECAST */}
+              <section className="w-full max-w-xl rounded-2xl border border-blue-200 bg-gradient-to-br from-white via-white to-sky-50 p-4 shadow-sm">
+                <div className="flex items-center gap-3 border-b border-blue-100 pb-3">
+                  <div className="rounded-lg bg-blue-100 p-2 text-blue-700">
+                    <TrendingUp className="h-4 w-4" />
                   </div>
-
-
-                  {delayPrediction && (
-
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                        isDelayed
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-emerald-100 text-emerald-800"
-                      }`}
-                    >
-
-                      {isDelayed
-                        ? "Risk Flagged"
-                        : "On Schedule"}
-
-                    </span>
-
-                  )}
-
+                  <div>
+                    <h2 className="text-sm font-bold text-slate-900">
+                      Delivery Forecast
+                    </h2>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      Estimated delivery based on current route information
+                    </p>
+                  </div>
+                  <span className="ml-auto rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-700">
+                    {forecastLoading
+                      ? "Calculating"
+                      : deliveryForecast?.forecast === "DELIVERED"
+                      ? "Delivered"
+                      : deliveryForecast?.forecast === "EXPECTED"
+                      ? "Expected"
+                      : "Forecast"}
+                  </span>
                 </div>
 
-
-                {delayPrediction ? (
-
-                  <div className="mt-4 space-y-3">
-
-                    <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-
-                      <span className="text-xs font-medium text-slate-500">
-                        Prediction Model
-                      </span>
-
-
-                      <span className="text-xs font-bold text-slate-800">
-
-                        {delayPrediction.prediction ||
-                          "N/A"}
-
-                      </span>
-
-                    </div>
-
-
-                    <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3">
-
-                      <span className="text-xs font-medium text-slate-500">
-                        Estimated Variance
-                      </span>
-
-
-                      <span
-                        className={`text-xs font-bold ${
-                          isDelayed
-                            ? "text-amber-600"
-                            : "text-slate-800"
-                        }`}
-                      >
-
-                        {delayPrediction.delayMinutes !=
-                        null
-                          ? `+${delayPrediction.delayMinutes} mins`
-                          : "0 mins"}
-
-                      </span>
-
-                    </div>
-
-
-                    <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-3">
-
-                      <span className="block text-[11px] font-semibold uppercase text-slate-400">
-                        Analysis Note
-                      </span>
-
-
-                      <p className="mt-1 text-xs leading-relaxed text-slate-600">
-
-                        {delayPrediction.message ||
-                          "No operational warnings logged for current trajectory."}
-
+                <div className="mt-4 rounded-xl border border-blue-100 bg-white/90 p-4">
+                  {forecastLoading ? (
+                    <div className="flex items-center gap-3">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-100 border-t-blue-600" />
+                      <p className="text-sm font-medium text-slate-600">
+                        Calculating delivery forecast...
                       </p>
-
                     </div>
+                  ) : deliveryForecast?.message ? (
+                    <p className="text-sm font-semibold leading-6 text-slate-800">
+                      {deliveryForecast.message}
+                    </p>
+                  ) : (
+                    <p className="text-sm leading-6 text-slate-500">
+                      Delivery forecast is currently unavailable.
+                    </p>
+                  )}
 
-                  </div>
-
-                ) : (
-
-                  <p className="mt-6 text-center text-xs text-slate-400">
-                    Delay prediction models unavailable.
-                  </p>
-
-                )}
-
+                  {deliveryForecast?.forecastedDeliveryTime && (
+                    <p className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500">
+                      Estimated arrival:{" "}
+                      <span className="font-semibold text-blue-700">
+                        {new Date(
+                          Number(deliveryForecast.forecastedDeliveryTime)
+                        ).toLocaleString("en-IN", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </p>
+                  )}
+                </div>
               </section>
 
             </div>
 
           </div>
-
 
           {/* =================================================
               TRACKING TIMELINE
@@ -1432,7 +1156,6 @@ const [routeInfo, setRouteInfo] = useState(null);
                 </h2>
 
               </div>
-
 
               <div className="p-5">
 

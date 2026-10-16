@@ -5,6 +5,7 @@ import {
   Package,
   Search,
   Eye,
+  Loader2,
 } from "lucide-react";
 
 import { getShipmentHistoryApi } from "../../services/shipmentService";
@@ -76,14 +77,14 @@ const ShipmentHistory = () => {
   const getStatusStyle = (status) => {
 
     if (status === "DELIVERED") {
-      return "bg-emerald-100 text-emerald-700";
+      return "cd-chip--green";
     }
 
     if (status === "CANCELLED") {
-      return "bg-red-100 text-red-600";
+      return "cd-chip--red";
     }
 
-    return "bg-slate-100 text-slate-600";
+    return "cd-chip--slate";
 
   };
 
@@ -111,8 +112,9 @@ const ShipmentHistory = () => {
   if (loading) {
 
     return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-sm text-slate-500">
+      <div className="cd-loading">
+        <Loader2 size={22} className="cd-spin" />
+        <p>
           Loading shipment history...
         </p>
       </div>
@@ -123,30 +125,27 @@ const ShipmentHistory = () => {
 
   return (
 
-    <div className="w-full">
+    <div className="cd-wide">
 
 
       {/* ================= PAGE HEADER ================= */}
 
-      <div className="flex items-center gap-3 mb-6">
+      <div className="cd-pagetitle cd-pagetitle--icon">
 
-        <div className="w-12 h-12 rounded-lg bg-emerald-50 flex items-center justify-center">
+        <span className="cd-card__badge cd-card__badge--solid cd-card__badge--lg">
 
-          <Package
-            size={24}
-            className="text-emerald-600"
-          />
+          <Package size={24} />
 
-        </div>
+        </span>
 
 
         <div>
 
-          <h1 className="text-2xl font-bold text-slate-800">
+          <h1>
             Shipment History
           </h1>
 
-          <p className="text-sm text-slate-500 mt-1">
+          <p>
             View your completed and cancelled shipments.
           </p>
 
@@ -157,21 +156,21 @@ const ShipmentHistory = () => {
 
       {/* ================= TABLE CONTAINER ================= */}
 
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="cd-card cd-card--table">
 
 
         {/* ================= TABLE TOP ================= */}
 
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 px-6 py-5 border-b border-slate-200">
+        <div className="cd-tabletop">
 
 
           <div>
 
-            <h2 className="text-lg font-semibold text-slate-800">
+            <h2>
               All History
             </h2>
 
-            <p className="text-sm text-slate-500 mt-1">
+            <p>
               Total shipments: {filteredShipments.length}
             </p>
 
@@ -180,12 +179,9 @@ const ShipmentHistory = () => {
 
           {/* ================= SEARCH ================= */}
 
-          <div className="relative w-full md:w-80">
+          <div className="cd-searchbox">
 
-            <Search
-              size={20}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
+            <Search size={18} />
 
             <input
               type="text"
@@ -194,7 +190,6 @@ const ShipmentHistory = () => {
                 setSearchTerm(e.target.value)
               }
               placeholder="Search shipment..."
-              className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
             />
 
           </div>
@@ -204,50 +199,30 @@ const ShipmentHistory = () => {
 
         {/* ================= TABLE ================= */}
 
-        <div className="overflow-x-auto">
+        <div className="cd-table-wrap">
 
-          <table className="w-full min-w-[950px]">
+          <table className="cd-table">
 
 
             {/* ================= TABLE HEAD ================= */}
 
-            <thead className="bg-slate-50 border-b border-slate-200">
+            <thead>
 
               <tr>
 
-                <th className="px-4 py-4 text-left text-sm font-semibold text-slate-500">
-                  Shipment ID
-                </th>
+                <th>Shipment ID</th>
 
+                <th>Tracking Number</th>
 
-                <th className="px-4 py-4 text-left text-sm font-semibold text-slate-500">
-                  Tracking Number
-                </th>
+                <th>Sender</th>
 
+                <th>Route</th>
 
-                <th className="px-4 py-4 text-left text-sm font-semibold text-slate-500">
-                  Sender
-                </th>
+                <th>Status</th>
 
+                <th>Date</th>
 
-                <th className="px-4 py-4 text-left text-sm font-semibold text-slate-500">
-                  Route
-                </th>
-
-
-                <th className="px-4 py-4 text-left text-sm font-semibold text-slate-500">
-                  Status
-                </th>
-
-
-                <th className="px-4 py-4 text-left text-sm font-semibold text-slate-500">
-                  Date
-                </th>
-
-
-                <th className="px-4 py-4 text-center text-sm font-semibold text-slate-500">
-                  Action
-                </th>
+                <th className="is-center">Action</th>
 
               </tr>
 
@@ -264,7 +239,7 @@ const ShipmentHistory = () => {
 
                   <td
                     colSpan="7"
-                    className="text-center py-10 text-sm text-slate-500"
+                    className="cd-table__empty"
                   >
                     No shipment history found.
                   </td>
@@ -275,17 +250,14 @@ const ShipmentHistory = () => {
 
                 filteredShipments.map((shipment) => (
 
-                  <tr
-                    key={shipment.id}
-                    className="border-b border-slate-100 hover:bg-slate-50 transition"
-                  >
+                  <tr key={shipment.id}>
 
 
                     {/* SHIPMENT ID */}
 
-                    <td className="px-4 py-4">
+                    <td>
 
-                      <span className="text-sm font-semibold text-emerald-700">
+                      <span className="cd-table__id">
                         #{shipment.id}
                       </span>
 
@@ -294,9 +266,9 @@ const ShipmentHistory = () => {
 
                     {/* TRACKING NUMBER */}
 
-                    <td className="px-4 py-4">
+                    <td>
 
-                      <span className="text-sm font-semibold text-slate-700">
+                      <span className="cd-table__strong">
                         {shipment.trackingNumber}
                       </span>
 
@@ -305,7 +277,7 @@ const ShipmentHistory = () => {
 
                     {/* SENDER */}
 
-                    <td className="px-4 py-4 text-sm text-slate-600">
+                    <td>
 
                       {shipment.senderName || "-"}
 
@@ -314,9 +286,9 @@ const ShipmentHistory = () => {
 
                     {/* ROUTE */}
 
-                    <td className="px-4 py-4 text-sm text-slate-600 max-w-[280px]">
+                    <td className="cd-table__route">
 
-                      <span className="truncate block">
+                      <span>
 
                         {shipment.pickupCity}
                         {" → "}
@@ -329,10 +301,10 @@ const ShipmentHistory = () => {
 
                     {/* STATUS */}
 
-                    <td className="px-4 py-4">
+                    <td>
 
                       <span
-                        className={`px-4 py-1.5 rounded-full text-xs font-semibold ${getStatusStyle(
+                        className={`cd-chip ${getStatusStyle(
                           shipment.status
                         )}`}
                       >
@@ -346,24 +318,26 @@ const ShipmentHistory = () => {
 
                     {/* DATE */}
 
-                    <td className="px-4 py-4 text-sm text-slate-500">
+                    <td className="cd-table__muted">
 
                       {formatDate(shipment.updatedAt)}
 
                     </td>
 
-                  {/* ACTION */}
 
-                  <td className="px-4 py-4 text-center">
-                    <button
-                      onClick={() =>
-                        navigate(`/customer/shipment/${shipment.trackingNumber}`)
-                      }
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-100 transition"
-                    >
-                      View Details
-                    </button>
-                  </td>
+                    {/* ACTION */}
+
+                    <td className="is-center">
+                      <button
+                        onClick={() =>
+                          navigate(`/customer/shipment/${shipment.trackingNumber}`)
+                        }
+                        className="cd-link"
+                      >
+                        View Details
+                      </button>
+                    </td>
+
                   </tr>
 
                 ))
@@ -379,7 +353,7 @@ const ShipmentHistory = () => {
       </div>
 
 
-      <footer className="text-center text-xs text-slate-500 py-5">
+      <footer className="cd-footer">
         © 2026 QuickShip. All rights reserved.
       </footer>
 

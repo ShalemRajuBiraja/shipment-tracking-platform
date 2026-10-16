@@ -122,11 +122,11 @@ const BusinessDashboard = () => {
 
                 </div>
 
-                <div className="rounded-lg bg-emerald-50 p-2">
+                <div className="rounded-lg bg-blue-50 p-2">
 
                   <Icon
                     size={22}
-                    className="text-emerald-600"
+                    className="text-blue-600"
                   />
 
                 </div>
@@ -196,7 +196,7 @@ const BusinessDashboard = () => {
                     className="border-t border-slate-100 hover:bg-slate-50"
                   >
 
-                    <td className="px-5 py-4 font-medium text-emerald-600">
+                    <td className="px-5 py-4 font-medium text-blue-600">
                       {shipment.trackingNumber}
                     </td>
 

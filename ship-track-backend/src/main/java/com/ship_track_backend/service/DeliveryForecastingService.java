@@ -1,3 +1,4 @@
+
 package com.ship_track_backend.service;
 
 import java.time.LocalDateTime;
@@ -80,6 +81,27 @@ public class DeliveryForecastingService {
                 shipment.getStatus().name()
         );
 
+        // ================= CHECK DELIVERED STATUS =================
+
+        if (shipment.getStatus().name().equals("DELIVERED")) {
+
+            response.setForecast("DELIVERED");
+
+            response.setMessage(
+                    "Shipment has already been delivered."
+            );
+
+            System.out.println(
+                    "Shipment is already DELIVERED."
+            );
+
+            System.out.println(
+                    "Skipping ETA calculation."
+            );
+
+            return response;
+        }
+
         // ================= GET CURRENT LOCATION =================
 
         ShipmentLocationEntity currentLocation =
@@ -129,19 +151,26 @@ public class DeliveryForecastingService {
 
         System.out.println("========================================");
         System.out.println("DELIVERY FORECAST ETA DEBUG");
-        System.out.println("Tracking Number: " + trackingNumber);
+
+        System.out.println(
+                "Tracking Number: " + trackingNumber
+        );
+
         System.out.println(
                 "Current Latitude: " +
                 currentLocation.getLatitude()
         );
+
         System.out.println(
                 "Current Longitude: " +
                 currentLocation.getLongitude()
         );
+
         System.out.println(
                 "Destination: " +
                 destination
         );
+
         System.out.println("========================================");
 
         // ================= CALCULATE ETA =================
@@ -280,50 +309,77 @@ public class DeliveryForecastingService {
                 distanceMeters
         );
 
-        // ================= FORECAST RESULT =================
+        // ================= FORECAST RESULT IN DAYS =================
 
-        if (
-                shipment.getStatus().name().equals("DELIVERED")
-        ) {
+        response.setForecast("EXPECTED");
 
-            response.setForecast("DELIVERED");
+        long estimatedDays =
+                (long) Math.ceil(durationSeconds / 86400.0);
 
-            response.setMessage(
-                    "Shipment has already been delivered."
-            );
+        String forecastMessage;
+
+        if (durationSeconds <= 0) {
+
+            forecastMessage =
+                    "Shipment is expected to be delivered today.";
+
+        } else if (estimatedDays == 1) {
+
+            forecastMessage =
+                    "Shipment is expected to be delivered in 1 day.";
 
         } else {
 
-            response.setForecast("EXPECTED");
-
-            response.setMessage(
-                    "Shipment is currently expected to be delivered based on its current location and route."
-            );
+            forecastMessage =
+                    "Shipment is expected to be delivered in "
+                    + estimatedDays
+                    + " days.";
         }
+
+        response.setMessage(forecastMessage);
+
+        System.out.println(
+                "Delivery Forecast Message: " +
+                forecastMessage
+        );
 
         // ================= FINAL DEBUG =================
 
         System.out.println("========================================");
         System.out.println("DELIVERY FORECAST SUCCESS");
-        System.out.println("Tracking Number: " + trackingNumber);
+
+        System.out.println(
+                "Tracking Number: " + trackingNumber
+        );
+
         System.out.println(
                 "Travel Time Minutes: " +
                 travelTimeMinutes
         );
+
         System.out.println(
                 "Distance KM: " +
                 distanceKm
         );
+
         System.out.println(
                 "Distance Meters: " +
                 distanceMeters
         );
+
+        System.out.println(
+                "Estimated Delivery Days: " +
+                estimatedDays
+        );
+
         System.out.println(
                 "Forecast: " +
                 response.getForecast()
         );
+
         System.out.println("========================================");
 
         return response;
     }
 }
+

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "react-toastify";
 import {
@@ -7,6 +6,41 @@ import {
   EyeOff,
 } from "lucide-react";
 import { updatePasswordApi } from "../../services/authService";
+
+/* Defined outside Settings so inputs never lose focus while typing */
+const PasswordField = ({
+  label,
+  name,
+  value,
+  onChange,
+  placeholder,
+  visible,
+  onToggle,
+}) => (
+  <div className="cd-field">
+    <label>{label}</label>
+
+    <div className="cd-field__wrap">
+      <input
+        type={visible ? "text" : "password"}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        required
+      />
+
+      <button
+        type="button"
+        onClick={onToggle}
+        className="cd-field__eye"
+        aria-label={visible ? "Hide password" : "Show password"}
+      >
+        {visible ? <EyeOff size={17} /> : <Eye size={17} />}
+      </button>
+    </div>
+  </div>
+);
 
 const Settings = () => {
   const [passwordData, setPasswordData] = useState({
@@ -82,208 +116,80 @@ const Settings = () => {
   };
 
   return (
-    <div className="p-3 max-w-md">
+    <div className="cd-narrow">
 
       {/* Page Header */}
-      <div className="mb-3">
-
-        <h1 className="text-lg font-bold text-slate-800">
-          Settings
-        </h1>
-
-        <p className="text-xs text-slate-500 mt-0.5">
-          Manage your account security settings.
-        </p>
-
+      <div className="cd-pagetitle">
+        <h1>Settings</h1>
+        <p>Manage your account security settings.</p>
       </div>
 
       {/* Password Settings */}
-      <section className="bg-white border border-slate-200 rounded-lg shadow-sm">
+      <section className="cd-card">
 
         {/* Card Header */}
-        <div className="flex items-center gap-2.5 px-3 py-3 border-b border-slate-100">
+        <div className="cd-card__head cd-card__head--icon">
 
-          <div className="p-2 bg-emerald-50 rounded-lg">
-            <LockKeyhole
-              size={19}
-              className="text-emerald-600"
-            />
-          </div>
+          <span className="cd-card__badge cd-card__badge--solid">
+            <LockKeyhole size={19} />
+          </span>
 
           <div>
-            <h2 className="text-sm font-semibold text-slate-800">
-              Password & Security
-            </h2>
-
-            <p className="text-xs text-slate-500 mt-0.5">
-              Update your account password
-            </p>
+            <h2>Password & Security</h2>
+            <p>Update your account password</p>
           </div>
 
         </div>
 
         {/* Password Form */}
-        <form
-          onSubmit={handlePasswordSubmit}
-          className="p-3"
-        >
+        <form onSubmit={handlePasswordSubmit} className="cd-form">
 
-          <div className="space-y-3">
+          <PasswordField
+            label="Current Password"
+            name="currentPassword"
+            value={passwordData.currentPassword}
+            onChange={handlePasswordChange}
+            placeholder="Enter current password"
+            visible={showCurrentPassword}
+            onToggle={() => setShowCurrentPassword(!showCurrentPassword)}
+          />
 
-            {/* Current Password */}
-            <div>
+          <PasswordField
+            label="New Password"
+            name="newPassword"
+            value={passwordData.newPassword}
+            onChange={handlePasswordChange}
+            placeholder="Enter new password"
+            visible={showNewPassword}
+            onToggle={() => setShowNewPassword(!showNewPassword)}
+          />
 
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                Current Password
-              </label>
+          <PasswordField
+            label="Confirm New Password"
+            name="confirmPassword"
+            value={passwordData.confirmPassword}
+            onChange={handlePasswordChange}
+            placeholder="Confirm new password"
+            visible={showConfirmPassword}
+            onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
+          />
 
-              <div className="relative">
-
-                <input
-                  type={
-                    showCurrentPassword
-                      ? "text"
-                      : "password"
-                  }
-                  name="currentPassword"
-                  value={passwordData.currentPassword}
-                  onChange={handlePasswordChange}
-                  placeholder="Enter current password"
-                  className="w-full border border-slate-200 rounded-md px-3 py-2 pr-10 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
-                  required
-                />
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowCurrentPassword(
-                      !showCurrentPassword
-                    )
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600"
-                >
-                  {showCurrentPassword ? (
-                    <EyeOff size={17} />
-                  ) : (
-                    <Eye size={17} />
-                  )}
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* New Password */}
-            <div>
-
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                New Password
-              </label>
-
-              <div className="relative">
-
-                <input
-                  type={
-                    showNewPassword
-                      ? "text"
-                      : "password"
-                  }
-                  name="newPassword"
-                  value={passwordData.newPassword}
-                  onChange={handlePasswordChange}
-                  placeholder="Enter new password"
-                  className="w-full border border-slate-200 rounded-md px-3 py-2 pr-10 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
-                  required
-                />
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowNewPassword(
-                      !showNewPassword
-                    )
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600"
-                >
-                  {showNewPassword ? (
-                    <EyeOff size={17} />
-                  ) : (
-                    <Eye size={17} />
-                  )}
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-
-              <label className="block text-xs font-medium text-slate-700 mb-1">
-                Confirm New Password
-              </label>
-
-              <div className="relative">
-
-                <input
-                  type={
-                    showConfirmPassword
-                      ? "text"
-                      : "password"
-                  }
-                  name="confirmPassword"
-                  value={passwordData.confirmPassword}
-                  onChange={handlePasswordChange}
-                  placeholder="Confirm new password"
-                  className="w-full border border-slate-200 rounded-md px-3 py-2 pr-10 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
-                  required
-                />
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowConfirmPassword(
-                      !showConfirmPassword
-                    )
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff size={17} />
-                  ) : (
-                    <Eye size={17} />
-                  )}
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* Password Requirement */}
-            <p className="text-xs text-slate-400">
-              Password must contain at least 6 characters.
-            </p>
-
-          </div>
+          {/* Password Requirement */}
+          <p className="cd-hint">
+            Password must contain at least 6 characters.
+          </p>
 
           {/* Submit */}
-          <div className="mt-4">
-
-            <button
-              type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-md text-sm font-medium transition"
-            >
-              Update Password
-            </button>
-
-          </div>
+          <button type="submit" className="cd-btn">
+            Update Password
+          </button>
 
         </form>
 
       </section>
 
       {/* Footer */}
-      <footer className="text-center text-xs text-slate-500 py-4">
+      <footer className="cd-footer">
         © 2026 QuickShip. All rights reserved.
       </footer>
 

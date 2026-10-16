@@ -82,17 +82,11 @@ public class RouteController {
  // ================= DELIVERY FORECAST =================
 
     @GetMapping("/delivery-forecast/{trackingNumber}")
-    public ResponseEntity<DeliveryForecastResponseDto> forecastDelivery(
-            @PathVariable String trackingNumber) {
+    public ResponseEntity<DeliveryForecastResponseDto> forecastDelivery(  @PathVariable String trackingNumber) {
 
-        DeliveryForecastResponseDto response =
-                deliveryForecastingService.forecastDelivery(
-                        trackingNumber
-                );
+        DeliveryForecastResponseDto response = deliveryForecastingService.forecastDelivery( trackingNumber );
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     

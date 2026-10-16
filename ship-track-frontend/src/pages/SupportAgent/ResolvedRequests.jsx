@@ -200,7 +200,7 @@ const ResolvedRequests = () => {
                       className="border-t border-slate-100 hover:bg-slate-50"
                     >
 
-                      <td className="px-5 py-4 text-sm font-medium text-emerald-600">
+                      <td className="px-5 py-4 text-sm font-medium text-blue-600">
 
                         #{request.id}
 

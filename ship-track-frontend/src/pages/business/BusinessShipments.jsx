@@ -95,10 +95,10 @@ const BusinessShipments = () => {
 
         <div className="flex items-center gap-3">
 
-          <div className="p-2 bg-emerald-50 rounded-lg">
+          <div className="p-2 bg-blue-50 rounded-lg">
             <Package
               size={22}
-              className="text-emerald-600"
+              className="text-blue-600"
             />
           </div>
 
@@ -149,7 +149,7 @@ const BusinessShipments = () => {
                 placeholder="Search shipment..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full sm:w-64 border border-slate-300 rounded-lg py-2 pl-10 pr-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                className="w-full sm:w-64 border border-slate-300 rounded-lg py-2 pl-10 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
 
             </div>
@@ -213,7 +213,7 @@ const BusinessShipments = () => {
                   >
 
                     {/* Shipment ID */}
-                    <td className="px-5 py-4 font-medium text-emerald-600">
+                    <td className="px-5 py-4 font-medium text-blue-600">
                       #{shipment.id}
                     </td>
 
@@ -273,7 +273,7 @@ const BusinessShipments = () => {
                         onClick={() =>
                           handleViewDetails(shipment.id)
                         }
-                        className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition"
+                        className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition"
                       >
                         <Eye size={16} />
 

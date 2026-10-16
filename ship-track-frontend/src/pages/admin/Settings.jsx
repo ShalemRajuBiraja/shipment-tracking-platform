@@ -124,11 +124,11 @@ const Settings = () => {
 
         <div className="flex items-center gap-2.5 px-3 py-3 border-b border-slate-100">
 
-          <div className="p-2 bg-emerald-50 rounded-lg">
+          <div className="p-2 bg-blue-50 rounded-lg">
 
             <LockKeyhole
               size={19}
-              className="text-emerald-600"
+              className="text-blue-600"
             />
 
           </div>
@@ -179,7 +179,7 @@ const Settings = () => {
                   placeholder="Enter current password"
                   value={passwordData.currentPassword}
                   onChange={handlePasswordChange}
-                  className="w-full px-3 py-2 pr-10 text-sm border border-slate-200 rounded-md outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  className="w-full px-3 py-2 pr-10 text-sm border border-slate-200 rounded-md outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                   required
                 />
 
@@ -190,7 +190,7 @@ const Settings = () => {
                       !showCurrentPassword
                     )
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition"
                 >
 
                   {showCurrentPassword ? (
@@ -226,7 +226,7 @@ const Settings = () => {
                   placeholder="Enter new password"
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
-                  className="w-full px-3 py-2 pr-10 text-sm border border-slate-200 rounded-md outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  className="w-full px-3 py-2 pr-10 text-sm border border-slate-200 rounded-md outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                   required
                 />
 
@@ -237,7 +237,7 @@ const Settings = () => {
                       !showNewPassword
                     )
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition"
                 >
 
                   {showNewPassword ? (
@@ -273,7 +273,7 @@ const Settings = () => {
                   placeholder="Confirm new password"
                   value={passwordData.confirmPassword}
                   onChange={handlePasswordChange}
-                  className="w-full px-3 py-2 pr-10 text-sm border border-slate-200 rounded-md outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-100"
+                  className="w-full px-3 py-2 pr-10 text-sm border border-slate-200 rounded-md outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
                   required
                 />
 
@@ -284,7 +284,7 @@ const Settings = () => {
                       !showConfirmPassword
                     )
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-600 transition"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition"
                 >
 
                   {showConfirmPassword ? (
@@ -315,7 +315,7 @@ const Settings = () => {
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-md text-sm font-medium transition"
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium transition"
             >
 
               <LockKeyhole size={16} />

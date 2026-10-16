@@ -1,5 +1,13 @@
 
 import { useState, useEffect } from "react";
+import {
+  Search,
+  Package,
+  Truck,
+  CircleCheck,
+  Loader2,
+  Inbox,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import DashboardHeader from "./DashboardHeader";
 import RecentShipments from "./RecentShipments";
@@ -283,22 +291,41 @@ const CustomerDashboard = () => {
   };
 
 
+  // Display-only counts for the stat cards
+  const inTransitCount = recentShipments.filter(
+    (item) => item.currentStatus === "IN_TRANSIT"
+  ).length;
+
+  const deliveredCount = recentShipments.filter(
+    (item) => item.currentStatus === "DELIVERED"
+  ).length;
+
+
   return (
 
     <>
 
-      <DashboardHeader />
-
-
       {/* Tracking Search */}
-      <section className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 md:p-5 mb-4">
+      <section className="cd-hero">
 
-        <h2 className="text-lg font-bold text-slate-800 mb-4">
-          Track Your Shipment
-        </h2>
+        <div className="cd-hero__text">
+
+          <p className="cd-eyebrow">Shipment tracking</p>
+
+          <h2>Track Your Shipment</h2>
+
+          <p>
+            Enter your tracking number to see the latest status of your package.
+          </p>
+
+        </div>
 
 
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="cd-search">
+
+          <span className="cd-search__icon">
+            <Search size={18} />
+          </span>
 
           <input
             type="text"
@@ -307,26 +334,78 @@ const CustomerDashboard = () => {
               setTrackingNumber(e.target.value)
             }
             placeholder="Enter Tracking Number (e.g., TRK1234567890)"
-            className="flex-1 px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            className="cd-search__input"
           />
 
 
           <button
             onClick={() => handleTrackShipment()}
             disabled={loading}
-            className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-semibold px-6 py-2.5 rounded-lg transition"
+            className="cd-search__btn"
           >
 
-            {loading
-              ? "Tracking..."
-              : "Track Shipment"
-            }
+            {loading ? (
+              <>
+                <Loader2 size={17} className="cd-spin" />
+                Tracking...
+              </>
+            ) : (
+              "Track Shipment"
+            )}
 
           </button>
 
         </div>
 
       </section>
+
+
+      {/* Quick Stats */}
+      <section className="cd-stats">
+
+        <div className="cd-stat">
+          <span className="cd-stat__icon cd-stat__icon--indigo">
+            <Package size={20} />
+          </span>
+          <div>
+            <p>Recently tracked</p>
+            <strong>{recentShipments.length}</strong>
+          </div>
+        </div>
+
+        <div className="cd-stat">
+          <span className="cd-stat__icon cd-stat__icon--amber">
+            <Truck size={20} />
+          </span>
+          <div>
+            <p>In transit</p>
+            <strong>{inTransitCount}</strong>
+          </div>
+        </div>
+
+        <div className="cd-stat">
+          <span className="cd-stat__icon cd-stat__icon--green">
+            <CircleCheck size={20} />
+          </span>
+          <div>
+            <p>Delivered</p>
+            <strong>{deliveredCount}</strong>
+          </div>
+        </div>
+
+      </section>
+
+
+      {/* Empty state */}
+      {recentShipments.length === 0 && (
+        <section className="cd-empty">
+          <span className="cd-empty__icon">
+            <Inbox size={26} />
+          </span>
+          <h3>No recent shipments yet</h3>
+          <p>Track a shipment above and it will show up here for 24 hours.</p>
+        </section>
+      )}
 
 
       {/* Recent Shipments */}
@@ -336,7 +415,7 @@ const CustomerDashboard = () => {
 
 
       {/* Footer */}
-      <footer className="text-center text-xs text-slate-500 py-5">
+      <footer className="cd-footer">
 
         © 2026 QuickShip. All rights reserved.
 

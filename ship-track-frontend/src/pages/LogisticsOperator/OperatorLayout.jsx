@@ -1,66 +1,56 @@
 import { Outlet } from "react-router-dom";
 import { UserRound } from "lucide-react";
 import OperatorSidebar from "./OperatorSidebar";
+import OperatorNotificationBell from "./OperatorNotificationBell";
+import "./OperatorDashboard.css";
 
 const OperatorLayout = () => {
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="op">
 
       {/* Persistent Sidebar */}
       <OperatorSidebar />
 
+      {/* Global Operator Header */}
+      <header className="op-header">
 
-      {/* Main Content */}
-      <main className="flex-1 ml-0 lg:ml-64">
+        {/* Left - Title */}
+        <div className="op-header__title">
+          <h1>
+            Operator Dashboard
+          </h1>
 
-        {/* Global Operator Header */}
-        <header className="border-b border-slate-200 bg-white px-4 py-3 md:px-5">
+          <p>
+            Overview of your assigned shipments.
+          </p>
+        </div>
 
-          <div className="flex items-center justify-between gap-4">
+        {/* Right - Notifications + Profile */}
+        <div className="op-header__right">
 
-            {/* Left - Title */}
-            <div className="min-w-0">
+          {/* Operator Notifications */}
+          <OperatorNotificationBell />
 
-              <h1 className="truncate text-lg font-bold text-slate-800 sm:text-xl">
-                Operator Dashboard
-              </h1>
+          {/* Profile */}
+          <div className="op-profile">
+            <span className="op-profile__avatar">
+              <UserRound size={19} />
+            </span>
 
-              <p className="mt-0.5 truncate text-xs text-slate-500 sm:text-sm">
-                Overview of your assigned shipments.
-              </p>
-
-            </div>
-
-
-            {/* Right - Profile */}
-            <div className="flex shrink-0 items-center gap-2.5">
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-emerald-300">
-
-                <UserRound
-                  size={22}
-                  strokeWidth={1.8}
-                  className="text-emerald-600"
-                />
-
-              </div>
-
-              <span className="hidden text-sm font-medium text-slate-800 sm:block">
-                Logistics Operator
-              </span>
-
-            </div>
-
+            <span className="op-profile__name">
+              Logistics Operator
+            </span>
           </div>
 
-        </header>
+        </div>
 
+      </header>
 
-        {/* Changing Content Area */}
-        <main className="p-4 md:p-5">
+      {/* Changing Content Area */}
+      <main className="op-main">
+        <div className="op-main__inner">
           <Outlet />
-        </main>
-
+        </div>
       </main>
 
     </div>

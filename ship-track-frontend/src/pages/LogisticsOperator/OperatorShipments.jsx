@@ -6,6 +6,7 @@ import {
   MapPin,
   Eye,
   UserRound,
+  Loader2,
 } from "lucide-react";
 import { getAllOperatorShipments } from "../../services/operatorService";
 
@@ -56,25 +57,25 @@ const OperatorShipments = () => {
   const getStatusStyle = (status) => {
     switch (status) {
       case "DELIVERED":
-        return "bg-green-100 text-green-700";
+        return "op-chip--green";
 
       case "IN_TRANSIT":
-        return "bg-blue-100 text-blue-700";
+        return "op-chip--blue";
 
       case "CREATED":
-        return "bg-amber-100 text-amber-700";
+        return "op-chip--amber";
 
       case "PICKED_UP":
-        return "bg-purple-100 text-purple-700";
+        return "op-chip--purple";
 
       case "OUT_FOR_DELIVERY":
-        return "bg-orange-100 text-orange-700";
+        return "op-chip--orange";
 
       case "CANCELLED":
-        return "bg-red-100 text-red-700";
+        return "op-chip--red";
 
       default:
-        return "bg-slate-100 text-slate-700";
+        return "op-chip--slate";
     }
   };
 
@@ -91,80 +92,76 @@ const OperatorShipments = () => {
 
   if (loading) {
     return (
-      <div className="p-4 text-sm text-slate-500">
-        Loading shipments...
+      <div className="op-loading">
+        <Loader2 size={22} className="op-spin" />
+        <p>
+          Loading shipments...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
+    <div className="op-wide">
 
       {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="op-pagetitle op-pagetitle--icon">
+
+        <span className="op-card__badge op-card__badge--solid op-card__badge--lg">
+          <Package size={24} />
+        </span>
 
         {/* Left */}
         <div>
-          <h1 className="text-xl font-bold text-slate-800">
+          <h1>
             My Shipments
           </h1>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p>
             View and manage all shipments.
           </p>
         </div>
 
-
       </div>
 
-
       {/* Summary Card */}
-      <div className="inline-flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-5 py-3 shadow-sm">
+      <div className="op-stat op-stat--inline">
 
-        <div className="rounded-lg bg-emerald-50 p-2">
-          <Package
-            size={22}
-            className="text-emerald-600"
-          />
-        </div>
+        <span className="op-stat__icon op-stat__icon--indigo">
+          <Package size={22} />
+        </span>
 
         <div>
-          <p className="text-xs text-slate-500">
+          <p>
             Total Shipments
           </p>
 
-          <p className="text-lg font-semibold text-slate-800">
+          <strong>
             {shipments.length}
-          </p>
+          </strong>
         </div>
 
       </div>
 
-
       {/* Shipments Table Card */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="op-card op-card--table">
 
         {/* Card Header */}
-        <div className="flex flex-col gap-4 border-b border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="op-tabletop">
 
           <div>
-            <h2 className="font-semibold text-slate-800">
+            <h2>
               Shipment List
             </h2>
 
-            <p className="mt-1 text-xs text-slate-500">
+            <p>
               Monitor and manage all shipments in the system.
             </p>
           </div>
 
-
           {/* Search */}
-          <div className="relative w-full sm:w-64">
-
-            <Search
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
+          <div className="op-searchbox">
+            <Search size={18} />
 
             <input
               type="text"
@@ -173,162 +170,122 @@ const OperatorShipments = () => {
               onChange={(event) =>
                 setSearchTerm(event.target.value)
               }
-              className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm outline-none transition focus:border-emerald-500"
             />
-
           </div>
 
         </div>
 
-
         {/* Table */}
-        <div className="overflow-x-auto">
+        <div className="op-table-wrap">
 
-          <table className="w-full min-w-[900px]">
+          <table className="op-table">
 
-            <thead className="border-b border-slate-200 bg-slate-50">
-
+            <thead>
               <tr>
-
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500">
+                <th>
                   Tracking Number
                 </th>
 
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500">
+                <th>
                   Sender
                 </th>
 
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500">
+                <th>
                   Receiver
                 </th>
 
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500">
+                <th>
                   Route
                 </th>
 
-                <th className="px-5 py-3 text-left text-xs font-semibold text-slate-500">
+                <th>
                   Status
                 </th>
 
-                <th className="px-5 py-3 text-center text-xs font-semibold text-slate-500">
+                <th className="is-center">
                   Action
                 </th>
-
               </tr>
-
             </thead>
 
-
             <tbody>
-
               {filteredShipments.map((shipment) => (
+                <tr key={shipment.id}>
 
-                <tr
-                  key={shipment.id}
-                  className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
-                >
-
-                  <td className="px-5 py-4 text-sm font-semibold text-emerald-600">
-                    {shipment.trackingNumber}
+                  <td>
+                    <span className="op-table__id">
+                      {shipment.trackingNumber}
+                    </span>
                   </td>
 
-
-                  <td className="px-5 py-4 text-sm text-slate-700">
+                  <td>
                     {shipment.senderName}
                   </td>
 
-
-                  <td className="px-5 py-4 text-sm text-slate-700">
+                  <td>
                     {shipment.receiverName}
                   </td>
 
-
-                  <td className="px-5 py-4">
-
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-
-                      <MapPin
-                        size={16}
-                        className="text-emerald-600"
-                      />
+                  <td>
+                    <div className="op-route">
+                      <MapPin size={16} />
 
                       <span>
                         {shipment.pickupCity}
                       </span>
 
-                      <span className="text-slate-400">
+                      <span className="op-route__arrow">
                         →
                       </span>
 
                       <span>
                         {shipment.deliveryCity}
                       </span>
-
                     </div>
-
                   </td>
 
-
-                  <td className="px-5 py-4">
-
+                  <td>
                     <span
-                      className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getStatusStyle(
+                      className={`op-chip ${getStatusStyle(
                         shipment.status
                       )}`}
                     >
                       {formatStatus(shipment.status)}
                     </span>
-
                   </td>
 
-
                   {/* View Details */}
-                  <td className="px-5 py-4 text-center">
-
+                  <td className="is-center">
                     <button
                       onClick={() =>
                         handleViewDetails(shipment.id)
                       }
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-medium text-emerald-600 transition hover:bg-emerald-50"
+                      className="op-link"
                     >
                       <Eye size={15} />
-
                       View Details
                     </button>
-
                   </td>
 
                 </tr>
-
               ))}
-
             </tbody>
 
           </table>
 
-
           {/* Empty State */}
           {filteredShipments.length === 0 && (
+            <div className="op-tableempty">
+              <Package size={35} />
 
-            <div className="py-10 text-center">
-
-              <Package
-                size={35}
-                className="mx-auto text-slate-300"
-              />
-
-              <p className="mt-3 text-sm text-slate-500">
+              <p>
                 No shipments found.
               </p>
-
             </div>
-
           )}
 
         </div>
-
       </div>
-
     </div>
   );
 };

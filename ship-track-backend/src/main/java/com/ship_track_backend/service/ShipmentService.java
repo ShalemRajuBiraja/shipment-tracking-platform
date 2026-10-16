@@ -46,6 +46,8 @@ public class ShipmentService {
     private AuthRepository authRepository;
     @Autowired
     private GeocodeService geoCodeService;
+    @Autowired
+    private NotificationService notificationService;
 
     
     private String generateTrackingNumber() {
@@ -106,6 +108,7 @@ public class ShipmentService {
         shipment.setDeliveredAt(LocalDateTime.now());
         shipment.setUpdatedAt( LocalDateTime.now());
         shipment.setTrackingNumber( generateTrackingNumber());
+        
         UserEntity operator = userRepository
                 .findByRole(Role.LOGISTICS_OPERATOR)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -117,7 +120,13 @@ public class ShipmentService {
 
         ShipmentEntity savedShipment = shipmentRepository.save(shipment);
 
-        
+     // Notify Logistics Operator
+        notificationService.createNotification(
+                operator,
+                savedShipment,
+                "New shipment " + savedShipment.getTrackingNumber()
+                        + " has been created and assigned to you."
+        );
         
 
         // ================= INITIAL TRACKING HISTORY =================

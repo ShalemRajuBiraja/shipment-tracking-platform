@@ -1,74 +1,81 @@
-import Card from "../../../components/ui/Card";
+import { useNavigate } from "react-router-dom";
+import Icon from "./Icon";
 
 const services = [
   {
     title: "Shipment Management",
     description:
       "Create, organize, and manage shipment details from a centralized platform.",
-    icon: "▣",
+    icon: "grid",
   },
   {
     title: "Shipment Tracking",
     description:
       "Track shipments using a unique tracking number and view their current status.",
-    icon: "↗",
+    icon: "trend",
   },
   {
     title: "Delivery Management",
     description:
       "Monitor delivery progress and keep important shipment information organized.",
-    icon: "✓",
+    icon: "check",
   },
   {
     title: "Shipment Insights",
     description:
       "Get a clear overview of shipment activity and delivery progress.",
-    icon: "▥",
+    icon: "chart",
   },
 ];
 
 const ServicesSection = () => {
+  const navigate = useNavigate();
+
   return (
-    <section
-      id="services"
-      className="bg-white py-16 sm:py-20 lg:py-24"
-    >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-emerald-600">
-            Our Services
-          </p>
+    <section id="services" className="hm-section">
+      <div className="hm-container">
+        <div className="hm-services">
+          <div className="hm-services__intro hm-reveal">
+            <p className="hm-eyebrow">Our Services</p>
+            <h2>Everything in one shipment platform</h2>
+            <p>
+              Manage the essential parts of your shipment journey through one
+              simple and organized platform.
+            </p>
+          </div>
 
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Everything in one shipment platform
-          </h2>
-
-          <p className="mt-4 text-base leading-7 text-slate-600">
-            Manage the essential parts of your shipment journey through one
-            simple and organized platform.
-          </p>
+          <div className="hm-services__grid">
+            {services.map((service, index) => (
+              <article
+                key={service.title}
+                className="hm-service hm-reveal"
+                style={{ "--d": `${index * 80}ms` }}
+              >
+                <span className="hm-service__num">0{index + 1}</span>
+                <span className="hm-card__icon">
+                  <Icon name={service.icon} />
+                </span>
+                <h3>{service.title}</h3>
+                <p>{service.description}</p>
+              </article>
+            ))}
+          </div>
         </div>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {services.map((service) => (
-            <Card
-              key={service.title}
-              hover
-              className="h-full"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-100 text-lg font-bold text-emerald-600">
-                {service.icon}
-              </div>
-
-              <h3 className="mt-5 text-lg font-semibold text-slate-900">
-                {service.title}
-              </h3>
-
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {service.description}
-              </p>
-            </Card>
-          ))}
+        {/* Call to action */}
+        <div className="hm-cta hm-reveal">
+          <div>
+            <h3>Ready to track your first shipment?</h3>
+            <p>Create your free account and see every delivery in one place.</p>
+          </div>
+          <button
+            type="button"
+            className="hm-btn hm-btn--light hm-btn--lg"
+            onClick={() => navigate("/auth/register")}
+          >
+            Get Started
+            <Icon name="arrow" size={18} />
+          </button>
         </div>
       </div>
     </section>

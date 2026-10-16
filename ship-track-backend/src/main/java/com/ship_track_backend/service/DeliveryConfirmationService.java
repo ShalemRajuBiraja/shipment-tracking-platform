@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.ship_track_backend.entity.DeliveryConfirmationEntity;
 import com.ship_track_backend.entity.ShipmentEntity;
 import com.ship_track_backend.entity.UserEntity;
+import com.ship_track_backend.enums.Role;
 import com.ship_track_backend.enums.ShipmentStatus;
 import com.ship_track_backend.pojo.DeliveryConfirmationResponseDto;
 import com.ship_track_backend.pojo.DeliveryImageRequest;
@@ -97,8 +98,7 @@ public class DeliveryConfirmationService {
 
     // ================= FINAL CONFIRM DELIVERY =================
 
-    public DeliveryConfirmationResponseDto confirmDelivery(
-            String trackingNumber) {
+    public DeliveryConfirmationResponseDto confirmDelivery( String trackingNumber) {
 
         DeliveryConfirmationEntity confirmation =
                 deliveryConfirmationRepository
@@ -139,10 +139,10 @@ public class DeliveryConfirmationService {
                         new RuntimeException(
                                 "Customer not found"));
 
-        if (!confirmation.getCustomer().getId().equals(customer.getId())) {
-
-            throw new RuntimeException( "You are not authorized to confirm this delivery");
-        }
+//        if (!confirmation.getCustomer().getId().equals(customer.getId())) {
+//
+//            throw new RuntimeException( "You are not authorized to confirm this delivery");
+//        }
 
         // Final confirmation
      // Final confirmation
@@ -344,15 +344,12 @@ public class DeliveryConfirmationService {
                 .getAuthentication()
                 .getName();
 
-        UserEntity customer = userRepository
+        UserEntity user = userRepository
                 .findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException(
-                                "Customer not found"));
+                        new RuntimeException("User not found"));
 
-        if (!confirmation.getCustomer().getId()
-                .equals(customer.getId())) {
-
+        if (user.getRole() != Role.LOGISTICS_OPERATOR) {
             throw new RuntimeException(
                     "You are not authorized to save this delivery image");
         }

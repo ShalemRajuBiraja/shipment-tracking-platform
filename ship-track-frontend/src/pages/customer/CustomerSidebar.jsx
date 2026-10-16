@@ -2,6 +2,7 @@ import {
   Truck,
   LayoutDashboard,
   PackageCheck,
+  PackagePlus,
   Settings,
   LogOut,
   Headphones,
@@ -29,6 +30,11 @@ const CustomerSidebar = () => {
       path: "/customer/shipment-history",
     },
     {
+      name: "Create Shipment",
+      icon: PackagePlus,
+      path: "/customer/create-shipment",
+    },
+    {
       name: "Settings",
       icon: Settings,
       path: "/customer/settings",
@@ -37,7 +43,7 @@ const CustomerSidebar = () => {
       name: "Support",
       icon: Headphones,
       path: "/customer/support",
-    }
+    },
   ];
 
   const handleLogout = () => {
@@ -63,82 +69,59 @@ const CustomerSidebar = () => {
   return (
     <>
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-emerald-950 flex items-center justify-between px-4 z-50 shadow-md">
-
-        <div className="flex items-center gap-2">
-          <Truck size={26} className="text-emerald-400" />
-
-          <span className="text-white font-bold text-lg">
-            QuickShip
+      <div className="cd-topbar">
+        <div className="cd-brand">
+          <span className="cd-brand__logo">
+            <Truck size={20} />
           </span>
+          <span className="cd-brand__name">QuickShip</span>
         </div>
 
         <button
           onClick={() => setIsOpen(true)}
-          className="text-white p-2 hover:bg-emerald-900 rounded-lg transition"
+          className="cd-iconbtn cd-iconbtn--light"
+          aria-label="Open menu"
         >
           <Menu size={24} />
         </button>
-
       </div>
-
 
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          className="cd-overlay"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-
       {/* Sidebar */}
-      <aside
-        className={`fixed left-0 top-0 h-screen w-64 bg-emerald-950 text-white flex flex-col z-50 transition-transform duration-300
-        ${
-          isOpen
-            ? "translate-x-0"
-            : "-translate-x-full lg:translate-x-0"
-        }`}
-      >
-
+      <aside className={`cd-sidebar ${isOpen ? "is-open" : ""}`}>
         {/* Logo */}
-        <div className="px-5 py-5 flex items-center justify-between">
-
-          <div className="flex items-center gap-3">
-
-            <Truck
-              size={30}
-              className="text-emerald-400"
-            />
+        <div className="cd-sidebar__head">
+          <div className="cd-brand">
+            <span className="cd-brand__logo">
+              <Truck size={22} />
+            </span>
 
             <div>
-              <h1 className="text-xl font-bold">
-                QuickShip
-              </h1>
-
-              <p className="text-xs text-emerald-200 mt-0.5">
-                Customer Dashboard
-              </p>
+              <h1 className="cd-brand__name">QuickShip</h1>
+              <p className="cd-brand__sub">Customer Dashboard</p>
             </div>
-
           </div>
-
 
           {/* Mobile Close Button */}
           <button
             onClick={() => setIsOpen(false)}
-            className="lg:hidden p-2 hover:bg-emerald-900 rounded-lg"
+            className="cd-iconbtn cd-iconbtn--light cd-sidebar__close"
+            aria-label="Close menu"
           >
             <X size={22} />
           </button>
-
         </div>
 
-
         {/* Navigation */}
-        <nav className="px-3 space-y-1">
-
+        <p className="cd-nav__label">Menu</p>
+        <nav className="cd-nav">
           {menuItems.map((item) => {
             const Icon = item.icon;
 
@@ -148,54 +131,25 @@ const CustomerSidebar = () => {
                 to={item.path}
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
-                  `w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-                    isActive
-                      ? "bg-emerald-600 shadow-md"
-                      : "hover:bg-emerald-900"
-                  }`
+                  `cd-nav__item ${isActive ? "is-active" : ""}`
                 }
               >
-                <Icon size={20} />
-
-                <span className="text-sm font-medium">
-                  {item.name}
-                </span>
-
+                <Icon size={19} />
+                <span>{item.name}</span>
               </NavLink>
             );
           })}
-
         </nav>
 
-
         {/* Bottom Section */}
-        <div className="mt-auto p-4">
-
-          <div className="border-t border-emerald-800 mb-4" />
-
-
-          {/* Compact Support */}
-
-
+        <div className="cd-sidebar__foot">
+         
           {/* Logout */}
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg
-            text-red-300 hover:text-white
-            hover:bg-red-500/20
-            border border-red-500/20
-            hover:border-red-400/40
-            transition-all duration-200"
-          >
-            <LogOut size={20} />
-
-            <span className="text-sm font-semibold">
-              Logout
-            </span>
+          <button onClick={handleLogout} className="cd-logout">
+            <LogOut size={19} />
+            <span>Logout</span>
           </button>
-
         </div>
-
       </aside>
     </>
   );

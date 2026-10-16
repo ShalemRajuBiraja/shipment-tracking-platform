@@ -1,15 +1,12 @@
-import { 
-  Truck, 
-  LayoutDashboard, 
-  Package, 
-  Search, 
-  BarChart3,
-  Settings, 
-  LogOut, 
-  Menu, 
-  X, 
-  Headphones, 
-  LifeBuoy   
+import {
+  Truck,
+  Package,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+  Headphones,
+  LifeBuoy,
 } from "lucide-react";
 
 import { NavLink, useNavigate } from "react-router-dom";
@@ -26,16 +23,16 @@ const OperatorSidebar = () => {
       icon: Package,
       path: "/logistics-operator/shipments",
     },
-     { 
-    name: "Settings", 
-    icon: Settings, 
-    path: "/logistics-operator/settings", 
-  },
-  {
-  name: "Support",
-  icon: LifeBuoy,   // <-- was Support
-  path: "/logistics-operator/support",
-},
+    {
+      name: "Settings",
+      icon: Settings,
+      path: "/logistics-operator/settings",
+    },
+    {
+      name: "Support",
+      icon: LifeBuoy,
+      path: "/logistics-operator/support",
+    },
   ];
 
   // Logout
@@ -62,84 +59,60 @@ const OperatorSidebar = () => {
   return (
     <>
       {/* ================= MOBILE HEADER ================= */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-emerald-950 flex items-center justify-between px-4 z-50 shadow-md">
-
-        <div className="flex items-center gap-2">
-          <Truck
-            size={26}
-            className="text-emerald-400"
-          />
-
-          <span className="text-white font-bold text-lg">
-            QuickShip
+      <div className="op-topbar">
+        <div className="op-brand">
+          <span className="op-brand__logo">
+            <Truck size={20} />
           </span>
+          <span className="op-brand__name">QuickShip</span>
         </div>
 
         <button
           onClick={() => setIsOpen(true)}
-          className="text-white p-2 hover:bg-emerald-900 rounded-lg transition"
+          className="op-iconbtn op-iconbtn--light"
+          aria-label="Open menu"
         >
           <Menu size={24} />
         </button>
-
       </div>
-
 
       {/* ================= MOBILE OVERLAY ================= */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          className="op-overlay"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-
       {/* ================= SIDEBAR ================= */}
-      <aside
-        className={`fixed left-0 top-0 h-screen w-64 bg-emerald-950 text-white flex flex-col z-50 transition-transform duration-300 ${
-          isOpen
-            ? "translate-x-0"
-            : "-translate-x-full lg:translate-x-0"
-        }`}
-      >
+      <aside className={`op-sidebar ${isOpen ? "is-open" : ""}`}>
 
         {/* ================= LOGO ================= */}
-        <div className="px-5 py-5 flex items-center justify-between">
-
-          <div className="flex items-center gap-3">
-
-            <Truck
-              size={30}
-              className="text-emerald-400"
-            />
+        <div className="op-sidebar__head">
+          <div className="op-brand">
+            <span className="op-brand__logo">
+              <Truck size={22} />
+            </span>
 
             <div>
-              <h1 className="text-xl font-bold">
-                QuickShip
-              </h1>
-
-              <p className="text-xs text-emerald-200 mt-0.5">
-                Logistics Operator
-              </p>
+              <h1 className="op-brand__name">QuickShip</h1>
+              <p className="op-brand__sub">Logistics Operator</p>
             </div>
-
           </div>
-
 
           {/* Mobile Close Button */}
           <button
             onClick={() => setIsOpen(false)}
-            className="lg:hidden p-2 hover:bg-emerald-900 rounded-lg"
+            className="op-iconbtn op-iconbtn--light op-sidebar__close"
+            aria-label="Close menu"
           >
             <X size={22} />
           </button>
-
         </div>
 
-
         {/* ================= NAVIGATION ================= */}
-        <nav className="px-3 space-y-1">
-
+        <p className="op-nav__label">Menu</p>
+        <nav className="op-nav">
           {menuItems.map((item) => {
             const Icon = item.icon;
 
@@ -149,57 +122,28 @@ const OperatorSidebar = () => {
                 to={item.path}
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
-                  `w-full flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-                    isActive
-                      ? "bg-emerald-600 shadow-md"
-                      : "hover:bg-emerald-900"
-                  }`
+                  `op-nav__item ${isActive ? "is-active" : ""}`
                 }
               >
-                <Icon size={20} />
-
-                <span className="text-sm font-medium">
-                  {item.name}
-                </span>
-
+                <Icon size={19} />
+                <span>{item.name}</span>
               </NavLink>
             );
           })}
-
         </nav>
 
-
         {/* ================= BOTTOM SECTION ================= */}
-        <div className="mt-auto px-4 pb-5">
+        <div className="op-sidebar__foot">
 
-          {/* Divider */}
-          <div className="border-t border-emerald-800 mb-5" />
-
-
-         {/* Need Help Section */}
-          
+         
 
           {/* Logout */}
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-7 py-4 rounded-xl
-            text-red-300 hover:text-white
-            hover:bg-red-500/20
-            border border-red-500/30
-            hover:border-red-400/50
-            transition-all duration-200"
-          >
-
-            <LogOut size={25} />
-
-            <span className="text-lg font-semibold">
-              Logout
-            </span>
-
+          <button onClick={handleLogout} className="op-logout">
+            <LogOut size={19} />
+            <span>Logout</span>
           </button>
 
         </div>
-
       </aside>
     </>
   );
